@@ -6,8 +6,7 @@ namespace BigProject.Common.Managers
 {
     public enum Scenes
     {
-        TestScene1,
-        TestScene2
+        MainScene
     }
 
     public class SceneLoader : Singleton<SceneLoader>
