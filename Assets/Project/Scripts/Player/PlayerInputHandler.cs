@@ -1,4 +1,4 @@
-using BigProject.Interactive;
+using BigProject.Intercatable;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,13 +10,15 @@ namespace BigProject.Player
         [SerializeField] private float _maxRayDistance = 1000f;
 
         private Camera _camera;
-        private void Awake()
+        private PlayerController _playerController;
+        private void Start()
         {
             _camera = GetComponent<Camera>();
             if (_camera == null)
             {
                 _camera = Camera.main;
             }
+            _playerController = GetComponent<PlayerController>();
         }
         private void Update()
         {
@@ -36,19 +38,11 @@ namespace BigProject.Player
             if (Physics.Raycast(ray, out RaycastHit hit, _maxRayDistance))
             {
                 Debug.Log($"Попал в: {hit.collider.name}");
-                Debug.Log($"Координаты в пространстве: {hit.point}");
-                IInteractive interactiveObject = hit.collider.GetComponent<IInteractive>();
-                if (interactiveObject != null)
-                {
-                    // Попали в объект, с которым можно взаимодействовать
-                    if (interactiveObject.RequiresProximity())
-                    {
-                        // Нужно подойти к объекту прежде чем взаимодействовать
-                        Debug.Log("Пока что так");
-                    }
-                    // Позже, взаимодействие должно осуществляться в другом месте - скрипте игрока. Пока что здесь
-                    interactiveObject.OnInteract();
-                }
+                _playerController.SetDestination(hit.point);
+
+                // Передаем интерактивный объект игроку
+                IInteractable interactableObject = hit.collider.GetComponent<IInteractable>();
+                _playerController.SetInterableObject(interactableObject);
             }
         }
     }
