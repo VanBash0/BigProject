@@ -6,12 +6,29 @@ namespace BigProject.Common.Managers
 {
     public enum Scenes
     {
-        MainScene
+        MainScene,
+        TestScene1,
+        TestScene2
     }
 
-    public class SceneLoader : Singleton<SceneLoader>
+    public class SceneLoader : MonoBehaviour
     {
+        public static SceneLoader Instance;
+
         private bool _isLoading;
+
+        private void Awake()
+        {
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+
+            DontDestroyOnLoad(gameObject);
+        }
 
         public void LoadScene(Scenes sceneName)
         {
