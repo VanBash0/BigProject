@@ -1,4 +1,4 @@
-using BigProject.Intercatable;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,45 +6,93 @@ namespace BigProject.Player
 {
     public class PlayerInputHandler : MonoBehaviour
     {
-        [Header("Настройки луча")]
-        [SerializeField] private float _maxRayDistance = 1000f;
+        private InputSystemActions _inputActions;
+        
+        //Player Actions
+        public Action Click;
+        public Action OpenMap;
+        public Action OpenMenu;
 
-        private Camera _camera;
-        private PlayerController _playerController;
+        //UIActions
+        //...
+
+        //Mini-game Actions
+        public Action MiniGameClick;
+        public Action MiniGameRightClick;
+
+        private void Awake()
+        {
+            _inputActions = new InputSystemActions();
+        }
+
         private void Start()
         {
-            _camera = GetComponent<Camera>();
-            if (_camera == null)
-            {
-                _camera = Camera.main;
-            }
-            _playerController = GetComponent<PlayerController>();
+            _inputActions.Player.Enable();
+            _inputActions.UI.Enable();
+            _inputActions.MiniGame.Disable();
         }
-        private void Update()
+
+        private void OnEnable()
         {
-            if (Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                // Получаем позицию мыши из новой Input System
-                Vector2 mousePosition = Mouse.current.position.ReadValue();
-                Ray ray = _camera.ScreenPointToRay(mousePosition);
-                CastRay(ray);
-            }
-        }
+            _inputActions.Enable();
+            _inputActions.Player.Click.performed += OnClick;
+            _inputActions.Player.OpenMap.performed += OnOpenedMap;
+            _inputActions.Player.OpenMenu.performed += OnOpenedMenu;
 
-        private void CastRay(Ray ray)
+            _inputActions.MiniGame.Click.performed += OnMiniGameClick;
+            _inputActions.MiniGame.RightClick.performed += OnMiniGameRightClick;
+        }
+        private void OnDisable()
         {
-            Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 1f);
+            _inputActions.Disable();
+            _inputActions.Player.Click.performed -= OnClick;
+            _inputActions.Player.OpenMap.performed -= OnOpenedMap;
+            _inputActions.Player.OpenMenu.performed -= OnOpenedMenu;
 
-            if (Physics.Raycast(ray, out RaycastHit hit, _maxRayDistance))
-            {
-                Debug.Log($"Попал в: {hit.collider.name}");
-                _playerController.SetDestination(hit.point);
+            _inputActions.MiniGame.Click.performed -= OnMiniGameClick;
+            _inputActions.MiniGame.RightClick.performed -= OnMiniGameRightClick;
+        } 
 
-                // Передаем интерактивный объект игроку
-                IInteractable interactableObject = hit.collider.GetComponent<IInteractable>();
-                _playerController.SetInterableObject(interactableObject);
-            }
+        private void OnOpenedMenu(InputAction.CallbackContext obj)
+        {
+            OpenMenu?.Invoke();
         }
+
+        private void OnClick(InputAction.CallbackContext obj)
+        {
+            Click?.Invoke();
+        }
+
+        private void OnOpenedMap(InputAction.CallbackContext obj)
+        { 
+            OpenMap?.Invoke();
+        }
+        private void OnMiniGameClick(InputAction.CallbackContext obj)
+        {
+            MiniGameClick?.Invoke();
+        }
+
+        private void OnMiniGameRightClick(InputAction.CallbackContext obj)
+        {
+            MiniGameRightClick?.Invoke();
+        }
+
+        public void SwitchToPlayerActionMap()
+        {
+            _inputActions.Player.Enable();
+            _inputActions.MiniGame.Disable();
+        }
+
+        public void SwitchToMiniGameActionMap()
+        {
+            _inputActions.MiniGame.Enable();
+            _inputActions.Player.Disable();
+        }
+
+        public Vector2 GetMousePosition()
+        {
+            return _inputActions.UI.Point.ReadValue<Vector2>();
+        }        
     }
 }
 
