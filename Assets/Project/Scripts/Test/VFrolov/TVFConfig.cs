@@ -1,4 +1,6 @@
 using Zenject;
+using BigProject.Managers;
+using BigProject.Systems;
 
 namespace BigProject.Test.VFrolov
 {

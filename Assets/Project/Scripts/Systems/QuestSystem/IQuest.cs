@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BigProject
+namespace BigProject.Systems
 {
     /// <summary>
     /// Состояние квеста (вероятно будет 2 в итоге - активен/пройден)

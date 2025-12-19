@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace BigProject
+namespace BigProject.Systems
 {
     /// <summary>
     /// ќбработчик активности: обертка над активностью дл€ автоматизации отслеживани€ ее состо€ни€.

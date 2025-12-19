@@ -1,8 +1,9 @@
 using System;
 using UnityEngine;
 using Zenject;
+using BigProject.Managers;
 
-namespace BigProject
+namespace BigProject.Systems
 {
     /// <summary>
     /// MonoBehaviour обертка активности квеста.
@@ -22,7 +23,7 @@ namespace BigProject
         // Делегируем логику обычному обработчику.
         private IQuestActionHandler _actionHandler;
 
-        public void MakeTransition(int transitionId) => _actionHandler.MakeTransition(transitionId);  
+        public void MakeTransition(int transitionId) => _actionHandler?.MakeTransition(transitionId);  
 
         [Inject]
         private void Construct(ProgressManager progressManager)

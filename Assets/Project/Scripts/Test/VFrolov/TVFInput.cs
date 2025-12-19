@@ -2,6 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using Zenject;
+using BigProject.Managers;
 
 namespace BigProject.Test.VFrolov
 {

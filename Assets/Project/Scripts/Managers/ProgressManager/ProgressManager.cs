@@ -1,11 +1,10 @@
-using ModestTree;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
+using BigProject.Systems;
 
-namespace BigProject
+namespace BigProject.Managers
 {
     /// <summary>
     /// Менеджер прогресса, управляет игровыми квестами и фиксацией прогресса.

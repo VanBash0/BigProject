@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using BigProject.Managers;
 
-namespace BigProject
+namespace BigProject.Systems
 {
     /// <summary>
     ///  вест, забирающий данные с Json строки.

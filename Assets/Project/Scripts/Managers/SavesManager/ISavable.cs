@@ -1,4 +1,4 @@
-namespace BigProject
+namespace BigProject.Managers
 {
     /// <summary>
     /// Интерфейс для сохраняемых/загружаемых объектов. 

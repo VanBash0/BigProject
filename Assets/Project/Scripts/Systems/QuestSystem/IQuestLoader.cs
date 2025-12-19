@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace BigProject
+namespace BigProject.Systems
 {
     /// <summary>
     /// Загрузчик квестов.

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace BigProject
+namespace BigProject.Systems
 {
     public class QuestActionHandler: IQuestActionHandler
     {

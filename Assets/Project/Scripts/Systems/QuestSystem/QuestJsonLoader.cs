@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace BigProject
+namespace BigProject.Systems
 {
     /// <summary>
     /// Загрузчик json квестов.
