@@ -17,155 +17,165 @@ namespace BigProject.Managers
 
         private enum LogType
         {
-            D,
             /// <summary>
-            /// 
             /// DEBUG
             /// 
-            /// Детальная отладочная информация:
+            /// <para>Детальная отладочная информация:</para>
             /// - Максимально детальная информация
             /// - Только для разработчиков
             /// - Отключается в релизных сборках
             /// - Помогает понять поток выполнения
-            /// 
-            /// Примеры использования:
-            /// - Инициализация систем
-            /// -- [D] GameManager: Начало инициализации
-            /// -- [D] AudioSystem: Загружено 42 звуковых файла
-            /// -- [D] SaveSystem: Файл сохранения не найден, создаётся новый
-            /// - Вход/выход из методов
-            /// -- [D] PlayerController.Update(): Начало выполнения
-            /// -- [D] Inventory.AddItem(): Добавление предмета ID: 4
-            /// -- [D] QuestSystem.CompleteQuest(): Квест 'Спасение деревни' завершён
-            /// - Параметры вызовов
-            /// -- [D] AI.CalculatePath(): From: (10,0,5), To: (25,0,15), Результат: путь найден, длина: 18.7
-            /// - Состояние объектов
-            /// -- [D] Player State: Quests ended: 2/5, Items: 3/10, Position: (15.3, 0, 22.1)
-            /// - Производительность
-            /// -- [D] Frame 1245: Update: 2.3ms, Physics: 1.7ms, Rendering: 8.1ms
-            /// -- [D] Memory: Total: 512MB, Used: 387MB, Garbage: 45MB
-            /// 
             /// </summary>
-
-            I,
-            /// <summary>
             /// 
+            /// <remarks>
+            /// Примеры использования:
+            /// <list type="bullet">
+            /// <item> Инициализация систем</item>
+            /// <para>- [D] GameManager: Начало инициализации</para>
+            /// <para>- [D] AudioSystem: Загружено 42 звуковых файла</para>
+            /// <para>- [D] SaveSystem: Файл сохранения не найден, создаётся новый</para>
+            /// <item> Вход/выход из методов</item>
+            /// <para>- [D] PlayerController.Update(): Начало выполнения</para>
+            /// <para>- [D] Inventory.AddItem(): Добавление предмета ID: 4</para>
+            /// <para>- [D] QuestSystem.CompleteQuest(): Квест 'Спасение деревни' завершён</para>
+            /// <item> Параметры вызовов</item>
+            /// <para>- [D] AI.CalculatePath(): From: (10,0,5), To: (25,0,15), Результат: путь найден, длина: 18.7</para>
+            /// <item> Состояние объектов</item>
+            /// <para>- [D] Player State: Quests ended: 2/5, Items: 3/10, Position: (15.3, 0, 22.1)</para>
+            /// <item> Производительность</item>
+            /// <para>- [D] Frame 1245: Update: 2.3ms, Physics: 1.7ms, Rendering: 8.1ms</para>
+            /// <para>- [D] Memory: Total: 512MB, Used: 387MB, Garbage: 45MB</para>
+            /// </list>
+            /// </remarks>
+            D,
+
+            /// <summary>
             /// INFO
             /// 
-            /// Нормальная работа приложения:
+            /// <para>Нормальная работа приложения:</para>
             /// - Важные события нормальной работы
             /// - Полезно для всех (разработчики, тестировщики, поддержка)
             /// - Даёт общую картину работы приложения
-            /// 
-            /// Примеры использования:
-            /// - Старт/остановка приложения
-            /// -- [I] Приложение запущено. Версия: 1.2.3
-            /// -- [I] Игровая сессия начата. ID: ABC123
-            /// -- [I] Приложение завершает работу. Время сессии: 1 час 25 минут
-            /// - Загрузка ресурсов
-            /// -- [I] Загрузка сцены: 'MainMenu', Прогресс: 45%
-            /// -- [I] Ассеты загружены: 124/150 (82.6%)
-            /// -- [I] Конфигурация загружена: difficulty=Normal, language=ru_RU
-            /// - Действия игрока
-            /// -- [I] Игрок перешёл в локацию: лес
-            /// -- [I] Игрок начал квест: 2
-            /// -- [I] Игрок выполнил квест: 2
-            /// -- [I] Игрок получил предмет: инструменты
-            /// - Игровые события
-            /// -- [I] Состояние геймплея: Dialogue
-            /// - Системные события
-            /// -- [I] Автосохранение выполнено: 15:30:25, Размер: 245KB
-            /// -- [I] Язык изменён: с en_US на ru_RU
-            /// 
             /// </summary>
-
-            W,
-            /// <summary>
             /// 
+            /// <remarks>
+            /// Примеры использования:
+            /// <list type="bullet">
+            /// <item> Старт/остановка приложения</item>
+            /// <para>- [I] Приложение запущено. Версия: 1.2.3</para>
+            /// <para>- [I] Игровая сессия начата. ID: ABC123</para>
+            /// <para>- [I] Приложение завершает работу. Время сессии: 1 час 25 минут</para>
+            /// <item> Загрузка ресурсов</item>
+            /// <para>- [I] Загрузка сцены: 'MainMenu', Прогресс: 45%</para>
+            /// <para>- [I] Ассеты загружены: 124/150 (82.6%)</para>
+            /// <para>- [I] Конфигурация загружена: difficulty=Normal, language=ru_RU</para>
+            /// <item> Действия игрока</item>
+            /// <para>- [I] Игрок перешёл в локацию: лес</para>
+            /// <para>- [I] Игрок начал квест: 2</para>
+            /// <para>- [I] Игрок выполнил квест: 2</para>
+            /// <para>- [I] Игрок получил предмет: инструменты</para>
+            /// <item> Игровые события</item>
+            /// <para>- [I] Состояние геймплея: Dialogue</para>
+            /// <item> Системные события</item>
+            /// <para>- [I] Автосохранение выполнено: 15:30:25, Размер: 245KB</para>
+            /// <para>- [I] Язык изменён: с en_US на ru_RU</para>
+            /// </list>
+            /// </remarks>
+            I,
+
+            /// <summary>
             /// WARNING
             /// 
-            /// Предупреждения:
+            /// <para>Предупреждения:</para>
             /// - Потенциальные проблемы
             /// - Нестандартные ситуации, но работа продолжается
             /// - Требует мониторинга
             /// - Может указывать на дизайнерские проблемы
-            /// 
-            /// Примеры использования:
-            /// - Ресурсные проблемы
-            /// -- [W] Текстура не найдена: 'Textures/Items/instruments_icon', используется fallback
-            /// -- [W] Звуковой файл слишком большой: 'Music/epic_music.mp3' (15MB)
-            /// - Конфигурационные проблемы
-            /// -- [W] Значение конфига вне диапазона: difficulty=10 (max=5), используется 5
-            /// -- [W] Отсутствует обязательный ключ: 'player_speed', используется значение по умолчанию
-            /// -- [W] Устаревший формат файла сохранения: версия 1, текущая 3, попытка конвертации
-            /// - Игровые аномалии
-            /// -- [W] Игрок пытается использовать недоступный предмет: 'Instuments'
-            /// -- [W] Предмет не может быть добавлен: инвентарь полон (5/5)
-            /// -- [W] Игрок не может найти путь к цели: целевая точка недоступна
-            /// - Производительность
-            /// -- [W] Низкий FPS: 25 (целевой 60), сцена: 'Forest'
-            /// -- [W] Высокое использование памяти: 85%, рекомендуется оптимизация
-            /// -- [W] Долгий кадр: 67ms, причина: Physics.Update
-            /// 
             /// </summary>
-
-            E,
-            /// <summary>
             /// 
+            /// <remarks>
+            /// Примеры использования:
+            /// <list type="bullet">
+            /// <item> Ресурсные проблемы</item>
+            /// <para>- [W] Текстура не найдена: 'Textures/Items/instruments_icon', используется fallback</para>
+            /// <para>- [W] Звуковой файл слишком большой: 'Music/epic_music.mp3' (15MB)</para>
+            /// <item> Конфигурационные проблемы</item>
+            /// <para>- [W] Значение конфига вне диапазона: difficulty=10 (max=5), используется 5</para>
+            /// <para>- [W] Отсутствует обязательный ключ: 'player_speed', используется значение по умолчанию</para>
+            /// <para>- [W] Устаревший формат файла сохранения: версия 1, текущая 3, попытка конвертации</para>
+            /// <item> Игровые аномалии</item>
+            /// <para>- [W] Игрок пытается использовать недоступный предмет: 'Instuments'</para>
+            /// <para>- [W] Предмет не может быть добавлен: инвентарь полон (5/5)</para>
+            /// <para>- [W] Игрок не может найти путь к цели: целевая точка недоступна</para>
+            /// <item> Производительность</item>
+            /// <para>- [W] Низкий FPS: 25 (целевой 60), сцена: 'Forest'</para>
+            /// <para>- [W] Высокое использование памяти: 85%, рекомендуется оптимизация</para>
+            /// <para>- [W] Долгий кадр: 67ms, причина: Physics.Update</para>
+            /// </list>
+            /// </remarks>
+            W,
+
+            /// <summary>
             /// Error
             /// 
-            /// Ошибки, требующие внимания:
+            /// <para>Ошибки, требующие внимания:</para>
             /// - Фактические ошибки выполнения
             /// - Функциональность сломана или работает неправильно
             /// - Требует исправления
             /// - Влияет на пользовательский опыт
-            /// 
-            /// Примеры использования:
-            /// - Критические ресурсы не найдены
-            /// -- [E] Префаб не найден: 'Prefabs/Player/Player.prefab'
-            /// -- [E] Сцена не существует: 'Level_Forest'
-            /// -- [E] Конфигурационный файл повреждён: 'Config/game_settings.json'
-            /// - Системные ошибки
-            /// -- [E] Не удалось сохранить игру: диск переполнен
-            /// -- [E] Не удалось создать DirectX контекст: код ошибки 0x887A0004
-            /// - Логические ошибки
-            /// -- [E] Деление на ноль
-            /// -- [E] Индекс вне диапазона: inventory[6] при размере 5
-            /// -- [E] Null reference: enemy.target is null при вызове Use()
-            /// - Игровые ошибки
-            /// -- [E]  Игрок в непроходимой геометрии: position=(NaN, NaN, NaN)
-            /// -- [E]  Квест не может быть завершён: цель не существует
-            /// -- [E]  Отрицательное количество предметов: -1
-            /// - Внешние ошибки
-            /// -- [E] Обновление не удалось: недостаточно места на диске (требуется 2GB)
-            /// 
             /// </summary>
-
-            C,
-            /// <summary>
             /// 
+            /// <remarks>
+            /// Примеры использования:
+            /// <list type="bullet">
+            /// <item> Критические ресурсы не найдены</item>
+            /// <para>- [E] Префаб не найден: 'Prefabs/Player/Player.prefab'</para>
+            /// <para>- [E] Сцена не существует: 'Level_Forest'</para>
+            /// <para>- [E] Конфигурационный файл повреждён: 'Config/game_settings.json'</para>
+            /// <item> Системные ошибки</item>
+            /// <para>- [E] Не удалось сохранить игру: диск переполнен</para>
+            /// <para>- [E] Не удалось создать DirectX контекст: код ошибки 0x887A0004</para>
+            /// <item> Логические ошибки</item>
+            /// <para>- [E] Деление на ноль</para>
+            /// <para>- [E] Индекс вне диапазона: inventory[6] при размере 5</para>
+            /// <para>- [E] Null reference: enemy.target is null при вызове Use()</para>
+            /// <item> Игровые ошибки</item>
+            /// <para>- [E]  Игрок в непроходимой геометрии: position=(NaN, NaN, NaN)</para>
+            /// <para>- [E]  Квест не может быть завершён: цель не существует</para>
+            /// <para>- [E]  Отрицательное количество предметов: -1</para>
+            /// <item> Внешние ошибки</item>
+            /// <para>- [E] Обновление не удалось: недостаточно места на диске (требуется 2GB)</para>
+            /// </list>
+            /// </remarks>
+            E,
+
+            /// <summary>
             /// CRITICAL
             /// 
-            /// Критические системные сбои:
+            /// <para>Критические системные сбои:</para>
             /// - Угрожают стабильности приложения
             /// - Могут привести к крашу
             /// - Требуют немедленного внимания
             /// - Часто связаны с окружением/железом
-            /// 
-            /// Примеры использования:
-            /// - Фатальные системные ошибки
-            /// -- [C] Недостаточно памяти: запрошено 4GB, доступно 512MB
-            /// -- [C] GPU не поддерживает требуемые функции: нужен DirectX 11
-            /// -- [C] Диск только для чтения: невозможно создать файлы
-            /// - Коррупция данных
-            /// -- [C] Повреждение файла сохранения: хэш не совпадает
-            /// -- [C] Нарушение целостности игровых данных: проверка не пройдена
-            /// - Критические игровые состояния
-            /// -- [C] Игровой мир в противоречивом состоянии: существуют 2 игрока
-            /// -- [C] Экономика сломана: бесконечные квестовые предметы (overflow)
-            /// -- [C] Все NPC исчезли: счетчик = 0 при expected > 10
-            ///
             /// </summary>
+            /// 
+            /// <remarks>
+            /// Примеры использования:
+            /// <list type="bullet">
+            /// <item> Фатальные системные ошибки</item>
+            /// <para>- [C] Недостаточно памяти: запрошено 4GB, доступно 512MB</para>
+            /// <para>- [C] GPU не поддерживает требуемые функции: нужен DirectX 11</para>
+            /// <para>- [C] Диск только для чтения: невозможно создать файлы</para>
+            /// <item> Коррупция данных</item>
+            /// <para>- [C] Повреждение файла сохранения: хэш не совпадает</para>
+            /// <para>- [C] Нарушение целостности игровых данных: проверка не пройдена</para>
+            /// <item> Критические игровые состояния</item>
+            /// <para>- [C] Игровой мир в противоречивом состоянии: существуют 2 игрока</para>
+            /// <para>- [C] Экономика сломана: бесконечные квестовые предметы (overflow)</para>
+            /// <para>- [C] Все NPC исчезли: счетчик = 0 при expected > 10</para>
+            /// </list>
+            ///</remarks>
+            C,
         }
 
         public static GameLogger Instance;
@@ -181,6 +191,7 @@ namespace BigProject.Managers
         private const string INFO_SESSION_STARTED = "=== Session started ===";
         private const string INFO_APPLICATION_QUITTING = "=== Application quitting ===";
         private const string INFO_DELETE_OLD_LOG_FILE = "Delete old log file: {0}";
+        private const string WARNING_UNHANDLED_SYSTEM_MESSAGE_TYPE = "Unhandled sysytem message type!\nMessage:\n{0}";
         private const string ERROR_WRITE_FAILED = "Logger write failed: {0}";
         private const string ERROR_FILE_DELETE_FAILED = "Failed to delete {0}: {1}";
         private const string ERROR_CREATE_DIRECTORY = "Cannot create log dir: {0}." +
@@ -188,13 +199,14 @@ namespace BigProject.Managers
             "\n\t %userprofile%\\AppData\\LocalLow\\{1}\\{2}\\";
 
         // настройка частоты записи логов
-        private const int BUFFER_FLUSH_COUNT = 1;
-        private const float FLUSH_INTERVAL = 1f;
-        private const int MAX_COUNT_LOG_FILES = 10;
+        private const int BUFFER_LOGS_COUNT = 1;
+        private const float WRITE_INTERVAL = 1f;
+        // максимальное количество файлов логов
+        private const int MAX_LOG_FILES_COUNT = 10;
 
-        private List<string> logBuffer = new();
-        private string logFilePath;
-        private float lastFlushTime;
+        private readonly List<string> _logBuffer = new();
+        private string _logFilePath;
+        private float _lastWriteTime;
 
         [SerializeField] private LogLevel _currentLogLevel = LogLevel.None;
 
@@ -220,20 +232,10 @@ namespace BigProject.Managers
                 return;
             }
 
-            if (Time.time - lastFlushTime > FLUSH_INTERVAL)
+            if (Time.time - _lastWriteTime > WRITE_INTERVAL)
             {
                 WriteBufferToFile();
             }
-        }
-
-        private void OnEnable()
-        {
-            Application.logMessageReceived += LogCallback;
-        }
-
-        private void OnDisable()
-        {
-            Application.logMessageReceived -= LogCallback;
         }
 
         private void OnApplicationQuit()
@@ -254,27 +256,27 @@ namespace BigProject.Managers
         {
             if (_currentLogLevel != LogLevel.Release)
             {
-                AddToLogBuffer(LogType.D, message);
+                AddLogToBuffer(LogType.D, message);
             }
         }
 
-        public void Info(string message) => AddToLogBuffer(LogType.I, message);
+        public void Info(string message) => AddLogToBuffer(LogType.I, message);
 
-        public void Warning(string message) => AddToLogBuffer(LogType.W, message);
+        public void Warning(string message) => AddLogToBuffer(LogType.W, message);
 
         public void Error(string message)
         {
-            AddToLogBuffer(LogType.E, message);
+            AddLogToBuffer(LogType.E, message);
             WriteBufferToFile();
         }
 
         public void Critical(string message)
         {
-            AddToLogBuffer(LogType.C, message);
+            AddLogToBuffer(LogType.C, message);
             WriteBufferToFile();
         }
 
-        public void InitLogger()
+        private void AddLogToBuffer(LogType type, string message)
         {
             if (_currentLogLevel == LogLevel.None)
             {
@@ -282,43 +284,11 @@ namespace BigProject.Managers
             }
 
             string timestamp = DateTime.Now.ToString(TIMESTAMP_FORMAT);
-            string logsDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), LOGS_FOLDERNAME);
+            string logString = string.Format(LOG_STRING_FORMAT, timestamp, type, message);
 
-            try
-            {
-                Directory.CreateDirectory(logsDirectory);
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError(string.Format(ERROR_CREATE_DIRECTORY, e.Message, Application.companyName, Application.productName));
+            _logBuffer.Add(logString);
 
-                logsDirectory = Path.Combine(Path.GetDirectoryName(Application.persistentDataPath), LOGS_FOLDERNAME);
-                Directory.CreateDirectory(logsDirectory);
-            }
-            finally
-            {
-                string logsFilename = LOGS_FILENAME_PREFIX + timestamp + LOGS_FILENAME_TYPE;
-                logFilePath = Path.Combine(logsDirectory, logsFilename);
-
-                Info(INFO_SESSION_STARTED);
-                DeleteOldLogs(logsDirectory);
-                WriteBufferToFile();
-            }
-        }
-
-        private void AddToLogBuffer(LogType type, string message)
-        {
-            if (_currentLogLevel == LogLevel.None)
-            {
-                return;
-            }
-
-            string timestamp = DateTime.Now.ToString(TIMESTAMP_FORMAT);
-            string entry = string.Format(LOG_STRING_FORMAT, timestamp, type, message);
-
-            logBuffer.Add(entry);
-
-            if (logBuffer.Count >= BUFFER_FLUSH_COUNT)
+            if (_logBuffer.Count >= BUFFER_LOGS_COUNT)
             {
                 WriteBufferToFile();
             }
@@ -331,7 +301,7 @@ namespace BigProject.Managers
                 return;
             }
 
-            if (logBuffer.Count == 0)
+            if (_logBuffer.Count == 0)
             {
                 return;
             }
@@ -340,26 +310,18 @@ namespace BigProject.Managers
             {
                 StringBuilder sb = new();
 
-                foreach (var entry in logBuffer)
+                foreach (string logString in _logBuffer)
                 {
-                    sb.AppendLine(entry);
+                    sb.AppendLine(logString);
                 }
 
-                File.AppendAllText(logFilePath, sb.ToString());
-                logBuffer.Clear();
-                lastFlushTime = Time.time;
+                File.AppendAllText(_logFilePath, sb.ToString());
+                _logBuffer.Clear();
+                _lastWriteTime = Time.time;
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError(string.Format(ERROR_WRITE_FAILED, e.Message));
-            }
-        }
-
-        private void InBuildActivation()
-        {
-            if (!Application.isEditor)
-            {
-                _currentLogLevel = UnityEngine.Debug.isDebugBuild ? LogLevel.Debug : LogLevel.Release;
             }
         }
 
@@ -384,6 +346,49 @@ namespace BigProject.Managers
                 case UnityEngine.LogType.Exception:
                     Critical(systemMessage);
                     break;
+                default:
+                    Warning(string.Format(WARNING_UNHANDLED_SYSTEM_MESSAGE_TYPE, systemMessage));
+                    break;
+            }
+        }
+
+        private void InBuildActivation()
+        {
+            if (!Application.isEditor)
+            {
+                _currentLogLevel = UnityEngine.Debug.isDebugBuild ? LogLevel.Debug : LogLevel.Release;
+            }
+        }
+
+        private void InitLogger()
+        {
+            if (_currentLogLevel == LogLevel.None)
+            {
+                return;
+            }
+
+            string timestamp = DateTime.Now.ToString(TIMESTAMP_FORMAT);
+            string logsDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), LOGS_FOLDERNAME);
+
+            try
+            {
+                Directory.CreateDirectory(logsDirectory);
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(string.Format(ERROR_CREATE_DIRECTORY, e.Message, Application.companyName, Application.productName));
+
+                logsDirectory = Path.Combine(Path.GetDirectoryName(Application.persistentDataPath), LOGS_FOLDERNAME);
+                Directory.CreateDirectory(logsDirectory);
+            }
+            finally
+            {
+                string logsFilename = LOGS_FILENAME_PREFIX + timestamp + LOGS_FILENAME_TYPE;
+                _logFilePath = Path.Combine(logsDirectory, logsFilename);
+
+                Info(INFO_SESSION_STARTED);
+                DeleteOldLogs(logsDirectory);
+                WriteBufferToFile();
             }
         }
 
@@ -405,9 +410,9 @@ namespace BigProject.Managers
 
             logFiles.Sort();
 
-            if (logFiles.Count > MAX_COUNT_LOG_FILES)
+            if (logFiles.Count > MAX_LOG_FILES_COUNT)
             {
-                for (int i = 0; i < logFiles.Count - MAX_COUNT_LOG_FILES; i++)
+                for (int i = 0; i < logFiles.Count - MAX_LOG_FILES_COUNT; i++)
                 {
                     try
                     {
@@ -420,8 +425,18 @@ namespace BigProject.Managers
                     }
                 }
 
-                logFiles.RemoveRange(0, logFiles.Count - 5);
+                logFiles.RemoveRange(0, logFiles.Count - MAX_LOG_FILES_COUNT);
             }
+        }
+
+        private void OnEnable()
+        {
+            Application.logMessageReceived += LogCallback;
+        }
+
+        private void OnDisable()
+        {
+            Application.logMessageReceived -= LogCallback;
         }
     }
 }
