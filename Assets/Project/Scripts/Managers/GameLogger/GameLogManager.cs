@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BigProject.Managers
 {
-    public class GameLogger : MonoBehaviour
+    public class GameLogManager : MonoBehaviour
     {
         public enum LogLevel
         {
@@ -178,7 +178,7 @@ namespace BigProject.Managers
             C,
         }
 
-        public static GameLogger Instance;
+        public static GameLogManager Instance;
 
         private const string LOGS_FOLDERNAME = "LOGS";
         private const string LOGS_FILENAME_PREFIX = "game_";
