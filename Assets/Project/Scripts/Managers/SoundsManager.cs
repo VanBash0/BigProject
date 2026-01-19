@@ -7,6 +7,14 @@ using Random = UnityEngine.Random;
 
 namespace BigProject.Managers
 {
+    public enum MixerType
+    {
+        Master,
+        SFX,
+        UI,
+        Voice,
+    }
+
     public class SoundsManager : MonoBehaviour
     {
         [SerializeField] private AudioSource _audioSource;
@@ -25,20 +33,27 @@ namespace BigProject.Managers
         {
             _mixerDictionary.Clear();
 
-            foreach (var mapping in _mixerMappings)
+            foreach (MixerMapping mapping in _mixerMappings)
             {
                 if (mapping.MixerGroup != null)
+                {
                     _mixerDictionary[mapping.Type] = mapping.MixerGroup;
+                }
             }
         }
 
         /// <summary>
-        /// Spawns a sound object. If spawned with owner, the next sound of the same owner will stop it.
+        /// Spawns a sound object.
+        /// <param name = "owner"> If there is an owner, the next sounds spawned with this owner will stop the previous one </param>
+        /// <param name = "lowestPitch"> Lowest possible random pitch </param>
+        /// <param name = "highestPitch"> Highest possible random pitch </param>
         /// </summary>
         public void PlaySound(AudioClip clip, MixerType mixerType = MixerType.Master, float lowestPitch = 1f, float highestPitch = 1f, Transform spawnPosition = null, float volume = 1f, Transform owner = null)
         {
             if (owner != null && _objectAudioMap.ContainsKey(owner))
+            {
                 StopSound(_objectAudioMap[owner]);
+            }
 
             Vector3 spawnPos = spawnPosition != null ? spawnPosition.position : transform.position;
             AudioSource audioSource = Instantiate(_audioSource, spawnPos, Quaternion.identity, transform);
@@ -46,7 +61,9 @@ namespace BigProject.Managers
             audioSource.volume = volume;
 
             if (_mixerDictionary.TryGetValue(mixerType, out AudioMixerGroup mixerGroup) && mixerGroup != null)
+            {
                 audioSource.outputAudioMixerGroup = mixerGroup;
+            }
 
             if (lowestPitch != highestPitch)
             {
@@ -59,7 +76,9 @@ namespace BigProject.Managers
             _activeAudioSources.Add(audioSource);
 
             if (owner != null)
+            {
                 _objectAudioMap[owner] = audioSource;
+            }
 
             StartCoroutine(DestroyAfterPlayback(audioSource, owner));
         }
@@ -95,23 +114,19 @@ namespace BigProject.Managers
             yield return new WaitForSeconds(audioSource.clip.length);
 
             if (audioSource == null || !_activeAudioSources.Contains(audioSource))
+            {
                 yield break;
+            }
 
             _activeAudioSources.Remove(audioSource);
 
             if (owner != null && _objectAudioMap.ContainsKey(owner) && _objectAudioMap[owner] == audioSource)
+            {
                 _objectAudioMap.Remove(owner);
+            }
 
             Destroy(audioSource.gameObject);
         }
-    }
-
-    public enum MixerType
-    {
-        Master,
-        SFX,
-        UI,
-        Voice
     }
 
     [Serializable]

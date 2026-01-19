@@ -11,11 +11,15 @@ namespace BigProject.Managers
 
         /// <summary>
         /// Plays given music with fades
+        /// <param name = "fadeOutDuration"> Duration of fading out the current music </param>
+        /// <param name = "fadeInDuration"> Duration of fading int the given music </param>
         /// </summary>
         public void PlayMusic(AudioClip musicClip, float fadeOutDuration = 1f, float fadeInDuration = 1f)
         {
             if (_fadeCoroutine != null)
+            {
                 StopCoroutine(_fadeCoroutine);
+            }
 
             if (_musicSource.isPlaying)
             {
@@ -35,7 +39,9 @@ namespace BigProject.Managers
             if (_musicSource.isPlaying)
             {
                 if (_fadeCoroutine != null)
+                {
                     StopCoroutine(_fadeCoroutine);
+                }
 
                 _fadeCoroutine = StartCoroutine(FadeOutMusic(fadeDuration));
             }
@@ -45,9 +51,9 @@ namespace BigProject.Managers
         {
             float startVolume = _musicSource.volume;
 
-            for (float t = 0; t < fadeOutDuration; t += Time.deltaTime)
+            for (float time = 0; time < fadeOutDuration; time += Time.deltaTime)
             {
-                _musicSource.volume = Mathf.Lerp(startVolume, 0f, t / fadeOutDuration);
+                _musicSource.volume = Mathf.Lerp(startVolume, 0f, time / fadeOutDuration);
                 yield return null;
             }
 
@@ -56,9 +62,9 @@ namespace BigProject.Managers
             _musicSource.volume = 0f;
             _musicSource.Play();
 
-            for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
+            for (float time = 0; time < fadeInDuration; time += Time.deltaTime)
             {
-                _musicSource.volume = Mathf.Lerp(0f, 1f, t / fadeInDuration);
+                _musicSource.volume = Mathf.Lerp(0f, 1f, time / fadeInDuration);
                 yield return null;
             }
 
@@ -67,9 +73,9 @@ namespace BigProject.Managers
 
         private IEnumerator FadeInMusic(float fadeInDuration)
         {
-            for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
+            for (float time = 0; time < fadeInDuration; time += Time.deltaTime)
             {
-                _musicSource.volume = Mathf.Lerp(0f, 1f, t / fadeInDuration);
+                _musicSource.volume = Mathf.Lerp(0f, 1f, time / fadeInDuration);
                 yield return null;
             }
 
@@ -80,9 +86,9 @@ namespace BigProject.Managers
         {
             float startVolume = _musicSource.volume;
 
-            for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+            for (float time = 0; time < fadeDuration; time += Time.deltaTime)
             {
-                _musicSource.volume = Mathf.Lerp(startVolume, 0f, t / fadeDuration);
+                _musicSource.volume = Mathf.Lerp(startVolume, 0f, time / fadeDuration);
                 yield return null;
             }
 
