@@ -1,21 +1,25 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SavesPanelUI : MainMenuPanel
+namespace BigProject.UI
 {
-    [SerializeField] Button _backButton;
-
-
-    private void OnEnable()
+    public class SavesPanelUI : MainMenuPanel
     {
-        _backButton.onClick.AddListener(() => {
-            _mainMenuPanelManager.GetMenuPanel().gameObject.SetActive(true);
-            gameObject.SetActive(false);
-        });
-    }
+        [SerializeField] Button _backButton;
 
-    private void OnDisable()
-    {
-        _backButton.onClick.RemoveAllListeners();
+
+        private void OnEnable()
+        {
+            _backButton.onClick.AddListener(() =>
+            {
+                _mainMenuPanelManager.GetMenuPanel().gameObject.SetActive(true);
+                gameObject.SetActive(false);
+            });
+        }
+
+        private void OnDisable()
+        {
+            _backButton.onClick.RemoveAllListeners();
+        }
     }
 }
