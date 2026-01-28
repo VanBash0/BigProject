@@ -25,7 +25,24 @@ namespace BigProject.Systems
         Inactive,
         Active,
         Completed,
-        Failed
+        Failed,
+        Released
+    }
+
+    /// <summary>
+    /// Тип активности.
+    /// </summary>
+    public enum QuestActionType
+    {
+        /// <summary>
+        /// "Несгораемый" результат. При достижении состояния Completed/Failed возможен только переход в Released.
+        /// </summary>
+        FireproofResult,
+
+        /// <summary>
+        /// Возможен переход из Completed/Failed обратно в Active/Inactive.
+        /// </summary>
+        MaxMet
     }
 
     /// <summary>
