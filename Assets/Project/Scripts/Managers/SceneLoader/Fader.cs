@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace BigProject.Common
+namespace BigProject.Managers
 {
     [RequireComponent(typeof(Animator))]
     public class Fader : MonoBehaviour
