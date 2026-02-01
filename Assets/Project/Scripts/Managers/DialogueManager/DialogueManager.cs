@@ -55,7 +55,7 @@ namespace BigProject.Managers
                 Debug.LogWarning("Ќе проинициализировали диалог");
                 return;
             }
-            if (dialogueLine.DialogueNPSPhrases.Count == 0 && dialogueLine.DialogueAnswerOptions.Count == 0)
+            if (dialogueLine.DialogueNPCPhrases.Count == 0 && dialogueLine.DialogueAnswerOptions.Count == 0)
             {
                 Debug.LogWarning("Ќе проинициализировали диалог");
                 return;
@@ -75,17 +75,17 @@ namespace BigProject.Managers
                 return;
             }
 
-            if (_currentDialogueLine.DialogueNPSPhrases.Count > _currentDialoguePhraseIndex)
+            if (_currentDialogueLine.DialogueNPCPhrases.Count > _currentDialoguePhraseIndex)
             {
-                // NPS ещЄ не договорил - показываем следующую фразу
+                // NPC ещЄ не договорил - показываем следующую фразу
                 _dialogueText.gameObject.SetActive(true);
-                DialogueNPSPhrase dialogueNPSPhrase =
-                    _currentDialogueLine.DialogueNPSPhrases[_currentDialoguePhraseIndex++];
-                _dialogueText.text = dialogueNPSPhrase.Text;
+                DialogueNPCPhrase dialogueNPCPhrase =
+                    _currentDialogueLine.DialogueNPCPhrases[_currentDialoguePhraseIndex++];
+                _dialogueText.text = dialogueNPCPhrase.Text;
             }
             else if (_currentDialogueLine.DialogueAnswerOptions.Count > 0)
             {
-                // NPS договорил и игроку есть что сказать - отображаем варианты ответов
+                // NPC договорил и игроку есть что сказать - отображаем варианты ответов
                 ShowAnswerOptions();
             }
             else
