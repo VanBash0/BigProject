@@ -1,6 +1,6 @@
 using BigProject.Intercatable;
 using BigProject.Managers;
-using BigProject.Systems.DialogSystem;
+using BigProject.Systems.DialogueSystem;
 using UnityEngine;
 
 namespace BigProject.NPS 
@@ -9,7 +9,7 @@ namespace BigProject.NPS
     public class DialogNPS : MonoBehaviour, IInteractable
     {
         // Диалоговая фраза, с которой начинается общение
-        public DialogNpsPhrase StartDialogPhrase;
+        public DialogueLine StartDialogLine;
 
         public void Interact()
         {
@@ -18,10 +18,10 @@ namespace BigProject.NPS
 
         private void StartDialog()
         {
-            if (StartDialogPhrase)
+            if (StartDialogLine)
             {
                 // Переходим в режим диалога, только если есть, что сказать
-                DialogManager.Instance.StartDialog(StartDialogPhrase);
+                DialogueManager.Instance.StartDialogue(StartDialogLine);
             }
         }
     }
