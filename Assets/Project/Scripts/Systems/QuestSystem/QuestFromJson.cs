@@ -14,28 +14,20 @@ namespace BigProject.Systems
     {
         // Имена сериализируемых переменных даны с учетом того, что они в таком же виде отображаются и в json файле, поэтому нет нижних подчеркиваний и т. п.
 
-        public int ID => id;
-        public string Name => name;
-        public QuestState CurrentState 
-        { 
-            get => currentState; 
-            private set => currentState = value;
-        }
-
-        public event Action<IQuest> Progressed;
-        public event Action<IQuest> StateChanged;
-
-        // Поля ISavable
-        public string Key => $"Quest_{Name}";
-        // Сохраняем все параметры квеста.
-        public object SavingData => this;
-
         [SerializeField]
         private int id;
         [SerializeField]
         private string name;
         [SerializeField]
         private QuestState currentState;
+        [SerializeField]
+        List<Action> actions;
+        [SerializeField]
+        List<QuestCondition> questStates;
+
+        private Dictionary<int, Action> _actionsDict;
+        private Dictionary<int, QuestActionState> _lastChangedActions = new();
+        private Dictionary<int, QuestActionHandler> _actionHandlers;
 
         /// <summary>
         /// Активность хранит свое состояние и условия переходов в другие состояния.
@@ -45,6 +37,7 @@ namespace BigProject.Systems
         {
             public int id;
             public string name = "action";
+            public QuestActionType type = QuestActionType.FireproofResult;
             public QuestActionState currentState = QuestActionState.Inactive;
             public List<ActionCondition> conditions;
             public List<ManualActionTransition> manualTransitions;
@@ -92,7 +85,7 @@ namespace BigProject.Systems
         /// Переходы, которые допускаются для ручного управления (внешним кодом).
         /// </summary>
         [Serializable]
-        public class ManualActionTransition
+        private class ManualActionTransition
         {
             public int id;
             public QuestActionState fromState;
@@ -115,14 +108,22 @@ namespace BigProject.Systems
             public QuestActionState actionState;
         }
 
-        [SerializeField]
-        List<Action> actions;
-        [SerializeField]
-        List<QuestCondition> questStates;
+        public int ID => id;
+        public string Name => name;
+        public QuestState CurrentState
+        {
+            get => currentState;
+            private set => currentState = value;
+        }
 
-        private Dictionary<int, Action> _actionsDict;
-        private Dictionary<int, QuestActionState> _lastChangedActions = new();
-        private Dictionary<int, QuestActionHandler> _actionHandlers;
+        public event Action<IQuest> Progressed;
+        public event Action<IQuest> StateChanged;
+
+        // Поля ISavable
+        public string Key => $"Quest_{Name}";
+        // Сохраняем все параметры квеста.
+        public object SavingData => this;
+
 
         /// <param name="jsonData">Данные квеста в формате Json</param>
         public QuestFromJson(string jsonData)
@@ -132,31 +133,13 @@ namespace BigProject.Systems
             Init();
         }
 
-        private void Init()
-        {
-            ActionsToDictionary();
-
-            // Доступные состояния квеста сортируем по убыванию на случай конфликтов
-            // (если текущее положение квеста удовелтворяет сразу нескольким состояниям).
-            questStates.Sort((a, b) => b.state.CompareTo(a.state));
-
-            // Обновляем все состояния (возможно сразу есть выполняемые условия).
-            ResetActions();
-            ResetQuestState();
-
-            // После загрузки все активности представляют собой поcледние изменения.
-            _lastChangedActions = _actionsDict.ToDictionary(x => x.Key, x => x.Value.currentState);
-            // Проверяем наличие неопределенных состояний.
-            CheckForUndefinedActions();
-        }
-
         // См. IQuest
         public bool ManualTransition(int actionId, QuestActionState newState, bool forced = false)
         {
             // Действия возможны только в активном незавершенном квесте.
             if (CurrentState != QuestState.Active)
             {
-                Debug.LogWarning($"Quest [{Name}] in state [{GetEnumValueName(CurrentState)}], but you try to access it.");
+                Debug.LogWarning($"Quest [{Name}] in state [{CurrentState}], but you try to access it.");
                 return false;
             }
             
@@ -168,7 +151,7 @@ namespace BigProject.Systems
 
             if (targetAction.currentState == newState)
             {
-                Debug.LogWarning($"Action [{actionId}] in quest [{name}] already in state [{GetEnumValueName(newState)}].");
+                Debug.LogWarning($"Action [{actionId}] in quest [{name}] already in state [{newState}].");
                 return false;
             }
 
@@ -180,7 +163,7 @@ namespace BigProject.Systems
 
             if (forced)
             {
-                Debug.LogWarning($"Quest [{name}], make forced transition of Action [{actionId}], new state [{GetEnumValueName(newState)}].");
+                Debug.LogWarning($"Quest [{name}], make forced transition of Action [{actionId}], new state [{newState}].");
                 MakeTransition(targetAction, new() { toState = newState });
                 return true;
             }
@@ -196,31 +179,8 @@ namespace BigProject.Systems
                 }
             }
 
-            Debug.LogError($"Quest [{Name}] has no manual transitions to Action [{actionId}] state [{GetEnumValueName(newState)}].");
+            Debug.LogError($"Quest [{Name}] has no manual transitions to Action [{actionId}] state [{newState}].");
             return false;
-        }
-
-        /// <summary>
-        /// Совершает переход актвиности согласно транзакции.
-        /// </summary>
-        private void MakeTransition(Action action, ManualActionTransition transition)
-        {
-            _lastChangedActions.Clear(); // Сброс последних изменений перед новыми.
-            action.currentState = transition.toState;
-
-            // Ручные переходы могут быть единоразовыми.
-            if (transition.isOneShot)
-            {
-                action.manualTransitions.Remove(transition);
-
-                if (_actionHandlers.ContainsKey(action.id))
-                    _actionHandlers[action.id].RemoveTransition(transition.id);
-            }
-
-            CommitActionChange(action);
-            ResetActions();
-            ResetQuestState();
-            ProgressNotify();
         }
 
         // См. IQuest
@@ -228,7 +188,7 @@ namespace BigProject.Systems
         {
             if (_actionsDict.TryGetValue(id, out Action action))
             {
-                state = action.currentState;
+                state = currentState == QuestState.Inactive ? QuestActionState.Inactive : action.currentState;
                 return true;
             }
 
@@ -273,6 +233,50 @@ namespace BigProject.Systems
             ProgressNotify();
         }
 
+        private void Init()
+        {
+            ActionsToDictionary();
+            InitialActionsCheck();
+
+            // Доступные состояния квеста сортируем по убыванию на случай конфликтов
+            // (если текущее положение квеста удовелтворяет сразу нескольким состояниям).
+            questStates.Sort((a, b) => b.state.CompareTo(a.state));
+
+            // Обновляем все состояния (возможно сразу есть выполняемые условия).
+            ResetActions();
+            ResetQuestState();
+
+            // После загрузки все активности представляют собой поcледние изменения.
+            _lastChangedActions = _actionsDict.ToDictionary(x => x.Key, x => x.Value.currentState);
+            //// Проверяем наличие неопределенных состояний.
+            //CheckForUndefinedActions();
+        }
+
+        /// <summary>
+        /// Совершает переход актвиности согласно транзакции.
+        /// </summary>
+        private void MakeTransition(Action action, ManualActionTransition transition)
+        {
+            _lastChangedActions.Clear(); // Сброс последних изменений перед новыми.
+            action.currentState = transition.toState;
+
+            // Ручные переходы могут быть единоразовыми.
+            if (transition.isOneShot)
+            {
+                action.manualTransitions.Remove(transition);
+
+                if (_actionHandlers.ContainsKey(action.id))
+                {
+                    _actionHandlers[action.id].RemoveTransition(transition.id);
+                }
+            }
+
+            CommitActionChange(action);
+            ResetActions();
+            ResetQuestState();
+            ProgressNotify();
+        }
+
         /// <summary>
         /// Все уведомления о прогрессе.
         /// </summary>
@@ -291,7 +295,9 @@ namespace BigProject.Systems
             {
                 // Уведомляем только изменившиеся активности.
                 if (_lastChangedActions.TryGetValue(actionHandler.Key, out var newState))
+                {
                     actionHandler.Value.OnStateChanged(newState);
+                }
             }
         }
 
@@ -306,9 +312,9 @@ namespace BigProject.Systems
         }
 
         /// <summary>
-        /// Проверяет наличие неопределенных состояний у активностей.
+        /// Проверяет начальные состояния у активностей.
         /// </summary>
-        private void CheckForUndefinedActions()
+        private void InitialActionsCheck()
         {
             foreach (var action in _actionsDict.Values)
             {
@@ -317,11 +323,12 @@ namespace BigProject.Systems
                     Debug.LogError($"Quest [{Name}] has action [{action.name}] in undefined state.");
                     return;
                 }
+                else if (action.type == QuestActionType.FireproofResult)
+                {
+                    TryCleanUpForRelease(action);
+                }
             }
         }
-
-        /// <returns>Название состояния из enum.</returns>
-        string GetEnumValueName<T>(T state) => Enum.GetName(typeof(T), state);
 
         /// <summary>
         /// Перепроверяет активности и меняет их состояния при выполнении условий.
@@ -355,9 +362,13 @@ namespace BigProject.Systems
         private void CommitActionChange(Action action)
         {
             if (_lastChangedActions.ContainsKey(action.id))
+            {
                 _lastChangedActions[action.id] = action.currentState;
+            }
             else
+            {
                 _lastChangedActions.Add(action.id, action.currentState);
+            }
         }
 
         /// <summary>
@@ -366,7 +377,7 @@ namespace BigProject.Systems
         private void ResetAction(Action action)
         {
             // Для конфликтов, когда активность удовлетворяет нескольким состояниям - берем наибольшее.
-            QuestActionState maxMetedState = QuestActionState.Inactive;
+            QuestActionState maxMetState = QuestActionState.Inactive;
 
             // Список для выполненных условий с флагом isOneShot (см. ActionCondition)
             List<ActionCondition> conditionsToRemove = new();
@@ -374,8 +385,10 @@ namespace BigProject.Systems
             foreach (ActionCondition condition in action.conditions)
             {
                 // Если условия перехода не удовлетворяют текущему состоянию или переход не актуален с точки зрения наибольшего выполнимого состояния.
-                if (!IsEqualStates(condition.fromState, action.currentState) || condition.toState <= maxMetedState)
+                if (!IsEqualStates(condition.fromState, action.currentState) || condition.toState <= maxMetState)
+                {
                     continue;
+                }
 
                 if (IsConditionMet(condition))
                 {
@@ -384,20 +397,78 @@ namespace BigProject.Systems
                     {
                         action.currentState = condition.toState;
 
-                        if (condition.isOneShot)
+                        if (action.currentState == QuestActionState.Released)
+                        {
+                            action.conditions.Clear();
+                            action.manualTransitions.Clear();
+                            return;
+                        }
+                        else if (TryCleanUpForRelease(action))
+                        {
+                            return;
+                        }
+                        else if (condition.isOneShot)
+                        {
                             conditionsToRemove.Add(condition);
+                        }
                     }
 
-                    maxMetedState = action.currentState;
+                    maxMetState = action.currentState;
                 }
                 // Если мы перепрыгнули недопустимое состояние - опускаемся на ближайшее выполнимое.
                 // Такой сценарий работает при переходах Undefined->Конкретный, при несоблюдении будет авто откат на допустимое состояние.
                 else if (action.currentState >= condition.toState)
-                    action.currentState = maxMetedState;
+                {
+                    action.currentState = maxMetState;
+                }
             }
 
             // Удаляем выполненные OneShot условия.
             action.conditions.RemoveAll(x => conditionsToRemove.Contains(x));
+        }
+
+        private bool TryCleanUpForRelease(Action action)
+        {
+            if (action.currentState < QuestActionState.Completed || action.type == QuestActionType.MaxMet)
+                return false;
+
+            ActionCondition targetCondition = null;
+
+            foreach (ActionCondition condition in action.conditions)
+            {
+                if (IsEqualStates(condition.fromState, action.currentState) && condition.toState == QuestActionState.Released)
+                {
+                    targetCondition = condition;
+                    break;
+                }
+            }
+
+            action.conditions.Clear();
+
+            if (targetCondition != null)
+            {
+                action.conditions.Add(targetCondition);
+            }
+
+            ManualActionTransition targetTransition = null;
+
+            foreach (ManualActionTransition transition in action.manualTransitions)
+            {
+                if (IsEqualStates(transition.fromState, action.currentState) && transition.toState == QuestActionState.Released)
+                {
+                    targetTransition = transition;
+                    break;
+                }
+            }
+
+            action.manualTransitions.Clear();
+
+            if (targetTransition != null)
+            {
+                action.manualTransitions.Add(targetTransition);
+            }
+
+            return true;
         }
 
         /// <returns>True если условие выполняется</returns>
@@ -408,7 +479,9 @@ namespace BigProject.Systems
             {
                 // Если выполнен хотя бы один из наборов - условия выполнены.
                 if (IsDependenciesSatisfied(dependencyPack.dependencies))
+                {
                     return true;
+                }
             }
 
             // Если ни один из наборов не выполнен - условия не выполнены.
@@ -430,7 +503,9 @@ namespace BigProject.Systems
                 // Если она в неправильном состоянии - все условие не выполнено. Далее можно не проверять.
                 // Учитывается Undefined состояние в условии - тогда активность может быть в любом состоянии, что равносильно ее отсутствию в условиях.
                 if (!IsEqualStates(influenceAction.currentState, dependency.state))
+                {
                     return false;
+                }
             }
 
             return true;
@@ -444,7 +519,9 @@ namespace BigProject.Systems
             foreach (var questState in questStates)
             {
                 if (CurrentState == questState.state)
+                {
                     continue;
+                }
 
                 if (!_actionsDict.TryGetValue(questState.actionId, out var influenceAction))
                 {
@@ -455,7 +532,7 @@ namespace BigProject.Systems
                 if (influenceAction.currentState == questState.actionState)
                 {
                     CurrentState = questState.state;
-                    Debug.Log($"Quest change global state to [{GetEnumValueName(questState.state)}]");
+                    Debug.Log($"Quest change global state to [(questState.state)]");
                     StateChanged?.Invoke(this);
 
                     // Состояния осортированы по убыванию, при выполнении наибольшего дальнейшие условия можно не проверять.

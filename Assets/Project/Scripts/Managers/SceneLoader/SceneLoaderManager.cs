@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace BigProject.Common.Managers
+namespace BigProject.Managers
 {
     public enum Scenes
     {
@@ -11,9 +11,9 @@ namespace BigProject.Common.Managers
         TestScene2
     }
 
-    public class SceneLoader : MonoBehaviour
+    public class SceneLoaderManager : MonoBehaviour
     {
-        public static SceneLoader Instance;
+        public static SceneLoaderManager Instance;
 
         private bool _isLoading;
 

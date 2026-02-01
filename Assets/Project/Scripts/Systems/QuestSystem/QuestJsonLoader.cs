@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -49,7 +50,18 @@ namespace BigProject.Systems
             foreach (TextAsset jsonQuestAsset in jsonQuestAssets)
             {
                 Debug.Log($"Load quest: {jsonQuestAsset.name}");
-                quests.Add(new QuestFromJson(jsonQuestAsset.text));
+                QuestFromJson quest;
+
+                try
+                {
+                    quest = new(jsonQuestAsset.text);
+                }
+                catch
+                {
+                    throw new ArgumentException($"Can't create quest: {jsonQuestAsset.name} from json file.");
+                }
+
+                quests.Add(quest);
             }
 
             return quests;

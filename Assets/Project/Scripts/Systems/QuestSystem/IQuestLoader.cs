@@ -16,6 +16,7 @@ namespace BigProject.Systems
         bool GetQuest(string name, out IQuest quest);
 
         /// <returns>Все найденные квесты.</returns>
+        /// <exception cref="ArgumentException">Возникает при некорректных данных в загружаемых файлах.</exception>
         List<IQuest> GetAllQuests();
     }
 }
