@@ -40,11 +40,28 @@ namespace BigProject.Managers
             _savable = new() { this }; 
 
             _savesManager = savesManager;
-            _quests = questLoader.GetAllQuests().ToDictionary(x => x.ID, x => x);
+
+            try
+            {
+                _quests = questLoader.GetAllQuests().ToDictionary(x => x.ID, x => x);
+            }
+            catch (ArgumentException ex)
+            {
+                Debug.LogError($"ProgressManager can't add quest.\n{ex.Message}");
+                _quests = new();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"ProgressManager try to add quests with the same key!\n{ex.Message}");
+                _quests = new();
+            }
+
             AddQuestsToSavable();
 
             foreach (var quest in _quests.Values)
+            {
                 quest.StateChanged += OnQuestProgressed;
+            }
         }
 
         /// <summary>
@@ -55,7 +72,9 @@ namespace BigProject.Managers
             foreach (var quest in _quests.Values)
             {
                 if (quest is ISavable savable)
+                {
                     AddSavable(savable);
+                }
             }
         }
 
@@ -84,9 +103,13 @@ namespace BigProject.Managers
         public void RemoveQuestListener(int quiestId, Action<IQuest> callback)
         {
             if (_quests.TryGetValue(quiestId, out var quest))
+            {
                 quest.Progressed -= callback;
+            }
             else
+            {
                 Debug.LogWarning($"Progress manager unable to remove listener. Has no Quest [{quiestId}].");
+            }
         }
 
         /// <summary>
@@ -111,7 +134,9 @@ namespace BigProject.Managers
         public void RemoveSavable(ISavable savable)
         {
             if (!_savable.Remove(savable))
+            {
                 Debug.LogWarning($"Progress manager try to remove not tracking savable data [{savable.Key}].");
+            }
         }
 
         public void SaveProgress()
@@ -213,7 +238,9 @@ namespace BigProject.Managers
         public void Dispose()
         {
             foreach (var quest in _quests.Values)
+            {
                 quest.Progressed -= OnQuestProgressed;
+            }
         }
     }
 }
