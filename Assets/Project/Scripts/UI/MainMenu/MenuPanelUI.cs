@@ -1,4 +1,4 @@
-using BigProject.Common.Managers;
+using BigProject.Managers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,13 +17,13 @@ namespace BigProject.UI
             _newGameButton.onClick.AddListener(() =>
             {
                 //Debug.Log("Clicked New Game Button");
-                SceneLoader.Instance.LoadScene(Scenes.MainScene);
+                SceneLoaderManager.Instance.LoadScene(Scenes.MainScene);
             });
 
             _continueButton.onClick.AddListener(() =>
             {
                 //Debug.Log("Clicked Continue Button");
-                SceneLoader.Instance.LoadScene(Scenes.MainScene);
+                SceneLoaderManager.Instance.LoadScene(Scenes.MainScene);
             });
 
             _savesButton.onClick.AddListener(() =>
