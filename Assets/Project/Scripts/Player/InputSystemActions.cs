@@ -179,6 +179,15 @@ namespace BigProject.Player
                     ""processors"": """",
                     ""interactions"": ""Hold"",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Swipe"",
+                    ""type"": ""Button"",
+                    ""id"": ""4fd313bd-36e5-45d3-ab4c-71b2f85d8aa6"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -203,6 +212,39 @@ namespace BigProject.Player
                     ""action"": ""RightClick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""eedc9128-e37d-4cfe-bb7f-271ee27e6a10"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Swipe"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""8564bd0a-2432-4f36-92f6-c56bb10a5245"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Swipe"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""7a9217ff-e8bd-4a45-a1f8-c039f0d88552"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Swipe"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -795,6 +837,7 @@ namespace BigProject.Player
             m_MiniGame = asset.FindActionMap("MiniGame", throwIfNotFound: true);
             m_MiniGame_Click = m_MiniGame.FindAction("Click", throwIfNotFound: true);
             m_MiniGame_RightClick = m_MiniGame.FindAction("RightClick", throwIfNotFound: true);
+            m_MiniGame_Swipe = m_MiniGame.FindAction("Swipe", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1009,6 +1052,7 @@ namespace BigProject.Player
         private List<IMiniGameActions> m_MiniGameActionsCallbackInterfaces = new List<IMiniGameActions>();
         private readonly InputAction m_MiniGame_Click;
         private readonly InputAction m_MiniGame_RightClick;
+        private readonly InputAction m_MiniGame_Swipe;
         /// <summary>
         /// Provides access to input actions defined in input action map "MiniGame".
         /// </summary>
@@ -1028,6 +1072,10 @@ namespace BigProject.Player
             /// Provides access to the underlying input action "MiniGame/RightClick".
             /// </summary>
             public InputAction @RightClick => m_Wrapper.m_MiniGame_RightClick;
+            /// <summary>
+            /// Provides access to the underlying input action "MiniGame/Swipe".
+            /// </summary>
+            public InputAction @Swipe => m_Wrapper.m_MiniGame_Swipe;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1060,6 +1108,9 @@ namespace BigProject.Player
                 @RightClick.started += instance.OnRightClick;
                 @RightClick.performed += instance.OnRightClick;
                 @RightClick.canceled += instance.OnRightClick;
+                @Swipe.started += instance.OnSwipe;
+                @Swipe.performed += instance.OnSwipe;
+                @Swipe.canceled += instance.OnSwipe;
             }
 
             /// <summary>
@@ -1077,6 +1128,9 @@ namespace BigProject.Player
                 @RightClick.started -= instance.OnRightClick;
                 @RightClick.performed -= instance.OnRightClick;
                 @RightClick.canceled -= instance.OnRightClick;
+                @Swipe.started -= instance.OnSwipe;
+                @Swipe.performed -= instance.OnSwipe;
+                @Swipe.canceled -= instance.OnSwipe;
             }
 
             /// <summary>
@@ -1420,6 +1474,13 @@ namespace BigProject.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnRightClick(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Swipe" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSwipe(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
