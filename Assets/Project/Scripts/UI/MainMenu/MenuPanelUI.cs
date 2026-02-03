@@ -6,11 +6,10 @@ namespace BigProject.UI
 {
     public class MenuPanelUI : MainMenuPanel
     {
-        [SerializeField] Button _newGameButton;
-        [SerializeField] Button _continueButton;
-        [SerializeField] Button _savesButton;
-        [SerializeField] Button _settingsButton;
-        [SerializeField] Button _quitButton;
+        [SerializeField] private Button _newGameButton;
+        [SerializeField] private Button _continueButton;
+        [SerializeField] private Button _settingsButton;
+        [SerializeField] private Button _quitButton;
 
         private void OnEnable()
         {
@@ -26,13 +25,6 @@ namespace BigProject.UI
                 SceneLoaderManager.Instance.LoadScene(Scenes.MainScene);
             });
 
-            _savesButton.onClick.AddListener(() =>
-            {
-                //Debug.Log("Clicked Saves Button");
-                _mainMenuPanelManager.GetSavesPanel().gameObject.SetActive(true);
-                gameObject.SetActive(false);
-            });
-
             _settingsButton.onClick.AddListener(() =>
             {
                 //Debug.Log("Clicked Settings Button");
@@ -46,12 +38,10 @@ namespace BigProject.UI
                 Application.Quit();
             });
         }
-
         private void OnDisable()
         {
             _newGameButton.onClick.RemoveAllListeners();
             _continueButton.onClick.RemoveAllListeners();
-            _savesButton.onClick.RemoveAllListeners();
             _settingsButton.onClick.RemoveAllListeners();
             _quitButton.onClick.RemoveAllListeners();
         }
