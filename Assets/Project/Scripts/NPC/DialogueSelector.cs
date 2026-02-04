@@ -39,10 +39,11 @@ namespace BigProject.NPC
         
         private void Awake()
         {
-            Assert.IsTrue(_dialogue != null, $"{gameObject.name} hasn't dialogue for select.");
-            ProgressManager pm = null;
-            Assert.IsTrue(ServiceLocator.TryGetService(out pm), $"{gameObject.name} unable to get progress manager");
-            Assert.IsTrue(ServiceLocator.TryGetService(out _modeSwitch), $"{gameObject.name} unable to get Dialog Mode Switch (check canvas).");
+            ServiceLocator.TryGetService(out ProgressManager pm);
+            ServiceLocator.TryGetService(out _modeSwitch);
+            Assert.IsNotNull(_dialogue, $"{gameObject.name} hasn't dialogue for select.");
+            Assert.IsNotNull(pm, $"{gameObject.name} unable to get progress manager.");
+            Assert.IsNotNull(_modeSwitch, $"{gameObject.name} unable to get dialogue mode switch.");
 
             List<DialogueCondition> conditionsToRemove = new();
 
@@ -55,7 +56,6 @@ namespace BigProject.NPC
 
                 string msg = $"{gameObject.name} unable to get action {condition.id}. It will be ignored.";
                 Debug.LogWarning(msg);
-                ServiceLocator.GetService<GameLogManager>()?.Warning(msg);
                 conditionsToRemove.Add(condition);
             }
 
