@@ -1,4 +1,5 @@
 using BigProject.Systems;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -15,6 +16,8 @@ namespace BigProject.UI
         private Item _item;
         private GameObject _noteObject;
         private bool _isNoteOpened;
+
+        public Action<bool> _onDrag;
 
         void Awake()
         {
@@ -38,6 +41,7 @@ namespace BigProject.UI
             transform.SetParent(transform.root, false);
             transform.SetAsLastSibling();
             _image.raycastTarget = false;
+            _onDrag?.Invoke(true);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -66,6 +70,7 @@ namespace BigProject.UI
             //не попали в нужный объект, возвращаем предмет на его позицию в инвентаре
             transform.SetParent(_defaultParent);
             _image.raycastTarget = true;
+            _onDrag?.Invoke(false);
         }
 
         public void OnPointerClick(PointerEventData eventData)
