@@ -48,18 +48,11 @@ namespace BigProject.Systems
         //здесь id - индекс элемента в инвентаре, не в БД
         private void RemoveFromInventory(int id)
         {
-            if (id == _heldItems.Count - 1)
+            for (int i = id; i < _heldItems.Count - 1; i++)
             {
-                _heldItems[id] = -1;
+                _heldItems[i] = _heldItems[i + 1];
             }
-            else
-            {
-                for (int i = id; i < _heldItems.Count - 1; i++)
-                {
-                    _heldItems[i] = _heldItems[i + 1];
-                }
-                _heldItems[_heldItems.Count - 1] = -1;
-            }
+            _heldItems[_heldItems.Count - 1] = -1;
 
             OnInventoryUpdated?.Invoke();
         }
@@ -100,6 +93,12 @@ namespace BigProject.Systems
         /// <param name="itemID">Индекс предмета в базе данных</param>
         public void RemoveItemById(int itemID)
         {
+            if (_heldItems.Count == 0)
+            {
+                Debug.LogError("Инвентарь пуст, невозможно удалить предмет");
+                return;
+            }
+
             if (itemID >= _itemsDatabase._items.Count)
             {
                 Debug.LogError($"Индекс выходит за границы БД предметов");
@@ -115,6 +114,12 @@ namespace BigProject.Systems
         /// </summary>
         public void RemoveItemByName(string itemName)
         {
+            if (_heldItems.Count == 0)
+            {
+                Debug.LogError("Инвентарь пуст, невозможно удалить предмет");
+                return;
+            }
+
             if (_itemsDatabase._items.Where(x => x._name == itemName).Count() == 0)
             {
                 Debug.LogError($"Предмета {itemName} нет в БД предметов");
