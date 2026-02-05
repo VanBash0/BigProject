@@ -220,6 +220,18 @@ namespace BigProject.Managers
             return quest.TryGetActionHandler(actionId, out actionHandler);
         }
 
+        /// <returns>Текущее состояние квеста.</returns>
+        public QuestState GetQuestState(int questId)
+        {
+            if (!_quests.TryGetValue(questId, out var quest))
+            {
+                Debug.LogWarning($"Progress manager has no quest [{questId}], but you try to get quest state.");
+                return QuestState.Inactive;
+            }
+
+            return quest.CurrentState;            
+        }
+
         private void OnQuestProgressed(IQuest quest)
         {
             if (!_quests.ContainsKey(quest.ID))
