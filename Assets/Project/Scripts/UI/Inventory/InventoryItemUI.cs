@@ -29,7 +29,7 @@ namespace BigProject.UI
             _image.sprite = item._itemSprite;
             _camera = camera;
             _item = item;
-            if (item._noteSprite != null)
+            if (item._noteSprite != null && noteImage != null)
             {
                 noteImage.sprite = item._noteSprite;
                 _noteObject = noteImage.gameObject;

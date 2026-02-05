@@ -19,6 +19,8 @@ namespace BigProject.Player
         //Mini-game Actions
         public Action MiniGameClick;
         public Action MiniGameRightClick;
+        public Action<Vector2> MiniGameSwipe;
+        public Action MiniGameUnclick;
 
         private void Awake()
         {
@@ -41,6 +43,8 @@ namespace BigProject.Player
 
             _inputActions.MiniGame.Click.performed += OnMiniGameClick;
             _inputActions.MiniGame.RightClick.performed += OnMiniGameRightClick;
+            _inputActions.MiniGame.Swipe.performed += OnMiniGameSwipe;
+            _inputActions.MiniGame.Click.canceled += OnMiniGameUnclick;
         }
         private void OnDisable()
         {
@@ -51,6 +55,8 @@ namespace BigProject.Player
 
             _inputActions.MiniGame.Click.performed -= OnMiniGameClick;
             _inputActions.MiniGame.RightClick.performed -= OnMiniGameRightClick;
+            _inputActions.MiniGame.Swipe.performed -= OnMiniGameSwipe;
+            _inputActions.MiniGame.Click.canceled -= OnMiniGameUnclick;
         } 
 
         private void OnOpenedMenu(InputAction.CallbackContext obj)
@@ -75,6 +81,16 @@ namespace BigProject.Player
         private void OnMiniGameRightClick(InputAction.CallbackContext obj)
         {
             MiniGameRightClick?.Invoke();
+        }
+
+        private void OnMiniGameSwipe(InputAction.CallbackContext obj)
+        {
+            MiniGameSwipe?.Invoke(obj.ReadValue<Vector2>());
+        }
+
+        private void OnMiniGameUnclick(InputAction.CallbackContext _)
+        {
+            MiniGameUnclick?.Invoke();
         }
 
         public void SwitchToPlayerActionMap()

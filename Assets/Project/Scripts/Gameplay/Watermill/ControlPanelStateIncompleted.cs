@@ -1,0 +1,114 @@
+using BigProject.Managers;
+using BigProject.Player;
+using BigProject.Systems;
+using System;
+using System.Threading;
+using UnityEngine;
+
+namespace BigProject.Gameplay.Watermill
+{
+    public class ControlPanelStateIncompleted : IControlPanelState
+    {
+        private ControlPanel _controlPanel;
+        private PlayerInputHandler _input;
+        private GameObject _repairedLeverHolder;
+        private GameObject _repairedLever;
+        private IQuestActionHandler _installLeverAction;
+        private CancellationTokenSource _crSource;
+        private float _leverInstallTime;
+        private bool _isSkipped = true;
+
+        public ControlPanelStateIncompleted(ControlPanel controlPanel, PlayerInputHandler input, GameObject repairedLeverHolder, GameObject repairedLever,
+            float leverInstallTime, IQuestActionHandler installLeverAction)
+        {
+            _controlPanel = controlPanel;
+            _input = input;
+            _repairedLeverHolder = repairedLeverHolder;
+            _repairedLever = repairedLever;
+            _leverInstallTime = leverInstallTime;
+            _installLeverAction = installLeverAction;
+            _installLeverAction.StateChanged += OnStateChanged;
+            OnStateChanged();
+        }
+
+        public bool IsReady => _installLeverAction.CurrentState == QuestActionState.Active;
+
+        public void Start()
+        {
+            _repairedLeverHolder.SetActive(true);
+            OnStateChanged();
+        }
+
+        public void OnClicked()
+        {
+            // реплика
+        }
+
+        public void ApplyItem(Item item)
+        {
+            _crSource = new();
+
+            try
+            {
+                ServiceLocator.GetService<InventorySystem>().RemoveItemByName(item._name);
+            }
+            catch (Exception ex)
+            {
+                string msg = $"Some error ocurred while releasing the item from inventory: {ex.Message}";
+                ServiceLocator.GetService<GameLogManager>().Critical(msg);
+                Debug.Log(msg);
+            }
+
+            _ = InstallLever(_crSource.Token);
+        }
+
+        public void Dispose()
+        {
+            if (_isSkipped)
+            {
+                _repairedLever.transform.localPosition = _repairedLeverHolder.transform.localPosition;
+                SetVisibility();
+            }
+
+            _installLeverAction.StateChanged -= OnStateChanged;
+            _crSource?.Cancel();
+            _crSource?.Dispose();
+        }
+
+        private async Awaitable InstallLever(CancellationToken ct)
+        {
+            _isSkipped = false;
+            SetVisibility();
+            await _controlPanel.MoveLever(_repairedLever.transform, _repairedLeverHolder.transform.localPosition, _leverInstallTime, ct);
+            MakeTransition();
+        }
+
+        private void MakeTransition()
+        {
+            try
+            {
+                _installLeverAction.MakeTransition(0);
+            }
+            catch (Exception ex)
+            {
+                string msg = $"Unable to make action transition from installing repaired lever: {ex.Message}";
+                ServiceLocator.GetService<GameLogManager>().Critical(msg);
+                Debug.Log(msg);
+            }
+        }
+
+        private void OnStateChanged()
+        {
+            if (_installLeverAction.CurrentState >= QuestActionState.Completed)
+            {
+                _controlPanel.ChangeState(ControlPanelState.Fixed);
+            }
+        }
+
+        private void SetVisibility()
+        {
+            _repairedLever.SetActive(true);
+            _repairedLeverHolder.SetActive(false);
+        }
+    }
+}

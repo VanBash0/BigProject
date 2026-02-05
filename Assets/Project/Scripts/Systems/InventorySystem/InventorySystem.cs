@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace BigProject.Systems
 {
@@ -188,6 +189,21 @@ namespace BigProject.Systems
                 items.Add(_itemsDatabase._items[id]);
             }
             return items;
+        }
+
+        private void OnSceneChanged(Scene _, Scene __)
+        {
+            OnInventoryUpdated?.Invoke();
+        }
+
+        private void OnEnable()
+        {
+            SceneManager.activeSceneChanged += OnSceneChanged;
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.activeSceneChanged -= OnSceneChanged;
         }
     }
 }
