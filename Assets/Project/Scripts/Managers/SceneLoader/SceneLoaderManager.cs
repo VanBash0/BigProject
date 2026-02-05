@@ -8,7 +8,9 @@ namespace BigProject.Managers
     {
         MainScene,
         TestScene1,
-        TestScene2
+        TestScene2,
+        Village,
+        Watermill
     }
 
     public class SceneLoaderManager : MonoBehaviour
