@@ -8,10 +8,10 @@ namespace BigProject.Player
     {
         [SerializeField] private PlayerInputHandler _inputHandler;
         [SerializeField] private NavMeshAgent _navMeshAgent;
+        [SerializeField] private Animator _animatorController;
 
         [SerializeField] private float _navMeshHitPointDistance = 5f;
-        [SerializeField] private float _stoppingDistance = 5f;
-        [SerializeField] private float _characterSpeed;
+        [SerializeField] private float _rotationSpeed = 10f;
 
         private IInteractable _interactable = null;
         private Vector3 _destination;
@@ -19,11 +19,7 @@ namespace BigProject.Player
 
         private Camera _camera;
 
-        private void Awake()
-        {
-            _navMeshAgent.speed = _characterSpeed;
-            _navMeshAgent.stoppingDistance = _stoppingDistance;
-        }
+        private const string MOVING_ANIM_BOOL = "IsMoving";
 
         private void Start()
         {
@@ -32,6 +28,8 @@ namespace BigProject.Player
             {
                 _camera = Camera.main;
             }
+
+            _navMeshAgent.updateRotation = false;
         }
 
         private void OnEnable()
@@ -52,14 +50,14 @@ namespace BigProject.Player
             Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 1f);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                Debug.Log($"����� �: {hit.collider.name}");
+                Debug.Log($"Попал в: {hit.collider.name}");
                 
                 if (NavMesh.SamplePosition(hit.point, out NavMeshHit navMeshHit, _navMeshHitPointDistance, NavMesh.AllAreas))
                 {
                     SetDestination(navMeshHit.position);
                     Move();
 
-                    // �������� ������������� ������ ������
+                    // Передаем интерактивный объект игроку
                     IInteractable interactableObject = hit.collider.GetComponent<IInteractable>();
                     SetInterableObject(interactableObject);
                 }
@@ -70,13 +68,39 @@ namespace BigProject.Player
         {
             if (_isMoving)
             {
+                RotateTowardsMovement();
+
                 if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
                 {
                     if (!_navMeshAgent.hasPath || _navMeshAgent.velocity.sqrMagnitude == 0f)
                     {
                         _isMoving = false;
+                        _animatorController.SetBool(MOVING_ANIM_BOOL, false);
                         Interact();
                     }
+                }
+            }
+        }
+
+        private void RotateTowardsMovement()
+        {
+            if (_navMeshAgent.velocity.sqrMagnitude > Mathf.Epsilon)
+            {
+                // Получаем направление движения
+                Vector3 moveDirection = _navMeshAgent.velocity.normalized;
+                moveDirection.y = 0; // Игнорируем вертикальную составляющую
+
+                if (moveDirection != Vector3.zero)
+                {
+                    // Создаем поворот к направлению движения
+                    Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+
+                    // Плавно поворачиваем игрока
+                    transform.rotation = Quaternion.Slerp(
+                        transform.rotation,
+                        targetRotation,
+                        _rotationSpeed * Time.deltaTime
+                    );
                 }
             }
         }
@@ -84,13 +108,14 @@ namespace BigProject.Player
         private void Move()
         {
             _isMoving = true;
+            _animatorController.SetBool(MOVING_ANIM_BOOL, true);
             _navMeshAgent.SetDestination(_destination);
-            Debug.Log($"�������� � ����� {_destination}");
+            Debug.Log($"Двигаюсь к точке {_destination}");
         }
 
         private void Interact()
         {
-            Debug.Log("��������������");
+            Debug.Log("Взаимодействие");
             if (_interactable != null)
                 _interactable.Interact();
         }
