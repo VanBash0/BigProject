@@ -14,18 +14,17 @@ namespace BigProject.Systems.DialogueSystem
 
         private void OnEnable()
         {
-            if (ServiceLocator.TryGetService(out PlayerInputHandler input))
+            if (ServiceLocator.TryGetService(out GameplayManager gameplayManager))
             {
-                input.SwitchToMiniGameActionMap();
+                gameplayManager.ChangeState(GameplayState.Dialogue);
             }
         }
 
         private void OnDisable()
         {
-            if (ServiceLocator.TryGetService(out PlayerInputHandler input))
+            if (ServiceLocator.TryGetService(out GameplayManager gameplayManager))
             {
-                input.SwitchToPlayerActionMap();
-                Dialogue—ompleted?.Invoke();
+                gameplayManager.ChangeState(GameplayState.Play);
             }
         }
     }

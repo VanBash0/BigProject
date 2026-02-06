@@ -2,8 +2,8 @@ using UnityEngine;
 using BigProject.Managers;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
-//using UnityEngine.Localization.Settings;
 using System;
+using UnityEngine.Localization.Settings;
 
 
 namespace BigProject.Systems.HUD
@@ -91,6 +91,7 @@ namespace BigProject.Systems.HUD
                         }
                     };
 
+                    writer.Invoke();
                     actionHandler.StateChanged += writer;
                     _journalWriters.Add((actionHandler, writer));
                 }
@@ -100,8 +101,8 @@ namespace BigProject.Systems.HUD
                 }
             }
 
-            //string questName = LocalizationSettings.StringDatabase.GetLocalizedString(_config.LocalizationTableName, questTriggers.NameTableEntryKey);
-            //QuestChanged?.Invoke(questName);
+            string questName = LocalizationSettings.StringDatabase.GetLocalizedString(_config.LocalizationTableName, questTriggers.NameTableEntryKey);
+            QuestChanged?.Invoke(questName);
             TaskChanged?.Invoke(_taskNote);
         }
 
@@ -120,8 +121,8 @@ namespace BigProject.Systems.HUD
 
         private void WriteToJournal(string tableEntry)
         {
-            //_taskNote = LocalizationSettings.StringDatabase.GetLocalizedString(_config.LocalizationTableName, tableEntry);
-            //TaskChanged?.Invoke(_taskNote);
+            _taskNote = LocalizationSettings.StringDatabase.GetLocalizedString(_config.LocalizationTableName, tableEntry);
+            TaskChanged?.Invoke(_taskNote);
         }
 
         private void OnQuestStateChanged(IQuest quest)

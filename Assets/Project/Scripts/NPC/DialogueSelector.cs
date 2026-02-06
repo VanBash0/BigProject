@@ -13,7 +13,7 @@ namespace BigProject.NPC
     /// <summary>
     /// Потенциально поменяется, пока эта обертка нужна для работы с DialogueSystem.
     /// </summary>
-    public class DialogueSelector : MonoBehaviour, IInteractable
+    public class DialogueSelector : MonoBehaviour
     {
         [SerializeField]
         private DialogNPC _dialogue;
@@ -22,8 +22,6 @@ namespace BigProject.NPC
         [SerializeField]
         private List<DialogueCondition> _conditions;
 
-        private DialogueModeSwitch _modeSwitch;
-
         [Serializable]
         private class DialogueCondition
         {
@@ -31,6 +29,7 @@ namespace BigProject.NPC
             public QuestActionState state;
             public DialogueLine dialogue;
             public bool hasTransition;
+            public int phraseIdToTransit;
             public int transitionId;
 
             [HideInInspector]
@@ -40,10 +39,8 @@ namespace BigProject.NPC
         private void Awake()
         {
             ServiceLocator.TryGetService(out ProgressManager pm);
-            ServiceLocator.TryGetService(out _modeSwitch);
             Assert.IsNotNull(_dialogue, $"{gameObject.name} hasn't dialogue for select.");
             Assert.IsNotNull(pm, $"{gameObject.name} unable to get progress manager.");
-            Assert.IsNotNull(_modeSwitch, $"{gameObject.name} unable to get dialogue mode switch.");
 
             List<DialogueCondition> conditionsToRemove = new();
 
@@ -67,22 +64,14 @@ namespace BigProject.NPC
             StateChanged();
         }
 
-        public void Interact()
-        {
-            _dialogue.Interact();
-
-            if (_modeSwitch.gameObject.activeSelf)
-            {
-                _modeSwitch.DialogueСompleted += OnDialogueCompleted;
-            }
-        }
-
         private void OnEnable()
         {
             foreach (DialogueCondition condition in _conditions)
             {
                 condition.actionHandler.StateChanged += StateChanged;
             }
+
+            DialogueManager.OnDialoguePhrase += OnDialoguePhrase;
         }
 
         private void OnDisable()
@@ -91,6 +80,8 @@ namespace BigProject.NPC
             {
                 condition.actionHandler.StateChanged -= StateChanged;
             }
+
+            DialogueManager.OnDialoguePhrase -= OnDialoguePhrase;
         }
 
         private void StateChanged()
@@ -107,11 +98,11 @@ namespace BigProject.NPC
             _dialogue.StartDialogLine = null;
         }
 
-        private void OnDialogueCompleted()
+        private void OnDialoguePhrase(int phraseId)
         {
-            DialogueCondition condition = _conditions.First(x => x.dialogue == _dialogue.StartDialogLine);
+            DialogueCondition condition = _conditions.Find(x => x.hasTransition && x.phraseIdToTransit == phraseId);
             condition?.actionHandler.MakeTransition(condition.transitionId);
-            _modeSwitch.DialogueСompleted -= OnDialogueCompleted;
+
         }
     }
 }

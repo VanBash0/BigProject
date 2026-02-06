@@ -21,7 +21,9 @@ namespace BigProject.Gameplay.VillageWatermillQuest
         [SerializeField]
         private Vector3 _millerFinalPosition;
         [SerializeField]
-        GearsHandler _millWheelHandler;
+        private GearsHandler _millWheelHandler;
+        [SerializeField]
+        private GameObject _runeBar;
 
         private InventorySystem _inventory;
         private GameLogManager _logger;
@@ -59,7 +61,7 @@ namespace BigProject.Gameplay.VillageWatermillQuest
 
         public void SpawnMiller()
         {
-            _logger?.Info("Move miller to quest final position and apwn chests.");
+            _logger?.Info("Move miller to quest final position and spawn chests.");
             _chests.SetActive(true);
             _miller.transform.position = _millerFinalPosition;
         }
@@ -68,6 +70,12 @@ namespace BigProject.Gameplay.VillageWatermillQuest
         {
             _logger?.Info("Switch rotation of mill wheel on.");
             _millWheelHandler.enabled = true;
+        }
+
+        public void GetRune()
+        {
+            _runeBar.SetActive(true);
+            RunesSystem.Instance.AddRune();
         }
     }
 }

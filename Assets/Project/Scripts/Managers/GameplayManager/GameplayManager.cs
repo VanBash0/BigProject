@@ -2,6 +2,7 @@ using UnityEngine;
 using BigProject.Systems;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using System;
 
 namespace BigProject.Managers
 {
@@ -9,6 +10,7 @@ namespace BigProject.Managers
     {
         Play,
         Dialogue,
+        MiniGame,
         Map,
         Inventory,
         Pause
@@ -23,6 +25,8 @@ namespace BigProject.Managers
         private readonly ManualLoop _manualLoop;
         private readonly Dictionary<GameplayState, List<int>> _tickQueueIds = new();
         private readonly List<int> _activeQueueIds = new();
+
+        public event Action<GameplayState> StateChanged;
 
         public GameplayManager(ManualLoop manualLoop)
         {
@@ -64,25 +68,22 @@ namespace BigProject.Managers
                 return;
             }
 
-            if (!_tickQueueIds.TryGetValue(state, out var nextIds))
-            {
-                Debug.LogWarning($"Gameplay Manager: can't find tickable queue for state {_state}");
-                return;
-            }
-
-            _state = state;
-
             foreach (int id in _activeQueueIds)
             {
                 _manualLoop.SetTickableQueueActive(id, false);
             }
 
             _activeQueueIds.Clear();
+            _state = state;
+            StateChanged?.Invoke(_state);
 
-            foreach (int id in nextIds)
+            if (_tickQueueIds.TryGetValue(_state, out var nextIds))
             {
-                _manualLoop.SetTickableQueueActive(id, true);
-                _activeQueueIds.Add(id);
+                foreach (int id in nextIds)
+                {
+                    _manualLoop.SetTickableQueueActive(id, true);
+                    _activeQueueIds.Add(id);
+                }
             }
         }
     }

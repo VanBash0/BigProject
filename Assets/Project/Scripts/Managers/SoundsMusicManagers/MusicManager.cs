@@ -9,6 +9,11 @@ namespace BigProject.Managers
 
         private Coroutine _fadeCoroutine;
 
+        public void Init(AudioSource audioSource)
+        {
+            _musicSource = audioSource;
+        }
+
         /// <summary>
         /// Plays given music with fades
         /// <param name = "fadeOutDuration"> Duration of fading out the current music </param>

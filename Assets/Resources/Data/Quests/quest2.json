@@ -314,14 +314,30 @@
                     "toState":3
                 }
             ]
-        }
-    ],
-    "questStates":
-    [
+        },
         {
-            "state":2,
-            "actionId":9,
-            "actionState":3
+            "id":11,
+            "name":"Finish",
+            "currentState":1,
+            "conditions":
+            [
+                {
+                    "fromState":1,
+                    "toState":3,
+                    "dependencyPacks":
+                    [
+                        {
+                            "dependencies":
+                            [
+                                {
+                                    "id":9,
+                                    "state":3
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

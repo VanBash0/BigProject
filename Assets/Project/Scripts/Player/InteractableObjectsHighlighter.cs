@@ -27,7 +27,7 @@ namespace BigProject.Intercatable.HighlightedObjects
 
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
-                    Debug.Log(hit.transform.gameObject.name);
+                    // Debug.Log(hit.transform.gameObject.name);
                     HighlightedObject newObject = hit.transform.GetComponent<HighlightedObject>();
 
                     if(newObject == null)

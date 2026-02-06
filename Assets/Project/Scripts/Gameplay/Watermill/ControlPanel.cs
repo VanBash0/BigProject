@@ -23,9 +23,15 @@ namespace BigProject.Gameplay.Watermill
     public class ControlPanel : MonoBehaviour, IInteractable
     {
         [SerializeField]
+        private GameObject _exitButton;
+        [SerializeField]
+        private GameObject _noteObject;
+        [SerializeField]
         private QuestActionHandlersContainer _actions;
         [SerializeField]
         private PlayerInputHandler _inputHandler;
+        [SerializeField]
+        private SkinnedMeshRenderer _playerRenderer;
         [SerializeField]
         private CinemachineCamera _mechCamera;
         [SerializeField]
@@ -66,13 +72,13 @@ namespace BigProject.Gameplay.Watermill
         private bool _isLeverMoving;
         private Vector2 _deltaInversion = new(-1f, 1f);
         private GameLogManager _logger;
+        private GameplayManager _gameplayManager;
 
         private void Awake()
         {
             _logger = ServiceLocator.GetService<GameLogManager>();
+            _gameplayManager = ServiceLocator.GetService<GameplayManager>();
             ChangeState(ControlPanelState.Broken);
-
-            //ServiceLocator.GetService<InventorySystem>().AddItemByItemID(0);
         }
 
         private void OnDestroy()
@@ -120,24 +126,32 @@ namespace BigProject.Gameplay.Watermill
         private IEnumerator ActivateRoutine()
         {
             _mechCamera.enabled = true;
-            _inputHandler.SwitchToMiniGameActionMap();
+            _gameplayManager.ChangeState(GameplayState.MiniGame);
             yield return new WaitForFixedUpdate();
+            yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime * 0.85f);
+            _playerRenderer.enabled = false;
             yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime);
             _collider.enabled = false;
             _isActive = true;
+            _exitButton.SetActive(true);
+            _noteObject.SetActive(true);
             _state?.Start();
         }
 
         private IEnumerator DeactivateRoutine()
         {
+            _exitButton.SetActive(false);
+            _noteObject.SetActive(false);
             _state?.Stop();
             _isActive = false;
             yield return new WaitForSeconds(_autoExitTime);
             _mechCamera.enabled = false;
             yield return new WaitForFixedUpdate();
+            yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime * 0.15f);
+            _playerRenderer.enabled = true;
             yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime);
             _collider.enabled = true;
-            _inputHandler.SwitchToPlayerActionMap();
+            _gameplayManager.ChangeState(GameplayState.Play);
         }
 
         private void OnClicked()
@@ -188,6 +202,12 @@ namespace BigProject.Gameplay.Watermill
                 case ControlPanelState.Fixed:
                     _state = new ControlPanelStateFixed(this, _inputHandler, _leversPoints, _levers, _leverMoveTime,
                         _leverStaggerTime, _staggerDistance, _noteItemId, _gearsHandler, _actions["ActivateMech"]);
+
+                    if (_isActive)
+                    {
+                        _noteObject.SetActive(true);
+                    }
+
                     break;
                 default:
                     _state = null;

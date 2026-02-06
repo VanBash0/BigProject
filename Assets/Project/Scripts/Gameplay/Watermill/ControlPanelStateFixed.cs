@@ -112,7 +112,11 @@ namespace BigProject.Gameplay.Watermill
 
         public void Dispose()
         {
-            _gearsHandler.enabled = true;
+            if (_gearsHandler != null)
+            {
+                _gearsHandler.enabled = true;
+            }
+
             _activateMechAction.StateChanged -= OnStateChanged;
             _ctSource?.Cancel();
             _ctSource?.Dispose();

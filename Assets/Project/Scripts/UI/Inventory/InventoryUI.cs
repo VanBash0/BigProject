@@ -1,11 +1,12 @@
 using BigProject.Systems;
+using BigProject.Systems.HUD;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace BigProject.UI
 {
-    public class InventoryUI : MonoBehaviour
+    public class InventoryUI : MonoBehaviour, IHUDWidget
     {
         [SerializeField] private List<InventorySlotUI> _inventorySlots;
         [SerializeField] private Camera _camera;
@@ -14,6 +15,7 @@ namespace BigProject.UI
         private void OnEnable()
         {
             InventorySystem.Instance.OnInventoryUpdated += UpdateInventory;
+            UpdateInventory();
         }
 
         private void OnDisable()

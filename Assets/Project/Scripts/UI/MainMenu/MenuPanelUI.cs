@@ -16,13 +16,13 @@ namespace BigProject.UI
             _newGameButton.onClick.AddListener(() =>
             {
                 //Debug.Log("Clicked New Game Button");
-                SceneLoaderManager.Instance.LoadScene(Scenes.MainScene);
+                SceneLoaderManager.Instance.LoadScene(Scenes.VillageMainScene);
             });
 
             _continueButton.onClick.AddListener(() =>
             {
                 //Debug.Log("Clicked Continue Button");
-                SceneLoaderManager.Instance.LoadScene(Scenes.MainScene);
+                SceneLoaderManager.Instance.LoadScene(Scenes.VillageMainScene);
             });
 
             _settingsButton.onClick.AddListener(() =>

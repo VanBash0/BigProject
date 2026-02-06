@@ -6,8 +6,8 @@ namespace BigProject.Systems
     [DefaultExecutionOrder(-1)]
     public class RunesSystem : MonoBehaviour
     {
-        public static RunesSystem Instance;
-        public Action<int> OnRuneAdded;
+        public static RunesSystem Instance; // public на запись лучше не делать - внешний код может написать RunesSystem.Instance = some_val...
+        public Action<int> OnRuneAdded; // События обозначать как event, иначе внешний код может вызвать его, где захочет.
 
         private int _numberOfRunes;
 

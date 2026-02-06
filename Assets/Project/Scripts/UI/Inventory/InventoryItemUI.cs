@@ -38,7 +38,7 @@ namespace BigProject.UI
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            transform.SetParent(transform.root, false);
+            transform.SetParent(transform.root); //, false); - тут приводит к изменения масштаба.
             transform.SetAsLastSibling();
             _image.raycastTarget = false;
             _onDrag?.Invoke(true);
@@ -76,7 +76,10 @@ namespace BigProject.UI
         public void OnPointerClick(PointerEventData eventData)
         {
             if (_noteObject == null)
+            {
                 return;
+            }
+
             _isNoteOpened = !_isNoteOpened;
             _noteObject.SetActive(_isNoteOpened);
         }

@@ -70,7 +70,7 @@ namespace BigProject.Player
             {
                 RotateTowardsMovement();
 
-                if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
+                if (!_navMeshAgent.pathPending && _navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
                 {
                     if (!_navMeshAgent.hasPath || _navMeshAgent.velocity.sqrMagnitude == 0f)
                     {

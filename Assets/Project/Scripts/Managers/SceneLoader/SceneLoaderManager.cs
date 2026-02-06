@@ -10,7 +10,10 @@ namespace BigProject.Managers
         TestScene1,
         TestScene2,
         Village,
-        Watermill
+        Watermill,
+        WatermillScene,
+        VillageMainScene,
+        MainMenu
     }
 
     public class SceneLoaderManager : MonoBehaviour

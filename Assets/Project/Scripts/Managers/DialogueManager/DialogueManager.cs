@@ -20,6 +20,8 @@ namespace BigProject.Managers
         private TextMeshProUGUI _dialogueText;
         [SerializeField]
         private Image _rightCharacterImage;
+        [SerializeField] 
+        private Image _leftCharacterImage;
         [SerializeField]
         private Button _nextButton;
 
@@ -88,11 +90,15 @@ namespace BigProject.Managers
 
             if (_currentDialogueLine.DialogueNPCPhrases.Count > _currentDialoguePhraseIndex)
             {
+                SetImageAlpha(_rightCharacterImage, 1f, 1f);
+                SetImageAlpha(_leftCharacterImage, 0.5f, 0.8f);
                 // NPC ещё не договорил - показываем следующую фразу
                 ShowNextPhrase();
             }
             else if (_currentDialogueLine.DialogueAnswerOptions.Count > 0)
             {
+                SetImageAlpha(_rightCharacterImage, 0.5f, 0.8f);
+                SetImageAlpha(_leftCharacterImage, 1f, 1f);
                 // NPC договорил и игроку есть что сказать - отображаем варианты ответов
                 ShowAnswerOptions();
             }
@@ -162,6 +168,12 @@ namespace BigProject.Managers
                 _answerOptionButtons[i].gameObject.SetActive(true);
                 _answerOptionButtonTexts[i].text = _currentDialogueLine.DialogueAnswerOptions[i].Text;
             }
+        }
+
+        private void SetImageAlpha(Image image, float tone, float alpha)
+        {
+            Color color = new(tone, tone, tone, alpha);
+            image.color = color;
         }
     }
 }

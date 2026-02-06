@@ -11,7 +11,7 @@ namespace BigProject.Systems.HUD
     public enum HUDWidgetRoutineType
     {
         Show = 0x1,
-        Hide = 0x2
+        Hide = 0x2,
     }
 
     /// <summary>
@@ -290,6 +290,7 @@ namespace BigProject.Systems.HUD
 
             try
             {
+                routine.cts.Dispose();
                 _widgetsRoutines[widget].Remove(routine);
             }
             catch (Exception ex)
@@ -320,16 +321,18 @@ namespace BigProject.Systems.HUD
 
         private void ClearRoutines(int widgetId)
         {
-            Debug.Log($"Removing widget {widgetId} with active routines...");
             IHUDWidget widget = _widgets[widgetId];
 
-            foreach (WidgetRoutine routine in _widgetsRoutines[widget])
-            {    
-                routine.cts.Cancel();
-                routine.cts.Dispose();
-            }
+            if (widget != null && _widgetsRoutines.TryGetValue(widget, out List<WidgetRoutine> routines))
+            {
+                foreach (WidgetRoutine routine in routines)
+                {
+                    routine.cts.Cancel();
+                    routine.cts.Dispose();
+                }
 
-            _widgetsRoutines[widget].Clear();
+                routines.Clear();
+            }
         }
     }
 }

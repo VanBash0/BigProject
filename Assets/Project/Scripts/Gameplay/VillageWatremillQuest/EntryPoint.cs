@@ -12,9 +12,22 @@ namespace BigProject.Gameplay.VillageWatermillQuest
         [SerializeField]
         private DialogueModeSwitch _dialogueModeSwitch;
 
+        [SerializeField]
+        private AudioClip _music;
+
         public void Init()
         {
             ServiceLocator.AddService(_dialogueModeSwitch);
+
+            if (ServiceLocator.TryGetService(out MusicManager musicManager))
+            {
+                musicManager.PlayMusic(_music, 0.1f, 0.1f);
+            }
+        }
+
+        public void OnDestroy()
+        {
+            ServiceLocator.ReleaseService<DialogueModeSwitch>();
         }
     }
 }
