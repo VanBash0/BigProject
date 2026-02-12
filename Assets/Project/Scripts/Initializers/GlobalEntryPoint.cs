@@ -10,10 +10,12 @@ using UnityEngine.Events;
 namespace BigProject.Initializers
 {
     /// <summary>
-    /// Точка входа для регистрации базовых служб и настроек.
+    /// РўРѕС‡РєР° РІС…РѕРґР° РґР»СЏ СЂРµРіРёСЃС‚СЂР°С†РёРё Р±Р°Р·РѕРІС‹С… СЃР»СѓР¶Р± Рё РЅР°СЃС‚СЂРѕРµРє.
     /// </summary>
     public class GlobalEntryPoint : MonoBehaviour
     {
+        [SerializeField]
+        private MusicManager _musicManager;
         [SerializeField]
         private GlobalConfig _config;
         [SerializeField, Tooltip("Actions to execute for startup initialize.")]
@@ -51,10 +53,7 @@ namespace BigProject.Initializers
             ServiceLocator.AddService(new HUD());
             ServiceLocator.AddServiceResolver(() => InventorySystem.Instance);
 
-            MusicManager musicManager = new GameObject("MusicManager").AddComponent<MusicManager>();
-            AudioSource source = musicManager.AddComponent<AudioSource>();
-            source.playOnAwake = false;
-            musicManager.Init(source);
+            MusicManager musicManager = Instantiate(_musicManager);
             DontDestroyOnLoad(musicManager);
             ServiceLocator.AddService(musicManager);
 
