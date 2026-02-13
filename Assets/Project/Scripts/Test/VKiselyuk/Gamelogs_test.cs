@@ -6,11 +6,11 @@ public class Gamelogs_test : MonoBehaviour
 {
     void Start()
     {
-        GameLogManager.Instance.Info("Info");
-        GameLogManager.Instance.Warning("Warning");
-        GameLogManager.Instance.Error("Error");
-        GameLogManager.Instance.Critical("Critical");
-        GameLogManager.Instance.Debug("Debug");
+        GameLogManager.Info("Info");
+        GameLogManager.Warning("Warning");
+        GameLogManager.Error("Error");
+        GameLogManager.Critical("Critical");
+        GameLogManager.Debug("Debug");
     }
 
     void Update()

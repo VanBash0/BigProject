@@ -6,15 +6,8 @@ using UnityEngine;
 
 namespace BigProject.Managers
 {
-    public class GameLogManager : MonoBehaviour
+    public static class GameLogManager
     {
-        public enum LogLevel
-        {
-            None, // in Editor development
-            Debug, // to activate on build: BuildProfiles > PlatformSettings > WindowsSettings > DevelopmentBuild = on
-            Release, // to activate on build: BuildProfiles > PlatformSettings > WindowsSettings > DevelopmentBuild = off
-        }
-
         private enum LogType
         {
             /// <summary>
@@ -178,8 +171,6 @@ namespace BigProject.Managers
             C,
         }
 
-        public static GameLogManager Instance;
-
         private const string LOGS_FOLDERNAME = "LOGS";
         private const string LOGS_FILENAME_PREFIX = "game_";
         private const string LOGS_FILENAME_TYPE = ".log";
@@ -204,30 +195,17 @@ namespace BigProject.Managers
         // максимальное количество файлов логов
         private const int MAX_LOG_FILES_COUNT = 10;
 
-        private readonly List<string> _logBuffer = new();
-        private string _logFilePath;
-        private float _lastWriteTime;
+        private static readonly List<string> _logBuffer = new();
+        private static string _logFilePath;
+        private static float _lastWriteTime;
 
-        [SerializeField] private LogLevel _currentLogLevel = LogLevel.None;
+        public static LogLevel CurrentLogLevel { get; private set; } = LogLevel.None;
 
-        private void Awake()
+        public static void SetCurrentLogLevel(LogLevel currentLogLevel) => CurrentLogLevel = currentLogLevel;
+
+        public static void Update()
         {
-            if (Instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-
-            InBuildActivation();
-            InitLogger();
-        }
-
-        private void Update()
-        {
-            if (_currentLogLevel == LogLevel.None)
+            if (CurrentLogLevel == LogLevel.None)
             {
                 return;
             }
@@ -238,47 +216,33 @@ namespace BigProject.Managers
             }
         }
 
-        private void OnApplicationQuit()
+        public static void Debug(string message)
         {
-            Info(INFO_APPLICATION_QUITTING);
-            WriteBufferToFile();
-        }
-
-        private void OnDestroy()
-        {
-            if (Instance == this)
-            {
-                WriteBufferToFile();
-            }
-        }
-
-        public void Debug(string message)
-        {
-            if (_currentLogLevel != LogLevel.Release)
+            if (CurrentLogLevel != LogLevel.Release)
             {
                 AddLogToBuffer(LogType.D, message);
             }
         }
 
-        public void Info(string message) => AddLogToBuffer(LogType.I, message);
+        public static void Info(string message) => AddLogToBuffer(LogType.I, message);
 
-        public void Warning(string message) => AddLogToBuffer(LogType.W, message);
+        public static void Warning(string message) => AddLogToBuffer(LogType.W, message);
 
-        public void Error(string message)
+        public static void Error(string message)
         {
             AddLogToBuffer(LogType.E, message);
             WriteBufferToFile();
         }
 
-        public void Critical(string message)
+        public static void Critical(string message)
         {
             AddLogToBuffer(LogType.C, message);
             WriteBufferToFile();
         }
 
-        private void AddLogToBuffer(LogType type, string message)
+        private static void AddLogToBuffer(LogType type, string message)
         {
-            if (_currentLogLevel == LogLevel.None)
+            if (CurrentLogLevel == LogLevel.None)
             {
                 return;
             }
@@ -294,9 +258,9 @@ namespace BigProject.Managers
             }
         }
 
-        private void WriteBufferToFile()
+        private static void WriteBufferToFile()
         {
-            if (_currentLogLevel == LogLevel.None)
+            if (CurrentLogLevel == LogLevel.None)
             {
                 return;
             }
@@ -325,7 +289,7 @@ namespace BigProject.Managers
             }
         }
 
-        private void LogCallback(string message, string stackTrace, UnityEngine.LogType type)
+        private static void LogCallback(string message, string stackTrace, UnityEngine.LogType type)
         {
             string systemMessage = string.Format(LOG_SYSTEM_STRING_FORMAT, message, stackTrace);
 
@@ -352,17 +316,27 @@ namespace BigProject.Managers
             }
         }
 
-        private void InBuildActivation()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void InitOnStart()
+        {
+            InBuildActivation();
+            InitLogger();
+
+            Application.logMessageReceived += LogCallback;
+            Application.quitting += OnApplicationQuit;
+        }
+
+        private static void InBuildActivation()
         {
             if (!Application.isEditor)
             {
-                _currentLogLevel = UnityEngine.Debug.isDebugBuild ? LogLevel.Debug : LogLevel.Release;
+                CurrentLogLevel = UnityEngine.Debug.isDebugBuild ? LogLevel.Debug : LogLevel.Release;
             }
         }
 
-        private void InitLogger()
+        private static void InitLogger()
         {
-            if (_currentLogLevel == LogLevel.None)
+            if (CurrentLogLevel == LogLevel.None)
             {
                 return;
             }
@@ -392,7 +366,7 @@ namespace BigProject.Managers
             }
         }
 
-        private void DeleteOldLogs(string folderPath)
+        private static void DeleteOldLogs(string folderPath)
         {
             List<string> logFiles = new();
 
@@ -429,14 +403,11 @@ namespace BigProject.Managers
             }
         }
 
-        private void OnEnable()
-        {
-            Application.logMessageReceived += LogCallback;
-        }
-
-        private void OnDisable()
+        private static void OnApplicationQuit()
         {
             Application.logMessageReceived -= LogCallback;
+            Info(INFO_APPLICATION_QUITTING);
+            WriteBufferToFile();
         }
     }
 }

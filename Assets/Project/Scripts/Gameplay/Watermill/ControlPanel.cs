@@ -71,12 +71,10 @@ namespace BigProject.Gameplay.Watermill
         private bool _isActive = false;
         private bool _isLeverMoving;
         private Vector2 _deltaInversion = new(-1f, 1f);
-        private GameLogManager _logger;
         private GameplayManager _gameplayManager;
 
         private void Awake()
         {
-            _logger = ServiceLocator.GetService<GameLogManager>();
             _gameplayManager = ServiceLocator.GetService<GameplayManager>();
             ChangeState(ControlPanelState.Broken);
         }
@@ -187,7 +185,7 @@ namespace BigProject.Gameplay.Watermill
         public void ChangeState(ControlPanelState newState)
         {
             _state?.Dispose();
-            _logger.Info($"Control panel change state to: {newState}");
+            GameLogManager.Info($"Control panel change state to: {newState}");
 
             switch (newState)
             {

@@ -55,7 +55,7 @@ namespace BigProject.Gameplay.Watermill
             catch (Exception ex)
             {
                 string msg = $"Some error ocurred while releasing the item from inventory: {ex.Message}";
-                ServiceLocator.GetService<GameLogManager>().Critical(msg);
+                Managers.GameLogManager.Critical(msg);
                 Debug.Log(msg);
             }
 
@@ -92,7 +92,7 @@ namespace BigProject.Gameplay.Watermill
             catch (Exception ex)
             {
                 string msg = $"Unable to make action transition from installing repaired lever: {ex.Message}";
-                ServiceLocator.GetService<GameLogManager>().Critical(msg);
+                GameLogManager.Critical(msg);
                 Debug.Log(msg);
             }
         }

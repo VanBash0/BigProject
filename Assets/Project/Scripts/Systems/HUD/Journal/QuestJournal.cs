@@ -14,7 +14,6 @@ namespace BigProject.Systems.HUD
     public class QuestJournal : IDisposable
     {
         private QuestJournalConfig _config;
-        private GameLogManager _logger;
         private ProgressManager _pm;
         private List<(IQuestActionHandler, Action)> _journalWriters = new();
 
@@ -29,11 +28,9 @@ namespace BigProject.Systems.HUD
         public QuestJournal(ProgressManager pm, QuestJournalConfig config)
         {
             _config = config;
-            _logger = GameLogManager.Instance;
             _pm= pm;
             Assert.IsNotNull(_config, "Config of journal is null.");
             Assert.IsNotNull(pm, "Can't create journal: progress manager is null.");
-            Assert.IsNotNull(_logger, "Journal unable to get logger.");
             //Init();
         }
 
@@ -77,7 +74,7 @@ namespace BigProject.Systems.HUD
 
             _hasActiveQuest = true;
             _currentQuestId = questTriggers.QuestId;
-            _logger.Info($"Start record quest {_currentQuestId} tasks to journal.");
+            GameLogManager.Info($"Start record quest {_currentQuestId} tasks to journal.");
 
             foreach (var questTrigger in questTriggers.Triggers)
             {

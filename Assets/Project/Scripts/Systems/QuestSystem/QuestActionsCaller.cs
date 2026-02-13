@@ -37,7 +37,7 @@ namespace BigProject.Systems
             {
                 string msg = $"{gameObject.name} events caller unable to get progress manager.";
                 Debug.LogError(msg);
-                ServiceLocator.GetService<GameLogManager>()?.Error(msg);
+                GameLogManager.Error(msg);
                 Destroy(gameObject);
                 return;
             }
@@ -48,7 +48,7 @@ namespace BigProject.Systems
                 {
                     string msg = $"{gameObject.name} unable to get action {callCondition.id}. It will be ignored.";
                     Debug.LogWarning(msg);
-                    ServiceLocator.GetService<GameLogManager>()?.Warning(msg);
+                    GameLogManager.Warning(msg);
                     continue;
                 }
 
@@ -60,7 +60,7 @@ namespace BigProject.Systems
                 {
                     string dictMsg = $"{gameObject.name} unable to add action {callCondition.id} to dictionary of calls {callCondition.id}. {e.Message}";
                     Debug.LogWarning(dictMsg);
-                    ServiceLocator.GetService<GameLogManager>()?.Warning(dictMsg);
+                    GameLogManager.Warning(dictMsg);
                 }
 
                 callCondition.handler = () => OnStateChanged(callCondition.id);
