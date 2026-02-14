@@ -1,4 +1,3 @@
-using BigProject.Intercatable;
 using BigProject.Managers;
 using UnityEngine;
 
@@ -24,11 +23,7 @@ namespace BigProject.Gameplay
             {
                 string msg = $"{gameObject.name} teleport unable to get scene loader.";
                 Debug.LogError(msg);
-
-                if (ServiceLocator.TryGetService(out GameLogManager logger))
-                {
-                    logger.Error(msg);
-                }
+                GameLogManager.Error(msg);
             }
         }
     }

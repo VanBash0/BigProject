@@ -6,15 +6,8 @@ using UnityEngine;
 
 namespace BigProject.Managers
 {
-    public class GameLogManager : MonoBehaviour
+    public static class GameLogManager
     {
-        public enum LogLevel
-        {
-            None, // in Editor development
-            Debug, // to activate on build: BuildProfiles > PlatformSettings > WindowsSettings > DevelopmentBuild = on
-            Release, // to activate on build: BuildProfiles > PlatformSettings > WindowsSettings > DevelopmentBuild = off
-        }
-
         private enum LogType
         {
             /// <summary>
@@ -178,14 +171,13 @@ namespace BigProject.Managers
             C,
         }
 
-        public static GameLogManager Instance;
-
         private const string LOGS_FOLDERNAME = "LOGS";
         private const string LOGS_FILENAME_PREFIX = "game_";
         private const string LOGS_FILENAME_TYPE = ".log";
 
         private const string LOG_STRING_FORMAT = "[{0}] [{1}] {2}";
-        private const string LOG_SYSTEM_STRING_FORMAT = "[Sys] {0} \n {1}";
+        private const string LOG_SYSTEM_STRING_INFO_FORMAT = "[Sys] {0}";
+        private const string LOG_SYSTEM_STRING_ERROR_FORMAT = "[Sys] {0} \n {1}";
         private const string TIMESTAMP_FORMAT = "yyyy-MM-dd_HH-mm-ss";
 
         private const string INFO_SESSION_STARTED = "=== Session started ===";
@@ -204,30 +196,48 @@ namespace BigProject.Managers
         // максимальное количество файлов логов
         private const int MAX_LOG_FILES_COUNT = 10;
 
-        private readonly List<string> _logBuffer = new();
-        private string _logFilePath;
-        private float _lastWriteTime;
+        private static readonly List<string> _logBuffer = new();
+        private static string _logDirectoryPath;
+        private static string _logFilePath;
+        private static float _lastWriteTime;
 
-        [SerializeField] private LogLevel _currentLogLevel = LogLevel.None;
+        public static LogLevel CurrentLogLevel { get; private set; } = LogLevel.None;
 
-        private void Awake()
+        public static void Init(LogLevel currentLogLevel)
         {
-            if (Instance != null)
+            CurrentLogLevel = currentLogLevel;
+
+            if (CurrentLogLevel == LogLevel.None)
             {
-                Destroy(gameObject);
                 return;
             }
 
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            string timestamp = DateTime.Now.ToString(TIMESTAMP_FORMAT);
+            _logDirectoryPath = Path.Combine(Path.GetDirectoryName(Application.dataPath), LOGS_FOLDERNAME);
 
-            InBuildActivation();
-            InitLogger();
+            try
+            {
+                Directory.CreateDirectory(_logDirectoryPath);
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(string.Format(ERROR_CREATE_DIRECTORY, e.Message, Application.companyName, Application.productName));
+
+                _logDirectoryPath = Path.Combine(Path.GetDirectoryName(Application.persistentDataPath), LOGS_FOLDERNAME);
+                Directory.CreateDirectory(_logDirectoryPath);
+            }
+            finally
+            {
+                string logsFilename = LOGS_FILENAME_PREFIX + timestamp + LOGS_FILENAME_TYPE;
+                _logFilePath = Path.Combine(_logDirectoryPath, logsFilename);
+
+                Info(INFO_SESSION_STARTED);
+            }
         }
 
-        private void Update()
+        public static void Update()
         {
-            if (_currentLogLevel == LogLevel.None)
+            if (CurrentLogLevel == LogLevel.None)
             {
                 return;
             }
@@ -238,47 +248,25 @@ namespace BigProject.Managers
             }
         }
 
-        private void OnApplicationQuit()
+        public static void Debug(string message)
         {
-            Info(INFO_APPLICATION_QUITTING);
-            WriteBufferToFile();
-        }
-
-        private void OnDestroy()
-        {
-            if (Instance == this)
-            {
-                WriteBufferToFile();
-            }
-        }
-
-        public void Debug(string message)
-        {
-            if (_currentLogLevel != LogLevel.Release)
+            if (CurrentLogLevel != LogLevel.Release)
             {
                 AddLogToBuffer(LogType.D, message);
             }
         }
 
-        public void Info(string message) => AddLogToBuffer(LogType.I, message);
+        public static void Info(string message) => AddLogToBuffer(LogType.I, message);
 
-        public void Warning(string message) => AddLogToBuffer(LogType.W, message);
+        public static void Warning(string message) => AddLogToBuffer(LogType.W, message);
 
-        public void Error(string message)
+        public static void Error(string message)=> AddLogToBuffer(LogType.E, message, true);
+
+        public static void Critical(string message) => AddLogToBuffer(LogType.C, message, true);
+
+        private static void AddLogToBuffer(LogType type, string message, bool forceWrite = false)
         {
-            AddLogToBuffer(LogType.E, message);
-            WriteBufferToFile();
-        }
-
-        public void Critical(string message)
-        {
-            AddLogToBuffer(LogType.C, message);
-            WriteBufferToFile();
-        }
-
-        private void AddLogToBuffer(LogType type, string message)
-        {
-            if (_currentLogLevel == LogLevel.None)
+            if (CurrentLogLevel == LogLevel.None)
             {
                 return;
             }
@@ -288,15 +276,15 @@ namespace BigProject.Managers
 
             _logBuffer.Add(logString);
 
-            if (_logBuffer.Count >= BUFFER_LOGS_COUNT)
+            if (forceWrite || _logBuffer.Count >= BUFFER_LOGS_COUNT)
             {
                 WriteBufferToFile();
             }
         }
 
-        private void WriteBufferToFile()
+        private static void WriteBufferToFile()
         {
-            if (_currentLogLevel == LogLevel.None)
+            if (CurrentLogLevel == LogLevel.None)
             {
                 return;
             }
@@ -324,79 +312,68 @@ namespace BigProject.Managers
                 UnityEngine.Debug.LogError(string.Format(ERROR_WRITE_FAILED, e.Message));
             }
         }
-
-        private void LogCallback(string message, string stackTrace, UnityEngine.LogType type)
+        
+        private static void LogCallback(string message, string stackTrace, UnityEngine.LogType type)
         {
-            string systemMessage = string.Format(LOG_SYSTEM_STRING_FORMAT, message, stackTrace);
+            string systemMessage;
 
             switch (type)
             {
                 case UnityEngine.LogType.Log:
+                    systemMessage = string.Format(LOG_SYSTEM_STRING_INFO_FORMAT, message);
                     Info(systemMessage);
                     break;
                 case UnityEngine.LogType.Warning:
+                    systemMessage = string.Format(LOG_SYSTEM_STRING_INFO_FORMAT, message);
                     Warning(systemMessage);
                     break;
                 case UnityEngine.LogType.Error:
+                    systemMessage = string.Format(LOG_SYSTEM_STRING_ERROR_FORMAT, message, stackTrace);
                     Error(systemMessage);
                     break;
                 case UnityEngine.LogType.Assert:
+                    systemMessage = string.Format(LOG_SYSTEM_STRING_ERROR_FORMAT, message, stackTrace);
                     Critical(systemMessage);
                     break;
                 case UnityEngine.LogType.Exception:
+                    systemMessage = string.Format(LOG_SYSTEM_STRING_ERROR_FORMAT, message, stackTrace);
                     Critical(systemMessage);
                     break;
                 default:
+                    systemMessage = string.Format(LOG_SYSTEM_STRING_ERROR_FORMAT, message, stackTrace);
                     Warning(string.Format(WARNING_UNHANDLED_SYSTEM_MESSAGE_TYPE, systemMessage));
                     break;
             }
         }
 
-        private void InBuildActivation()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void InitOnStart()
+        {
+            InBuildActivation();
+            DeleteOldLogs();
+
+            Application.logMessageReceived += LogCallback;
+            Application.quitting += OnApplicationQuit;
+        }
+
+        private static void InBuildActivation()
         {
             if (!Application.isEditor)
             {
-                _currentLogLevel = UnityEngine.Debug.isDebugBuild ? LogLevel.Debug : LogLevel.Release;
+                CurrentLogLevel = UnityEngine.Debug.isDebugBuild ? LogLevel.Debug : LogLevel.Release;
             }
         }
 
-        private void InitLogger()
+        private static void DeleteOldLogs()
         {
-            if (_currentLogLevel == LogLevel.None)
+            if (_logDirectoryPath == null)
             {
                 return;
             }
 
-            string timestamp = DateTime.Now.ToString(TIMESTAMP_FORMAT);
-            string logsDirectory = Path.Combine(Path.GetDirectoryName(Application.dataPath), LOGS_FOLDERNAME);
-
-            try
-            {
-                Directory.CreateDirectory(logsDirectory);
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError(string.Format(ERROR_CREATE_DIRECTORY, e.Message, Application.companyName, Application.productName));
-
-                logsDirectory = Path.Combine(Path.GetDirectoryName(Application.persistentDataPath), LOGS_FOLDERNAME);
-                Directory.CreateDirectory(logsDirectory);
-            }
-            finally
-            {
-                string logsFilename = LOGS_FILENAME_PREFIX + timestamp + LOGS_FILENAME_TYPE;
-                _logFilePath = Path.Combine(logsDirectory, logsFilename);
-
-                Info(INFO_SESSION_STARTED);
-                DeleteOldLogs(logsDirectory);
-                WriteBufferToFile();
-            }
-        }
-
-        private void DeleteOldLogs(string folderPath)
-        {
             List<string> logFiles = new();
 
-            string[] allFiles = Directory.GetFiles(folderPath);
+            string[] allFiles = Directory.GetFiles(_logDirectoryPath);
 
             foreach (string file in allFiles)
             {
@@ -428,15 +405,14 @@ namespace BigProject.Managers
                 logFiles.RemoveRange(0, logFiles.Count - MAX_LOG_FILES_COUNT);
             }
         }
-
-        private void OnEnable()
-        {
-            Application.logMessageReceived += LogCallback;
-        }
-
-        private void OnDisable()
+        
+        private static void OnApplicationQuit()
         {
             Application.logMessageReceived -= LogCallback;
+            Application.quitting -= OnApplicationQuit;
+
+            Info(INFO_APPLICATION_QUITTING);
+            WriteBufferToFile();
         }
     }
 }

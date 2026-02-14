@@ -21,7 +21,6 @@ namespace BigProject.Systems.HUD
     {
         private Dictionary<int, IHUDWidget> _widgets = new();
         private Dictionary<IHUDWidget, List<WidgetRoutine>> _widgetsRoutines = new();
-        private GameLogManager _logger;
 
         private class WidgetRoutine
         {
@@ -31,9 +30,7 @@ namespace BigProject.Systems.HUD
 
         public HUD()
         {
-            //_logger = ServiceLocator.GetService<GameLogManager>();
-            _logger = GameLogManager.Instance;
-            Assert.IsNotNull(_logger, "HUD unable to get logger.");
+
         }
 
         /// <summary>
@@ -103,7 +100,7 @@ namespace BigProject.Systems.HUD
 
             if (timeOffset == 0f && time == float.PositiveInfinity)
             {
-                _logger.Info($"Show HUD widget: {id}");
+                GameLogManager.Info($"Show HUD widget: {id}");
                 widget.Show();
                 return;
             }
@@ -141,7 +138,7 @@ namespace BigProject.Systems.HUD
 
             if (timeOffset == 0f)
             {
-                _logger.Info($"Hide HUD widget: {id}");
+                GameLogManager.Info($"Hide HUD widget: {id}");
                 widget.Hide();
                 return;
             }
@@ -255,7 +252,7 @@ namespace BigProject.Systems.HUD
 
         private async Awaitable WidgetRoutineAsync(IHUDWidget widget, HUDWidgetRoutineType type, float timeOffset, float time)
         {
-            _logger.Info($"Starting widget {widget.GetType().Name} routine of type {type}...");
+            GameLogManager.Info($"Starting widget {widget.GetType().Name} routine of type {type}...");
             CancellationTokenSource cts = new();
 
             if (!_widgetsRoutines.ContainsKey(widget))
@@ -303,14 +300,14 @@ namespace BigProject.Systems.HUD
         {
             await Awaitable.WaitForSecondsAsync(timeOffset, ct);
             widget.Show();
-            _logger.Info($"HUD widget {widget.GetType().Name} show routine finished.");
+            GameLogManager.Info($"HUD widget {widget.GetType().Name} show routine finished.");
         }
 
         private async Awaitable HideWidgetAsync(IHUDWidget widget, float timeOffset, CancellationToken ct)
         {
             await Awaitable.WaitForSecondsAsync(timeOffset, ct);
             widget.Hide();
-            _logger.Info($"HUD widget {widget.GetType().Name} show routine finished.");
+            GameLogManager.Info($"HUD widget {widget.GetType().Name} show routine finished.");
         }
 
         private async Awaitable ShowAndHideWidgetAsync(IHUDWidget widget, float timeOffset, float time, CancellationToken ct)

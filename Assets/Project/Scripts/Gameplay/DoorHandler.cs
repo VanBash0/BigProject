@@ -19,11 +19,7 @@ namespace BigProject.Gameplay
             {
                 string msg = $"{gameObject.name} door unable to get scene loader.";
                 Debug.LogError(msg);
-
-                if (ServiceLocator.TryGetService(out GameLogManager logger))
-                {
-                    logger.Error(msg);
-                }
+                GameLogManager.Error(msg);
             }
         }
     }

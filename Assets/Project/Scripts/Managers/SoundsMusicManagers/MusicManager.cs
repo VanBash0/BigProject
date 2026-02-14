@@ -22,7 +22,7 @@ namespace BigProject.Managers
         {
             if (musicClip == null)
             {
-                ServiceLocator.GetService<GameLogManager>().Error("PlayMusic called in MusicManager with null audio clip");
+                GameLogManager.Error("PlayMusic called in MusicManager with null audio clip");
                 throw new System.ArgumentNullException(nameof(musicClip), "Audio clip cannot be null");
             }
 
