@@ -39,7 +39,7 @@ namespace BigProject.Initializers
                 Destroy(gameObject);
                 return;
             }
-
+            
             Assert.IsNotNull(_config, "Global entry point config is null.");           
             _isInstantiated = true;
 
@@ -57,6 +57,8 @@ namespace BigProject.Initializers
             MusicManager musicManager = Instantiate(_musicManager);
             DontDestroyOnLoad(musicManager);
             ServiceLocator.AddService(musicManager);
+
+            GameLogManager.Init(_currentLogLevel);
 
             _initActions?.Invoke();
         }
