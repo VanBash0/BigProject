@@ -2,7 +2,7 @@ using BigProject.Managers;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Gamelogs_test : MonoBehaviour
+public class GameLogManager_test : MonoBehaviour
 {
     void Start()
     {

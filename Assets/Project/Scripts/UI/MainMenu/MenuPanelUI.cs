@@ -1,4 +1,5 @@
 using BigProject.Managers;
+using BigProject.Systems;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,13 +17,29 @@ namespace BigProject.UI
             _newGameButton.onClick.AddListener(() =>
             {
                 //Debug.Log("Clicked New Game Button");
-                SceneLoaderManager.Instance.LoadScene(Scenes.VillageMainScene);
+                if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
+                {
+                    sceneLoader.LoadScene(Scenes.VillageMainScene);
+                }
+                else
+                {
+                    string msg = string.Format(LogStr.CRITICAL_UNABLE_GET_SERVICE, gameObject.name, typeof(SceneLoadManager));
+                    Debug.LogError(msg);
+                }
             });
 
             _continueButton.onClick.AddListener(() =>
             {
                 //Debug.Log("Clicked Continue Button");
-                SceneLoaderManager.Instance.LoadScene(Scenes.VillageMainScene);
+                if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
+                {
+                    sceneLoader.LoadScene(Scenes.VillageMainScene);
+                }
+                else
+                {
+                    string msg = string.Format(LogStr.CRITICAL_UNABLE_GET_SERVICE, gameObject.name, typeof(SceneLoadManager));
+                    Debug.LogError(msg);
+                }
             });
 
             _settingsButton.onClick.AddListener(() =>

@@ -6,26 +6,7 @@ namespace BigProject.Managers
     [RequireComponent(typeof(Animator))]
     public class Fader : MonoBehaviour
     {
-        private const string FaderPath = "Fader";
-        private const string AnimatorBoolKey = "Faded";
-
-        private static Fader _instance;
-
-        public static Fader Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    var faderPrefab = Resources.Load<Fader>(FaderPath);
-                    _instance = Instantiate(faderPrefab);
-
-                    DontDestroyOnLoad(_instance.gameObject);
-                }
-
-                return _instance;
-            }
-        }
+        private const string FADED_KEY = "Faded";
 
         private Action _fadedInCallback;
         private Action _fadedOutCallback;
@@ -46,7 +27,7 @@ namespace BigProject.Managers
 
             isFading = true;
             _fadedInCallback = fadedInCallback;
-            _animator.SetBool(AnimatorBoolKey, true);
+            _animator.SetBool(FADED_KEY, true);
         }
 
         public void FadeOut(Action fadedOutCallback)
@@ -56,7 +37,7 @@ namespace BigProject.Managers
 
             isFading = true;
             _fadedOutCallback = fadedOutCallback;
-            _animator.SetBool(AnimatorBoolKey, false);
+            _animator.SetBool(FADED_KEY, false);
         }
 
         private void Handle_FadeInAnimationOver()
