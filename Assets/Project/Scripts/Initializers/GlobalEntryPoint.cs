@@ -43,13 +43,12 @@ namespace BigProject.Initializers
             Assert.IsNotNull(_config, "Global entry point config is null.");           
             _isInstantiated = true;
 
-            new GameObject("SceneLoader").AddComponent<SceneLoaderManager>();
-            ServiceLocator.AddService(SceneLoaderManager.Instance);
             ManualLoop manualLoop = new GameObject("ManualLoop").AddComponent<ManualLoop>();
             DontDestroyOnLoad(manualLoop);
             ServiceLocator.AddService(manualLoop);
             ServiceLocator.AddService(new GameplayManager(manualLoop));
             ServiceLocator.AddService(new GameLogManagerTicker(manualLoop));
+            ServiceLocator.AddService(new SceneLoadManager(manualLoop));
             ServiceLocator.AddService(new ProgressManager(_config.PlayerProfileName, new QuestJsonLoader(_config.QuestsFolder), new SavesManager()));
             ServiceLocator.AddService(new HUD());
             ServiceLocator.AddServiceResolver(() => InventorySystem.Instance);

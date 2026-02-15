@@ -1,3 +1,4 @@
+using BigProject.Systems;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -171,24 +172,14 @@ namespace BigProject.Managers
             C,
         }
 
-        private const string LOGS_FOLDERNAME = "LOGS";
-        private const string LOGS_FILENAME_PREFIX = "game_";
-        private const string LOGS_FILENAME_TYPE = ".log";
+        public const string LOGS_FOLDERNAME = "LOGS";
+        public const string LOGS_FILENAME_PREFIX = "game_";
+        public const string LOGS_FILENAME_TYPE = ".log";
 
-        private const string LOG_STRING_FORMAT = "[{0}] [{1}] {2}";
-        private const string LOG_SYSTEM_STRING_INFO_FORMAT = "[Sys] {0}";
-        private const string LOG_SYSTEM_STRING_ERROR_FORMAT = "[Sys] {0} \n {1}";
-        private const string TIMESTAMP_FORMAT = "yyyy-MM-dd_HH-mm-ss";
-
-        private const string INFO_SESSION_STARTED = "=== Session started ===";
-        private const string INFO_APPLICATION_QUITTING = "=== Application quitting ===";
-        private const string INFO_DELETE_OLD_LOG_FILE = "Delete old log file: {0}";
-        private const string WARNING_UNHANDLED_SYSTEM_MESSAGE_TYPE = "Unhandled sysytem message type!\nMessage:\n{0}";
-        private const string ERROR_WRITE_FAILED = "Logger write failed: {0}";
-        private const string ERROR_FILE_DELETE_FAILED = "Failed to delete {0}: {1}";
-        private const string ERROR_CREATE_DIRECTORY = "Cannot create log dir: {0}." +
-            "\n\n Will be created in Persistent Data Path: " +
-            "\n\t %userprofile%\\AppData\\LocalLow\\{1}\\{2}\\";
+        public const string LOG_STRING_FORMAT = "[{0}] [{1}] {2}";
+        public const string LOG_SYSTEM_STRING_INFO_FORMAT = "[Sys] {0}";
+        public const string LOG_SYSTEM_STRING_ERROR_FORMAT = "[Sys] {0} \n {1}";
+        public const string TIMESTAMP_FORMAT = "yyyy-MM-dd_HH-mm-ss";
 
         // настройка частоты записи логов
         private const int BUFFER_LOGS_COUNT = 1;
@@ -221,7 +212,7 @@ namespace BigProject.Managers
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(string.Format(ERROR_CREATE_DIRECTORY, e.Message, Application.companyName, Application.productName));
+                UnityEngine.Debug.LogError(string.Format(LogStr.ERROR_CREATE_DIRECTORY, e.Message, Application.companyName, Application.productName));
 
                 _logDirectoryPath = Path.Combine(Path.GetDirectoryName(Application.persistentDataPath), LOGS_FOLDERNAME);
                 Directory.CreateDirectory(_logDirectoryPath);
@@ -231,7 +222,7 @@ namespace BigProject.Managers
                 string logsFilename = LOGS_FILENAME_PREFIX + timestamp + LOGS_FILENAME_TYPE;
                 _logFilePath = Path.Combine(_logDirectoryPath, logsFilename);
 
-                Info(INFO_SESSION_STARTED);
+                Info(LogStr.INFO_SESSION_STARTED);
             }
         }
 
@@ -309,7 +300,7 @@ namespace BigProject.Managers
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError(string.Format(ERROR_WRITE_FAILED, e.Message));
+                UnityEngine.Debug.LogError(string.Format(LogStr.ERROR_WRITE_FAILED, e.Message));
             }
         }
         
@@ -341,7 +332,7 @@ namespace BigProject.Managers
                     break;
                 default:
                     systemMessage = string.Format(LOG_SYSTEM_STRING_ERROR_FORMAT, message, stackTrace);
-                    Warning(string.Format(WARNING_UNHANDLED_SYSTEM_MESSAGE_TYPE, systemMessage));
+                    Warning(string.Format(LogStr.WARNING_UNHANDLED_SYSTEM_MESSAGE_TYPE, systemMessage));
                     break;
             }
         }
@@ -394,11 +385,11 @@ namespace BigProject.Managers
                     try
                     {
                         File.Delete(logFiles[i]);
-                        Info(string.Format(INFO_DELETE_OLD_LOG_FILE, logFiles[i]));
+                        Info(string.Format(LogStr.INFO_DELETE_OLD_LOG_FILE, logFiles[i]));
                     }
                     catch (Exception e)
                     {
-                        Error(string.Format(ERROR_FILE_DELETE_FAILED, logFiles[i], e.Message));
+                        Error(string.Format(LogStr.ERROR_FILE_DELETE_FAILED, logFiles[i], e.Message));
                     }
                 }
 
@@ -411,7 +402,7 @@ namespace BigProject.Managers
             Application.logMessageReceived -= LogCallback;
             Application.quitting -= OnApplicationQuit;
 
-            Info(INFO_APPLICATION_QUITTING);
+            Info(LogStr.INFO_APPLICATION_QUITTING);
             WriteBufferToFile();
         }
     }
