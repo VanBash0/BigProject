@@ -18,7 +18,7 @@ namespace BigProject.Managers
         MainMenu
     }
 
-    public class SceneLoadManager
+    public class SceneLoadManager : IDisposable
     {
         public event Action<Scenes> SceneLoaded;
 
@@ -98,6 +98,11 @@ namespace BigProject.Managers
             }
 
             _isLoading = false;
+        }
+        
+        public void Dispose()
+        {
+            UnityEngine.Object.Destroy(_fader.gameObject);
         }
     }
 }
