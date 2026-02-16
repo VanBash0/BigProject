@@ -34,6 +34,8 @@ namespace BigProject.Gameplay.Watermill
         [SerializeField]
         private SkinnedMeshRenderer _playerRenderer;
         [SerializeField]
+        private Collider _playerCollider;
+        [SerializeField]
         private CinemachineCamera _mechCamera;
         [SerializeField]
         private GameObject _brokenLever;
@@ -129,6 +131,7 @@ namespace BigProject.Gameplay.Watermill
             yield return new WaitForFixedUpdate();
             yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime * 0.85f);
             _playerRenderer.enabled = false;
+            _playerCollider.enabled = false;
             yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime);
             _collider.enabled = false;
             _isActive = true;
@@ -148,6 +151,7 @@ namespace BigProject.Gameplay.Watermill
             yield return new WaitForFixedUpdate();
             yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime * 0.15f);
             _playerRenderer.enabled = true;
+            _playerCollider.enabled = true;
             yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime);
             _collider.enabled = true;
             _gameplayManager.ChangeState(GameplayState.Play);

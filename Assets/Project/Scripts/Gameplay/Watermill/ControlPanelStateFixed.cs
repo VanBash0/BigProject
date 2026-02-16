@@ -27,7 +27,7 @@ namespace BigProject.Gameplay.Watermill
         private List<Lever> _levers;
         private List<LeverPoint> _leversPoints;
         private Vector2 _delta = Vector2.zero;
-        private const float MIN_SWIPE_DELTA = 70f;
+        private const float MIN_SWIPE_DELTA = 80f;
         private const float MAX_SWIPE_ANGLE_DELTA = 30f;
 
         private class LeverPoint
