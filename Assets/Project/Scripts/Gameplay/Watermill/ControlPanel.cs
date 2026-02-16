@@ -2,6 +2,7 @@ using BigProject.Intercatable;
 using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Systems;
+using BigProject.Systems.QuestSystem;
 using BigProject.Utilities;
 using DG.Tweening;
 using System.Collections;

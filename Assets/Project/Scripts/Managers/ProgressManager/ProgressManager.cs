@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using BigProject.Systems;
+using BigProject.Systems.QuestSystem;
 
 namespace BigProject.Managers
 {

@@ -1,5 +1,5 @@
 using BigProject.Managers;
-using BigProject.Systems;
+using BigProject.Systems.QuestSystem;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Assertions;

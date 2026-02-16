@@ -1,6 +1,5 @@
 using BigProject.Intercatable;
-using BigProject.Managers;
-using BigProject.Systems;
+using BigProject.Systems.QuestSystem;
 using UnityEngine;
 
 namespace BigProject.Gameplay.VillageWatermillQuest

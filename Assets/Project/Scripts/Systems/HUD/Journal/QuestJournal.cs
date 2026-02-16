@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using System;
 using UnityEngine.Localization.Settings;
+using BigProject.Systems.QuestSystem;
 
 
 namespace BigProject.Systems.HUD

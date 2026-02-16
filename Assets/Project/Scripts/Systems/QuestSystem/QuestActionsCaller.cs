@@ -1,11 +1,10 @@
 using BigProject.Managers;
-using BigProject.Systems;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace BigProject.Systems
+namespace BigProject.Systems.QuestSystem
 {
     public class QuestActionsCaller : MonoBehaviour
     {

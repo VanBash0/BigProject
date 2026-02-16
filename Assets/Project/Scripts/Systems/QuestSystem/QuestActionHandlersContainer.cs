@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Zenject;
-using static UnityEngine.Analytics.IAnalytic;
-using static UnityEngine.CullingGroup;
 
-namespace BigProject.Systems
+namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
     /// Контейнер для QuestActionHandler, обращение по ключу через оператор [].

@@ -3,7 +3,7 @@ using UnityEngine;
 using Zenject;
 using BigProject.Managers;
 
-namespace BigProject.Systems
+namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
     /// MonoBehaviour обертка активности квеста.

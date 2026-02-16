@@ -1,6 +1,7 @@
 using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Systems;
+using BigProject.Systems.QuestSystem;
 using System;
 using System.Threading;
 using UnityEngine;

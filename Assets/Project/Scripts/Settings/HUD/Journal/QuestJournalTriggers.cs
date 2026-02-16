@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using BigProject.Systems.QuestSystem;
 
 namespace BigProject.Systems.HUD
 {

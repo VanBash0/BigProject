@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using BigProject.Managers;
 
-namespace BigProject.Systems
+namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
     ///  вест, забирающий данные с Json строки.

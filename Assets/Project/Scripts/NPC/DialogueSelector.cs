@@ -1,12 +1,10 @@
-using BigProject.Intercatable;
 using System;
 using UnityEngine;
 using BigProject.Systems.DialogueSystem;
-using BigProject.Systems;
+using BigProject.Systems.QuestSystem;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using BigProject.Managers;
-using System.Linq;
 
 namespace BigProject.NPC
 {
