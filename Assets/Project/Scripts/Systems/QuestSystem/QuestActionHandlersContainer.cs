@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Zenject;
 
 namespace BigProject.Systems.QuestSystem
 {
@@ -42,8 +41,7 @@ namespace BigProject.Systems.QuestSystem
             }
         }
 
-        [Inject]
-        public void Construct(ProgressManager progressManager)
+        public void Init(ProgressManager progressManager)
         {
             if (_questActions == null)
             {

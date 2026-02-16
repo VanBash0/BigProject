@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using Zenject;
 using BigProject.Managers;
 
 namespace BigProject.Systems.QuestSystem
@@ -33,8 +32,7 @@ namespace BigProject.Systems.QuestSystem
 
         public void MakeTransition(int transitionId) => _actionHandler?.MakeTransition(transitionId);  
 
-        [Inject]
-        public void Construct(ProgressManager progressManager)
+        public void Init(ProgressManager progressManager)
         {
             if (!progressManager.TryGetQuestActionHandler(_questId, _actionId, out _actionHandler))
             {

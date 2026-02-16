@@ -51,14 +51,14 @@ namespace BigProject.Initializers
 
             foreach (QuestActionHandlerMono actionHandler in actionsHandlers)
             {
-                actionHandler.Construct(pm);
+                actionHandler.Init(pm);
             }
 
             var actionHandlersContainers = FindObjectsByType<QuestActionHandlersContainer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestActionHandlersContainer container in actionHandlersContainers)
             {
-                container.Construct(pm);
+                container.Init(pm);
             }
         }
 
