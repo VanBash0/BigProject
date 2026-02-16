@@ -26,6 +26,9 @@ namespace BigProject.Gameplay.Watermill
         private Lever _chosenLever;
         private List<Lever> _levers;
         private List<LeverPoint> _leversPoints;
+        private Vector2 _delta = Vector2.zero;
+        private const float MIN_SWIPE_DELTA = 70f;
+        private const float MAX_SWIPE_ANGLE_DELTA = 30f;
 
         private class LeverPoint
         {
@@ -88,6 +91,14 @@ namespace BigProject.Gameplay.Watermill
                 return;
             }
 
+            _delta += delta;
+
+            if (_delta.magnitude < MIN_SWIPE_DELTA)
+            {
+                return;
+            }
+
+            _delta = Vector2.zero;
             LeverPoint currentPoint = _leversPoints[_chosenLever.PointId];
 
             (float, LeverPoint)[] routes =
@@ -98,7 +109,7 @@ namespace BigProject.Gameplay.Watermill
 
             int i = routes[0].Item1 < routes[1].Item1 ? 0 : 1;
 
-            if (routes[i].Item1 < 30f)
+            if (routes[i].Item1 < MAX_SWIPE_ANGLE_DELTA)
             {
                 _ctSource?.Dispose();
                 _ctSource = new();
@@ -109,6 +120,7 @@ namespace BigProject.Gameplay.Watermill
         public void OnUnclicked()
         {
             _chosenLever = null;
+            _delta = Vector2.zero;
         }
 
         public void Dispose()
