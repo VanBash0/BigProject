@@ -1,6 +1,9 @@
 using BigProject.Gameplay.Watermill;
 using BigProject.Managers;
+using BigProject.Settings;
 using BigProject.Systems;
+using BigProject.Systems.HUD;
+using BigProject.Utilities;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -23,22 +26,34 @@ namespace BigProject.Gameplay.VillageWatermillQuest
         [SerializeField]
         private GearsHandler _millWheelHandler;
         [SerializeField]
-        private GameObject _runeBar;
+        private HUDConfig _hudConfig;
 
         private InventorySystem _inventory;
         private RunesSystem _runes;
+        private HUD _hud;
+
+        public void Init(InventorySystem inventory, RunesSystem runes, HUD hud)
+        {
+            _inventory = inventory;
+            _runes = runes;
+            _hud = hud;
+            ExceptionUtilities.ThrowIfNull(_inventory, gameObject.name, "Inventory System is null.");
+            ExceptionUtilities.ThrowIfNull(_runes, gameObject.name, "Rune System is null.");
+            ExceptionUtilities.ThrowIfNull(_hud, gameObject.name, "HUD is null.");
+        }
 
         private void Start()
         {
-            _inventory = ServiceLocator.GetService<InventorySystem>();
-            Assert.IsNotNull(_inventory, $"{gameObject.name} unable to get inventory system.");
+            Assert.IsNotNull(_miller, $"{gameObject.name}: unable to get Miller.");
+            Assert.IsNotNull(_chests, $"{gameObject.name}: unable to get Chests.");
+            Assert.IsNotNull(_millWheelHandler, $"{gameObject.name}: unable to get Mill Wheel.");
+            Assert.IsNotNull(_hudConfig, $"{gameObject.name}: unable to get HUD config.");
         }
 
         public void GetWatermillNote()
         {
             GameLogManager.Info("Add mill sketch to inventory.");
             _inventory.AddItemByItemID(_noteItemId);
-            //ServiceLocator.GetService<Journal> add note
             GameLogManager.Info("Add note about mill to journal.");
         }
 
@@ -71,7 +86,7 @@ namespace BigProject.Gameplay.VillageWatermillQuest
 
         public void GetRune()
         {
-            _runeBar.SetActive(true);
+            _hud.ShowWidget(_hudConfig.HUDRunesWidgetId);
             _runes.AddRune();
         }
     }

@@ -3,6 +3,7 @@ using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Systems;
 using BigProject.Systems.QuestSystem;
+using BigProject.UI;
 using BigProject.Utilities;
 using DG.Tweening;
 using System.Collections;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace BigProject.Gameplay.Watermill
 {
@@ -26,11 +28,7 @@ namespace BigProject.Gameplay.Watermill
         [SerializeField]
         private GameObject _exitButton;
         [SerializeField]
-        private GameObject _noteObject;
-        [SerializeField]
         private QuestActionHandlersContainer _actions;
-        [SerializeField]
-        private PlayerInputHandler _inputHandler;
         [SerializeField]
         private SkinnedMeshRenderer _playerRenderer;
         [SerializeField]
@@ -70,16 +68,40 @@ namespace BigProject.Gameplay.Watermill
         [SerializeField]
         private List<Transform> _leversPoints;
 
+        private PlayerInputHandler _inputHandler;
+        private InventorySystem _inventory;
+        private InventoryUI _inventoryUI;
         private IControlPanelState _state;
         private bool _isActive = false;
         private bool _isLeverMoving;
         private Vector2 _deltaInversion = new(-1f, 1f);
         private GameplayManager _gameplayManager;
 
-        private void Awake()
+        public void Init(GameplayManager gameplayManager, PlayerInputHandler inputHandler, InventorySystem inventory, InventoryUI inventoryUI)
         {
-            _gameplayManager = ServiceLocator.GetService<GameplayManager>();
+            _gameplayManager = gameplayManager;
+            _inputHandler = inputHandler;
+            _inventory = inventory;
+            _inventoryUI = inventoryUI;
+            ExceptionUtilities.ThrowIfNull(_gameplayManager, gameObject.name, "gameplay manager is null!");
+            ExceptionUtilities.ThrowIfNull(_inputHandler, gameObject.name, "player input handler is null!");
+            ExceptionUtilities.ThrowIfNull(_inventory, gameObject.name, "inventory system is null!");
+            ExceptionUtilities.ThrowIfNull(_inventoryUI, gameObject.name, "inventory UI is null!");
             ChangeState(ControlPanelState.Broken);
+        }
+
+        public void Awake()
+        {
+            Assert.IsNotNull(_exitButton, $"{gameObject.name}: has no exit button.");
+            Assert.IsNotNull(_actions, $"{gameObject.name}: has no actions container.");
+            Assert.IsNotNull(_playerRenderer, $"{gameObject.name}: has no player renderer.");
+            Assert.IsNotNull(_playerCollider, $"{gameObject.name}: has no exit player collider.");
+            Assert.IsNotNull(_mechCamera, $"{gameObject.name}: has no mech camera.");
+            Assert.IsNotNull(_brokenLever, $"{gameObject.name}: has no broken lever.");
+            Assert.IsNotNull(_repairedLeverHolder, $"{gameObject.name}: has no  rerepaired lever holder.");
+            Assert.IsNotNull(_repairedLever, $"{gameObject.name}: has no repaired lever.");
+            Assert.IsNotNull(_gearsHandler, $"{gameObject.name}: has no gears handler.");
+            Assert.IsNotNull(_collider, $"{gameObject.name}: has no collider.");
         }
 
         private void OnDestroy()
@@ -136,14 +158,14 @@ namespace BigProject.Gameplay.Watermill
             _collider.enabled = false;
             _isActive = true;
             _exitButton.SetActive(true);
-            _noteObject.SetActive(true);
+            _inventoryUI.SetNoteVisibility(true);
             _state?.Start();
         }
 
         private IEnumerator DeactivateRoutine()
         {
             _exitButton.SetActive(false);
-            _noteObject.SetActive(false);
+            _inventoryUI.SetNoteVisibility(false);
             _state?.Stop();
             _isActive = false;
             yield return new WaitForSeconds(_autoExitTime);
@@ -196,19 +218,19 @@ namespace BigProject.Gameplay.Watermill
             {
                 case ControlPanelState.Broken:
                     _state = new ControlPanelStateBroken(this, _inputHandler, _brokenLever, 
-                        _brokenLeverOffset, _brokenLeverRemoveTime, _brokenLeverItemId, _actions["GetBrokenLever"]);
+                        _brokenLeverOffset, _brokenLeverRemoveTime, _brokenLeverItemId, _actions["GetBrokenLever"], _inventory);
                     break;
                 case ControlPanelState.Incompleted:
                     _state = new ControlPanelStateIncompleted(this, _inputHandler, _repairedLeverHolder, 
-                        _repairedLever, _repairedLeverInstallTime, _actions["InstallLever"]);
+                        _repairedLever, _repairedLeverInstallTime, _actions["InstallLever"], _inventory);
                     break;
                 case ControlPanelState.Fixed:
                     _state = new ControlPanelStateFixed(this, _inputHandler, _leversPoints, _levers, _leverMoveTime,
-                        _leverStaggerTime, _staggerDistance, _noteItemId, _gearsHandler, _actions["ActivateMech"]);
+                        _leverStaggerTime, _staggerDistance, _noteItemId, _gearsHandler, _actions["ActivateMech"], _inventory);
 
                     if (_isActive)
                     {
-                        _noteObject.SetActive(true);
+                        _inventoryUI.SetNoteVisibility(true);
                     }
 
                     break;

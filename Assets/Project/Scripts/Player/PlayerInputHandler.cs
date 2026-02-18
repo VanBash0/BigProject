@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace BigProject.Player
 {
-    public class PlayerInputHandler : MonoBehaviour
+    public class PlayerInputHandler : IDisposable
     {
         private InputSystemActions _inputActions;
         
@@ -22,21 +22,14 @@ namespace BigProject.Player
         public Action<Vector2> MiniGameSwipe;
         public Action MiniGameUnclick;
 
-        private void Awake()
+        public PlayerInputHandler()
         {
             _inputActions = new InputSystemActions();
-        }
-
-        private void Start()
-        {
+            _inputActions.Enable();
             _inputActions.Player.Enable();
             _inputActions.UI.Enable();
             _inputActions.MiniGame.Disable();
-        }
 
-        private void OnEnable()
-        {
-            _inputActions.Enable();
             _inputActions.Player.Click.performed += OnClick;
             _inputActions.Player.OpenMap.performed += OnOpenedMap;
             _inputActions.Player.OpenMenu.performed += OnOpenedMenu;
@@ -46,18 +39,6 @@ namespace BigProject.Player
             _inputActions.MiniGame.Swipe.performed += OnMiniGameSwipe;
             _inputActions.MiniGame.Click.canceled += OnMiniGameUnclick;
         }
-        private void OnDisable()
-        {
-            _inputActions.Disable();
-            _inputActions.Player.Click.performed -= OnClick;
-            _inputActions.Player.OpenMap.performed -= OnOpenedMap;
-            _inputActions.Player.OpenMenu.performed -= OnOpenedMenu;
-
-            _inputActions.MiniGame.Click.performed -= OnMiniGameClick;
-            _inputActions.MiniGame.RightClick.performed -= OnMiniGameRightClick;
-            _inputActions.MiniGame.Swipe.performed -= OnMiniGameSwipe;
-            _inputActions.MiniGame.Click.canceled -= OnMiniGameUnclick;
-        } 
 
         private void OnOpenedMenu(InputAction.CallbackContext obj)
         {
@@ -108,7 +89,20 @@ namespace BigProject.Player
         public Vector2 GetMousePosition()
         {
             return _inputActions.UI.Point.ReadValue<Vector2>();
-        }        
+        }
+
+        public void Dispose()
+        {
+            _inputActions.Disable();
+            _inputActions.Player.Click.performed -= OnClick;
+            _inputActions.Player.OpenMap.performed -= OnOpenedMap;
+            _inputActions.Player.OpenMenu.performed -= OnOpenedMenu;
+
+            _inputActions.MiniGame.Click.performed -= OnMiniGameClick;
+            _inputActions.MiniGame.RightClick.performed -= OnMiniGameRightClick;
+            _inputActions.MiniGame.Swipe.performed -= OnMiniGameSwipe;
+            _inputActions.MiniGame.Click.canceled -= OnMiniGameUnclick;
+        }
     }
 }
 

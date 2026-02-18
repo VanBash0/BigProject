@@ -1,3 +1,4 @@
+using BigProject.Initializers;
 using BigProject.Managers;
 using BigProject.Systems;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace BigProject.UI
                 //Debug.Log("Clicked New Game Button");
                 if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
                 {
+                    Bootstrapper.SetStage(GameExecutionStage.Gameplay);
                     sceneLoader.LoadScene(Scenes.VillageMainScene);
                 }
                 else

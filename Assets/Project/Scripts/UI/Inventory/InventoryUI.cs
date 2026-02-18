@@ -11,7 +11,6 @@ namespace BigProject.UI
     public class InventoryUI : MonoBehaviour, IHUDWidget
     {
         [SerializeField] private List<InventorySlotUI> _inventorySlots;
-        [SerializeField] private Camera _camera;
         [SerializeField] private Image _noteImage;
         private InventorySystem _inventorySystem;
 
@@ -24,22 +23,17 @@ namespace BigProject.UI
             }
 
             _inventorySystem = inventorySystem;
+            _inventorySystem.OnInventoryUpdated += UpdateInventory;
         }
 
         private void Start()
         {
             Assert.AreEqual(5, _inventorySlots.Count, "Less than 5 inventory slots were added in InventoryUI");
             Assert.IsNotNull(_noteImage, "Note image was not initialised for InventoryUI");
-            Assert.IsNotNull(_camera, "Camera was not initialised for InventoryUI");
             Assert.IsNotNull(_inventorySystem, "Inventory System was not initialised for InventoryUI");
         }
 
-        private void OnEnable()
-        {
-            _inventorySystem.OnInventoryUpdated += UpdateInventory;
-        }
-
-        private void OnDisable()
+        private void OnDestroy()
         {
             _inventorySystem.OnInventoryUpdated -= UpdateInventory;
         }
@@ -57,13 +51,18 @@ namespace BigProject.UI
 
             for (int i = 0; i < heldItems.Count; i++)
             {
-                _inventorySlots[i].SetSlot(heldItems[i], _camera, _noteImage);
+                _inventorySlots[i].SetSlot(heldItems[i], Camera.main, _noteImage);
             }
 
             for (int i = heldItems.Count; i < _inventorySlots.Count; i++)
             {
                 _inventorySlots[i].ClearSlot();
             }
+        }
+
+        public void SetNoteVisibility(bool isVisible)
+        {
+            _noteImage.gameObject.SetActive(isVisible);
         }
 
         public void Show()

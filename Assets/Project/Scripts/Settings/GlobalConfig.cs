@@ -3,7 +3,7 @@ using UnityEngine;
 namespace BigProject.Settings
 {
     /// <summary>
-    /// Базовые настройки билда.
+    /// Base build settings.
     /// </summary>
     [CreateAssetMenu(fileName = "GlobalConfig", menuName = "Scriptable Objects/Configs/GlobalConfig")]
     public class GlobalConfig : ScriptableObject
@@ -12,9 +12,5 @@ namespace BigProject.Settings
         public string PlayerProfileName { get; private set; }
         [field: SerializeField]
         public string QuestsFolder { get; private set; }
-        [field: SerializeField]
-        public int HUDInventoryWidgetId { get; private set; }
-        [field: SerializeField]
-        public int HUDJournalWidgetId { get; private set; }
     }
 }

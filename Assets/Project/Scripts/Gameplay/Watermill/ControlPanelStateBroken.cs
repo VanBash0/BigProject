@@ -20,9 +20,10 @@ namespace BigProject.Gameplay.Watermill
         private float _brokenLeverRemoveTime;
         private int _brokenLeverItemId;
         private bool _isRemovingLever;
+        private InventorySystem _inventory;
 
         public ControlPanelStateBroken(ControlPanel controlPanel, PlayerInputHandler input, GameObject brokenLever, float brokenLeverOffset,
-            float brokenLeverRemoveTime, int brokenLeverItemId, IQuestActionHandler getBrokenLeverAction)
+            float brokenLeverRemoveTime, int brokenLeverItemId, IQuestActionHandler getBrokenLeverAction, InventorySystem inventory)
         {
             _controlPanel = controlPanel;
             _input = input;
@@ -33,6 +34,7 @@ namespace BigProject.Gameplay.Watermill
             _getBrokenLeverAction = getBrokenLeverAction;
             _getBrokenLeverAction.StateChanged += OnStateChanged;
             _isRemovingLever = false;
+            _inventory = inventory;
         }
 
         public bool IsReady => _getBrokenLeverAction.CurrentState == QuestActionState.Active;
@@ -70,7 +72,7 @@ namespace BigProject.Gameplay.Watermill
         {
             try
             {
-                ServiceLocator.GetService<InventorySystem>().AddItemByItemID(_brokenLeverItemId);
+                _inventory.AddItemByItemID(_brokenLeverItemId);
             }
             catch (Exception ex)
             {

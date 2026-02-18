@@ -1,12 +1,13 @@
 using BigProject.Managers;
 using BigProject.Systems;
+using BigProject.Systems.HUD;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace BigProject.UI
 {
-    public class RunePanelUI : MonoBehaviour
+    public class RunePanelUI : MonoBehaviour, IHUDWidget
     {
         [SerializeField] private List<RuneSlotUI> _runeSlots;
         private RunesSystem _runesSystem;
@@ -20,6 +21,7 @@ namespace BigProject.UI
             }
 
             _runesSystem = runesSystem;
+            _runesSystem.OnRuneAdded += AddRune;
         }
         
         private void Start()
@@ -27,12 +29,7 @@ namespace BigProject.UI
             Assert.AreEqual(3, _runeSlots.Count, "You should add 3 rune slots in RunePanelUI");
         }
 
-        private void OnEnable()
-        {
-            _runesSystem.OnRuneAdded += AddRune;
-        }
-
-        private void OnDisable()
+        private void OnDestroy()
         {
             _runesSystem.OnRuneAdded -= AddRune;
         }
@@ -40,6 +37,16 @@ namespace BigProject.UI
         private void AddRune(int runeId)
         {
             _runeSlots[runeId].ShowRune();
+        }
+
+        public void Show()
+        {
+            gameObject.SetActive(true);
+        }
+
+        public void Hide()
+        {
+            gameObject.SetActive(false);
         }
     }
 }
