@@ -54,6 +54,8 @@ namespace BigProject.Initializers
                 return;
             }
 
+            _isInstantiated = true;
+
             Assert.IsNotNull(_hudConfig, "Gameplay entry point has no HUD config.");
             Assert.IsNotNull(_itemsDatabase, "Gameplay entry point has no items database.");
             Assert.IsNotNull(_hudPrefab, "Gameplay entry point has no HUD prefab.");

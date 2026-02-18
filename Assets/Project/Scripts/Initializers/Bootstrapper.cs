@@ -33,7 +33,6 @@ namespace BigProject.Initializers
             // Reset in case of uncleaned domain.
             ServiceLocator.Init();
             GlobalEntryPoint.Init();
-            GameplayEntryPoint.Init();
 
             Stage = GameExecutionStage.Launch;
             MoveToStage(GameExecutionStage.Launch);
@@ -67,6 +66,7 @@ namespace BigProject.Initializers
 
                     break;
                 case GameExecutionStage.Gameplay:
+                    GameplayEntryPoint.Init();
                     _gameplayEntryPoint =  GameObject.Instantiate(Resources.Load<GameplayEntryPoint>($"{INITIALIZERS_DIR}{GAMEPLAY_EP_PREFAB_NAME}"));
                     break;
                 default:
