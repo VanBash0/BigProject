@@ -1,5 +1,7 @@
 using BigProject.Managers;
+using BigProject.Systems;
 using BigProject.Utilities;
+using System;
 using UnityEngine;
 
 namespace BigProject.Initializers
@@ -42,7 +44,7 @@ namespace BigProject.Initializers
         {
             if (Stage == stage)
             {
-                Debug.LogWarning($"Bootstrapper already at stage {Stage}.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_GAME_EXECUTION_REWRITE_STAGE, Stage));
                 return;
             }
 
@@ -56,7 +58,7 @@ namespace BigProject.Initializers
                 case GameExecutionStage.Launch:
                     if (Stage == GameExecutionStage.Gameplay)
                     {
-                        Debug.Log($"Removing gameplay services...");
+                        Debug.Log(LogStr.INFO_REMOVING_GAMEPLAY_SERVICES);
                         Remover.SafeRelease(_gameplayEntryPoint);
                     }
                     else
@@ -70,12 +72,12 @@ namespace BigProject.Initializers
                     _gameplayEntryPoint =  GameObject.Instantiate(Resources.Load<GameplayEntryPoint>($"{INITIALIZERS_DIR}{GAMEPLAY_EP_PREFAB_NAME}"));
                     break;
                 default:
-                    Debug.LogWarning($"Bootstrapper try move to incorrect stage {stage}.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_GAME_EXECUTION_INCORRECT_STAGE, stage));
                     return;
             }
 
             Stage = stage;
-            Debug.Log($"Game execution move to stage: {Stage}");
+            Debug.Log(string.Format(LogStr.INFO_GAME_EXECUTION_MOVE, Stage));
         }
     }
 }

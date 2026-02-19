@@ -5,6 +5,7 @@ using BigProject.Systems;
 using BigProject.Systems.HUD;
 using BigProject.UI;
 using BigProject.Utilities;
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -49,17 +50,17 @@ namespace BigProject.Initializers
         {
             if (_isInstantiated)
             {
-                Debug.LogWarning("Gameplay entry point should exist in one copy.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_DUPLICATE_UNIQUE_ENTITY, "Gameplay Entry Point"));
                 Destroy(gameObject);
                 return;
             }
 
             _isInstantiated = true;
 
-            Assert.IsNotNull(_hudConfig, "Gameplay entry point has no HUD config.");
-            Assert.IsNotNull(_itemsDatabase, "Gameplay entry point has no items database.");
-            Assert.IsNotNull(_hudPrefab, "Gameplay entry point has no HUD prefab.");
-            Assert.IsNotNull(_journalConfig, "Gameplay entry point has no journal config.");
+            Assert.IsNotNull(_hudConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point",  "HUD config"));
+            Assert.IsNotNull(_itemsDatabase, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Items Database"));
+            Assert.IsNotNull(_hudPrefab, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "HUD Prefab"));
+            Assert.IsNotNull(_journalConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Journal Config"));
 
             GameObject gameplayServices = new GameObject("GameplayServices");
             transform.parent = gameplayServices.transform; // For dispose after gameplay exit
@@ -69,7 +70,7 @@ namespace BigProject.Initializers
 
         public void InitServices()
         {
-            GameLogManager.Info("Start initializing gameplay services...");
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES);
             _inventory = new InventorySystem(_itemsDatabase);
             _hud = new();
             _playerInput = new();
@@ -87,12 +88,12 @@ namespace BigProject.Initializers
             ServiceLocator.AddService(gameplayManager);
 
             InitHUD();
-            GameLogManager.Info("Finish initializing gameplay services.");
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES_COMPLETED);
         }
 
         private void InitHUD()
         {
-            GameLogManager.Info("Start initializing HUD widgets...");
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_HUD);
             _hudObj = Instantiate(_hudPrefab);
             _journalView = _hudObj.GetComponentInChildren<JournalView>();
             _runeUI = _hudObj.GetComponentInChildren<RunePanelUI>();
@@ -113,7 +114,7 @@ namespace BigProject.Initializers
             _hud.HideWidget(_hudConfig.HUDRunesWidgetId);
             _hud.ShowWidget(_hudConfig.HUDInventoryWidgetId, 2f);
             _hud.ShowWidget(_hudConfig.HUDJournalWidgetId, 2f);
-            GameLogManager.Info("Finish initializing HUD widgets.");
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_HUD_COMPLETED);
         }
 
         public void OnDestroy()

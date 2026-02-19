@@ -6,6 +6,7 @@ using BigProject.Systems.QuestSystem;
 using BigProject.UI;
 using BigProject.Utilities;
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -25,8 +26,19 @@ namespace BigProject.Gameplay.Watermill
 
     public class ControlPanel : MonoBehaviour, IInteractable
     {
+        [Header("Base settings")]
         [SerializeField]
         private GameObject _exitButton;
+        [SerializeField]
+        private CinemachineCamera _mechCamera;
+        [SerializeField]
+        private float _autoExitTime = 0.5f;
+        [SerializeField]
+        private Collider _collider;
+        [SerializeField]
+        private GearsHandler _gearsHandler;
+
+        [Header("Player settings")]
         [SerializeField]
         private QuestActionHandlersContainer _actions;
         [SerializeField]
@@ -34,17 +46,15 @@ namespace BigProject.Gameplay.Watermill
         [SerializeField]
         private Collider _playerCollider;
         [SerializeField]
-        private CinemachineCamera _mechCamera;
+        private int _noteItemId;
+
+        [Header("Levers settings")]
         [SerializeField]
         private GameObject _brokenLever;
         [SerializeField]
         private GameObject _repairedLeverHolder;
         [SerializeField]
         private GameObject _repairedLever;
-        [SerializeField]
-        private GearsHandler _gearsHandler;
-        [SerializeField]
-        private Collider _collider;
         [SerializeField]
         private float _brokenLeverOffset = 1f;
         [SerializeField]
@@ -54,15 +64,11 @@ namespace BigProject.Gameplay.Watermill
         [SerializeField]
         private int _brokenLeverItemId;
         [SerializeField]
-        private int _noteItemId;
-        [SerializeField]
         private float _leverMoveTime = 1f;
         [SerializeField]
         private float _leverStaggerTime = 0.2f;
         [SerializeField]
         private float _staggerDistance = 0.1f;
-        [SerializeField]
-        private float _autoExitTime = 0.5f;
         [SerializeField]
         private List<Lever> _levers;
         [SerializeField]
@@ -83,25 +89,25 @@ namespace BigProject.Gameplay.Watermill
             _inputHandler = inputHandler;
             _inventory = inventory;
             _inventoryUI = inventoryUI;
-            ExceptionUtilities.ThrowIfNull(_gameplayManager, gameObject.name, "gameplay manager is null!");
-            ExceptionUtilities.ThrowIfNull(_inputHandler, gameObject.name, "player input handler is null!");
-            ExceptionUtilities.ThrowIfNull(_inventory, gameObject.name, "inventory system is null!");
-            ExceptionUtilities.ThrowIfNull(_inventoryUI, gameObject.name, "inventory UI is null!");
+            ExceptionUtilities.ThrowIfNull(_gameplayManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Gameplay Manager"));
+            ExceptionUtilities.ThrowIfNull(_inputHandler, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
+            ExceptionUtilities.ThrowIfNull(_inventory, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Inventory System"));
+            ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Inventory UI"));
             ChangeState(ControlPanelState.Broken);
         }
 
         public void Awake()
         {
-            Assert.IsNotNull(_exitButton, $"{gameObject.name}: has no exit button.");
-            Assert.IsNotNull(_actions, $"{gameObject.name}: has no actions container.");
-            Assert.IsNotNull(_playerRenderer, $"{gameObject.name}: has no player renderer.");
-            Assert.IsNotNull(_playerCollider, $"{gameObject.name}: has no exit player collider.");
-            Assert.IsNotNull(_mechCamera, $"{gameObject.name}: has no mech camera.");
-            Assert.IsNotNull(_brokenLever, $"{gameObject.name}: has no broken lever.");
-            Assert.IsNotNull(_repairedLeverHolder, $"{gameObject.name}: has no  rerepaired lever holder.");
-            Assert.IsNotNull(_repairedLever, $"{gameObject.name}: has no repaired lever.");
-            Assert.IsNotNull(_gearsHandler, $"{gameObject.name}: has no gears handler.");
-            Assert.IsNotNull(_collider, $"{gameObject.name}: has no collider.");
+            Assert.IsNotNull(_exitButton, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Exit button"));
+            Assert.IsNotNull(_actions, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Actions Container"));
+            Assert.IsNotNull(_playerRenderer, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Player Renderer"));
+            Assert.IsNotNull(_playerCollider, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Player Collider"));
+            Assert.IsNotNull(_mechCamera, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Mech Camera"));
+            Assert.IsNotNull(_brokenLever, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Broken Lever"));
+            Assert.IsNotNull(_repairedLeverHolder, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Repaired Lever Holder"));
+            Assert.IsNotNull(_repairedLever, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Repaired Lever"));
+            Assert.IsNotNull(_gearsHandler, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Gears Handler"));
+            Assert.IsNotNull(_collider, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Collider"));
         }
 
         private void OnDestroy()

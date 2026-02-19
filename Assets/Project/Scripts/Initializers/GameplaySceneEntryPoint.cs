@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Assertions;
 using BigProject.Player;
+using BigProject.Systems;
+using System;
 
 namespace BigProject.Initializers
 {
@@ -26,8 +28,8 @@ namespace BigProject.Initializers
             }
 #endif
 
-            Assert.IsNotNull(_playerController, "Scene entry point unable to get player controller.");
-            GameLogManager.Info("Start initializing scene services...");
+            Assert.IsNotNull(_playerController, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Scene Entry Point", "Player Controller"));
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES);
             _playerController.Init(ServiceLocator.GetService<PlayerInputHandler>());
             ServiceLocator.AddServiceResolver(() => DialogueManager.Instance);
             ProgressManager pm = ServiceLocator.GetService<ProgressManager>();
@@ -46,7 +48,7 @@ namespace BigProject.Initializers
                 container.Init(pm);
             }
 
-            GameLogManager.Info("Finish initializing scene services.");
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);
             _initActions?.Invoke();
         }
     }

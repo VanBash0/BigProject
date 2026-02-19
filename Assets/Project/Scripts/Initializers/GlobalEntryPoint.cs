@@ -2,6 +2,7 @@ using BigProject.Managers;
 using BigProject.Settings;
 using BigProject.Systems;
 using BigProject.Systems.QuestSystem;
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -30,13 +31,13 @@ namespace BigProject.Initializers
         {
             if (_isInstantiated)
             {
-                Debug.LogWarning("Global point should exist in one copy.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_DUPLICATE_UNIQUE_ENTITY, "Global Entry Point"));
                 Destroy(gameObject);
                 return;
             }
             
-            Assert.IsNotNull(_config, "Global entry has no point config.");
-            Assert.IsNotNull(_musicManagerPrefab, "Global entry has no music manager prefab.");
+            Assert.IsNotNull(_config, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Global Entry Point", "Global Config"));
+            Assert.IsNotNull(_musicManagerPrefab, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Global Entry Point", "Music Manager Prefab"));
             _isInstantiated = true;
 
             GameObject globalServices = new GameObject("GlobalServices");
