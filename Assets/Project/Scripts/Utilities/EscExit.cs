@@ -1,3 +1,4 @@
+using BigProject.Initializers;
 using BigProject.Managers;
 using BigProject.Systems;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace BigProject.Utilities
                 if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
                 {
                     sceneLoader.LoadScene(Scenes.MainMenu);
+                    Bootstrapper.SetStage(GameExecutionStage.Launch);
                 }
                 else
                 {

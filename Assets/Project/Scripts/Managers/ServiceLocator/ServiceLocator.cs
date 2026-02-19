@@ -13,9 +13,7 @@ namespace BigProject.Managers
     {
         private static Dictionary<Type, object> _services = new();
         private static Dictionary<Type, Func<object>> _resolvers = new();
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void Init()
+        public static void Init()
         {
             _services.Clear();
             _resolvers.Clear();

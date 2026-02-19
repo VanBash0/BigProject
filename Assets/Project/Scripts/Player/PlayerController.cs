@@ -1,4 +1,5 @@
 using BigProject.Intercatable;
+using BigProject.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -6,13 +7,13 @@ namespace BigProject.Player
 {
     public class PlayerController : MonoBehaviour
     {
-        [SerializeField] private PlayerInputHandler _inputHandler;
         [SerializeField] private NavMeshAgent _navMeshAgent;
         [SerializeField] private Animator _animatorController;
 
         [SerializeField] private float _navMeshHitPointDistance = 5f;
         [SerializeField] private float _rotationSpeed = 10f;
 
+        private PlayerInputHandler _inputHandler;
         private IInteractable _interactable = null;
         private Vector3 _destination;
         private bool _isMoving;
@@ -20,6 +21,12 @@ namespace BigProject.Player
         private Camera _camera;
 
         private const string MOVING_ANIM_BOOL = "IsMoving";
+
+        public void Init(PlayerInputHandler inputHandler)
+        {
+            _inputHandler = inputHandler;
+            ExceptionUtilities.ThrowIfNull(_inputHandler, gameObject.name, "player input handler is null!");
+        }
 
         private void Start()
         {

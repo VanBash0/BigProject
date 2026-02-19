@@ -23,6 +23,7 @@ namespace BigProject.Gameplay.Watermill
         private int _noteItemId;
         private bool _isMoving;
         private GearsHandler _gearsHandler;
+        private InventorySystem _inventory;
         private Lever _chosenLever;
         private List<Lever> _levers;
         private List<LeverPoint> _leversPoints;
@@ -41,7 +42,7 @@ namespace BigProject.Gameplay.Watermill
 
         public ControlPanelStateFixed(ControlPanel controlPanel, PlayerInputHandler input, List<Transform> pointsTransforms,
             List<Lever> levers, float leverMoveTime, float leverStaggerTime, float staggerDistance, int noteItemId, 
-            GearsHandler gearsHandler, IQuestActionHandler activateMechAction)
+            GearsHandler gearsHandler, IQuestActionHandler activateMechAction, InventorySystem inventory)
         {
             _controlPanel = controlPanel;
             _input = input;
@@ -56,6 +57,7 @@ namespace BigProject.Gameplay.Watermill
             _chosenLever = null;
             _gearsHandler = gearsHandler;
             SetLeversPoints(pointsTransforms);
+            _inventory = inventory;
         }
 
         public bool IsReady => _activateMechAction.CurrentState == QuestActionState.Active;
@@ -205,7 +207,7 @@ namespace BigProject.Gameplay.Watermill
         {
             try
             {
-                ServiceLocator.GetService<InventorySystem>().RemoveItemById(_noteItemId);
+                _inventory.RemoveItemById(_noteItemId);
             }
             catch (Exception ex)
             {

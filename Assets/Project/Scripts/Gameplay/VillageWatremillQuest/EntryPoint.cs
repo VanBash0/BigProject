@@ -1,5 +1,7 @@
 using BigProject.Managers;
+using BigProject.Systems;
 using BigProject.Systems.DialogueSystem;
+using BigProject.Systems.HUD;
 using UnityEngine;
 
 namespace BigProject.Gameplay.VillageWatermillQuest
@@ -10,6 +12,8 @@ namespace BigProject.Gameplay.VillageWatermillQuest
     public class EntryPoint : MonoBehaviour
     {
         [SerializeField]
+        QuestActions _questActions;
+        [SerializeField]
         private DialogueModeSwitch _dialogueModeSwitch;
 
         [SerializeField]
@@ -17,6 +21,8 @@ namespace BigProject.Gameplay.VillageWatermillQuest
 
         public void Init()
         {
+            _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<RunesSystem>(),
+                ServiceLocator.GetService<HUD>());
             ServiceLocator.AddService(_dialogueModeSwitch);
 
             if (ServiceLocator.TryGetService(out MusicManager musicManager))

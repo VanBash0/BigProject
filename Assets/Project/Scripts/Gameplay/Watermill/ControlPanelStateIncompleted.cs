@@ -15,12 +15,13 @@ namespace BigProject.Gameplay.Watermill
         private GameObject _repairedLeverHolder;
         private GameObject _repairedLever;
         private IQuestActionHandler _installLeverAction;
+        private InventorySystem _inventory;
         private CancellationTokenSource _crSource;
         private float _leverInstallTime;
         private bool _isSkipped = true;
 
         public ControlPanelStateIncompleted(ControlPanel controlPanel, PlayerInputHandler input, GameObject repairedLeverHolder, GameObject repairedLever,
-            float leverInstallTime, IQuestActionHandler installLeverAction)
+            float leverInstallTime, IQuestActionHandler installLeverAction, InventorySystem inventory)
         {
             _controlPanel = controlPanel;
             _input = input;
@@ -30,6 +31,7 @@ namespace BigProject.Gameplay.Watermill
             _installLeverAction = installLeverAction;
             _installLeverAction.StateChanged += OnStateChanged;
             OnStateChanged();
+            _inventory = inventory;
         }
 
         public bool IsReady => _installLeverAction.CurrentState == QuestActionState.Active;
@@ -51,7 +53,7 @@ namespace BigProject.Gameplay.Watermill
 
             try
             {
-                ServiceLocator.GetService<InventorySystem>().RemoveItemByName(item._name);
+                _inventory.RemoveItemByName(item._name);
             }
             catch (Exception ex)
             {
