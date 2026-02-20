@@ -2,6 +2,7 @@ using BigProject.Intercatable;
 using BigProject.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.EventSystems;
 
 namespace BigProject.Player
 {
@@ -57,6 +58,9 @@ namespace BigProject.Player
             Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 1f);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
+                if (EventSystem.current.IsPointerOverGameObject())
+                    return;
+
                 Debug.Log($"Попал в: {hit.collider.name}");
                 
                 if (NavMesh.SamplePosition(hit.point, out NavMeshHit navMeshHit, _navMeshHitPointDistance, NavMesh.AllAreas))
