@@ -149,6 +149,11 @@ namespace BigProject.Managers
             _savesManager.LoadGame(_profileName, _savable);
         }
 
+        public bool HasSavedProgress()
+        {
+            return _savesManager.HasSaves(_profileName, _savable);
+        }
+
         /// <summary>
         /// Ручное продвижение квеста.
         /// </summary>

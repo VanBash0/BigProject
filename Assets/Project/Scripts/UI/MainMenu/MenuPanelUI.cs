@@ -13,6 +13,14 @@ namespace BigProject.UI
         [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _quitButton;
 
+        private void Start()
+        {
+            if (ServiceLocator.TryGetService(out ProgressManager progressManager))
+            {
+                _continueButton.interactable = progressManager.HasSavedProgress();
+            }
+        }
+
         private void OnEnable()
         {
             _newGameButton.onClick.AddListener(() =>

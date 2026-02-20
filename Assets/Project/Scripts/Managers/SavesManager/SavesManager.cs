@@ -88,6 +88,26 @@ namespace BigProject.Managers
             return false;
         }
 
+        public bool HasSaves(string saveName, IEnumerable<ISavable> data)
+        {
+            string summaryData = PlayerPrefs.GetString(saveName);
+
+            if (String.IsNullOrEmpty(summaryData))
+            {
+                Debug.LogWarning($"Checking save data for non-existent save {saveName}.");
+                return false;
+            }
+
+            if (GetJsonRecords(out var jsonRecs, summaryData, saveName))
+            {
+                Debug.Log($"Found saves for {saveName}.");
+                return true;
+            }
+
+            Debug.Log($"No saves found for {saveName}.");
+            return false;
+        }
+
         /// <summary>
         /// Создает словарь json записей с данными.
         /// </summary>
