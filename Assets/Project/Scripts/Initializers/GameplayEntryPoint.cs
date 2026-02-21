@@ -2,6 +2,7 @@ using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Settings;
 using BigProject.Systems;
+using BigProject.Systems.DialogueSystem;
 using BigProject.Systems.HUD;
 using BigProject.UI;
 using BigProject.Utilities;
@@ -24,12 +25,15 @@ namespace BigProject.Initializers
         private QuestJournalConfig _journalConfig;
         [SerializeField]
         private GameObject _hudPrefab;
+        [SerializeField]
+        private GameObject _dialogueView;
 
         [field: SerializeField]
         public Scenes _sceneToLoad; // For feature load progress
 
         private HUD _hud;
         private GameObject _hudObj;
+        private GameObject _dialogueViewObj;
         private QuestJournal _questJournal;
         private InventorySystem _inventory;
         private RunesSystem _runesSystem;
@@ -38,6 +42,7 @@ namespace BigProject.Initializers
         private RunePanelUI _runeUI;
         private PlayerInputHandler _playerInput;
         private GameplayStatesHandler _statesHandler;
+        private DialogueManager _dialogueManager;
 
         private static bool _isInstantiated;
 
@@ -57,7 +62,7 @@ namespace BigProject.Initializers
 
             _isInstantiated = true;
 
-            Assert.IsNotNull(_hudConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point",  "HUD config"));
+            Assert.IsNotNull(_hudConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "HUD config"));
             Assert.IsNotNull(_itemsDatabase, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Items Database"));
             Assert.IsNotNull(_hudPrefab, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "HUD Prefab"));
             Assert.IsNotNull(_journalConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Journal Config"));
@@ -80,15 +85,26 @@ namespace BigProject.Initializers
             GameplayManager gameplayManager = new(ServiceLocator.GetService<ManualLoop>());
             _statesHandler = new(_hudConfig, gameplayManager, _playerInput, _hud);
 
+            InitDialogueView();
+
             ServiceLocator.AddService(_questJournal);
             ServiceLocator.AddService(_runesSystem);
             ServiceLocator.AddService(_inventory);
             ServiceLocator.AddService(_hud);
             ServiceLocator.AddService(_playerInput);
+            ServiceLocator.AddService(_dialogueManager);
             ServiceLocator.AddService(gameplayManager);
 
             InitHUD();
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES_COMPLETED);
+        }
+
+        private void InitDialogueView()
+        {
+            _dialogueViewObj = Instantiate(_dialogueView);
+            Debug.Log(_dialogueViewObj);
+            _dialogueManager = new DialogueManager(_dialogueViewObj.GetComponent<DialogueView>());
+            DontDestroyOnLoad(_dialogueViewObj);
         }
 
         private void InitHUD()
@@ -127,6 +143,7 @@ namespace BigProject.Initializers
             Remover.SafeDispose(_statesHandler);
 
             Destroy(_hudObj);
+            Destroy(_dialogueViewObj);
 
             ServiceLocator.ReleaseService<QuestJournal>();
             ServiceLocator.ReleaseService<RunesSystem>();
@@ -135,6 +152,7 @@ namespace BigProject.Initializers
             ServiceLocator.ReleaseService<InventoryUI>();
             ServiceLocator.ReleaseService<PlayerInputHandler>();
             ServiceLocator.ReleaseService<GameplayManager>();
+            ServiceLocator.ReleaseService<DialogueManager>();
         }
     }
 }

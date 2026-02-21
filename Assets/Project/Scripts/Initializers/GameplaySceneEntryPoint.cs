@@ -6,6 +6,8 @@ using UnityEngine.Assertions;
 using BigProject.Player;
 using BigProject.Systems;
 using System;
+using BigProject.NPC;
+using System.Linq;
 
 namespace BigProject.Initializers
 {
@@ -31,10 +33,10 @@ namespace BigProject.Initializers
             Assert.IsNotNull(_playerController, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Scene Entry Point", "Player Controller"));
             GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES);
             _playerController.Init(ServiceLocator.GetService<PlayerInputHandler>());
-            ServiceLocator.AddServiceResolver(() => DialogueManager.Instance);
             ProgressManager pm = ServiceLocator.GetService<ProgressManager>();
 
             var actionsHandlers = FindObjectsByType<QuestActionHandlerMono>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var dialogueNPCs = FindObjectsByType<DialogNPC>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestActionHandlerMono actionHandler in actionsHandlers)
             {
@@ -46,6 +48,13 @@ namespace BigProject.Initializers
             foreach (QuestActionHandlersContainer container in actionHandlersContainers)
             {
                 container.Init(pm);
+            }
+
+            DialogueManager dialogueManager = ServiceLocator.GetService<DialogueManager>();
+
+            foreach (DialogNPC dialogueNPC in dialogueNPCs)
+            {
+                dialogueNPC.Init(dialogueManager);
             }
 
             GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);
