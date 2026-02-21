@@ -102,8 +102,8 @@ namespace BigProject.Initializers
         private void InitDialogueView()
         {
             _dialogueViewObj = Instantiate(_dialogueView);
-            Debug.Log(_dialogueViewObj);
             _dialogueManager = new DialogueManager(_dialogueViewObj.GetComponent<DialogueView>());
+            _dialogueManager.Init();
             DontDestroyOnLoad(_dialogueViewObj);
         }
 

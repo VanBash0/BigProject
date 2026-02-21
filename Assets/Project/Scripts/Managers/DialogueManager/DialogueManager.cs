@@ -1,9 +1,6 @@
 using BigProject.Systems.DialogueSystem;
 using System;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace BigProject.Managers
 {
@@ -24,8 +21,12 @@ namespace BigProject.Managers
 
         public DialogueManager(DialogueView dialogueView)
         {
-            _dialogueView.Init(this);
             _dialogueView = dialogueView;
+        }
+        
+        public void Init()
+        {
+            _dialogueView.Init(this);
             _dialogueView.HideDialogueWindow();
         }
 
@@ -55,7 +56,6 @@ namespace BigProject.Managers
 
         public void ShowNextStep()
         {
-            Debug.Log("ShowNextStep");
             if (!_currentDialogueLine)
             {
                 // Нет продолжения диалога
@@ -102,7 +102,6 @@ namespace BigProject.Managers
 
         public void SelectAnswerOption(int answerOptionIndex)
         {
-            Debug.Log(answerOptionIndex);
             _currentDialogueLine =
                 _currentDialogueLine.DialogueAnswerOptions[answerOptionIndex].DialogueLine;
             _currentDialoguePhraseIndex = 0;

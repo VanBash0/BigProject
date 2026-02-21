@@ -27,10 +27,10 @@ namespace BigProject.Systems.DialogueSystem
         {
             for (int i = 0; i < _answerOptionButtons.Count; i++)
             {
-                Debug.Log(i);
-                Debug.Log(_answerOptionButtons[i]);
+                // Для замыкания
+                int index = i;
                 // Обработчик нажатия на вариант ответа
-                _answerOptionButtons[i].onClick.AddListener(() => dialogueManager.SelectAnswerOption(i));
+                _answerOptionButtons[i].onClick.AddListener(() => dialogueManager.SelectAnswerOption(index));
                 // Инициализируем кнопки для взаимодействия
                 TextMeshProUGUI buttonText = _answerOptionButtons[i].GetComponentInChildren<TextMeshProUGUI>();
                 if (buttonText)
