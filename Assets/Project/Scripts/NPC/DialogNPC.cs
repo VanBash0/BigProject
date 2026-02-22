@@ -6,6 +6,7 @@ using UnityEngine;
 namespace BigProject.NPC
 {
     // Для старта диалога с NPC
+    // TODO переименовать все места на DialogueNPC
     public class DialogNPC : MonoBehaviour, IInteractable
     {
         // Диалоговая фраза, с которой начинается общение
@@ -25,7 +26,6 @@ namespace BigProject.NPC
 
         private void StartDialog()
         {
-            Debug.Log(StartDialogLine.DialogueNPCPhrases[0].Text);
             if (StartDialogLine)
             {
                 // Переходим в режим диалога, только если есть, что сказать

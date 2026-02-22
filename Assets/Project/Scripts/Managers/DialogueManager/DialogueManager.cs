@@ -9,11 +9,6 @@ namespace BigProject.Managers
         // Событие срабатывает во время фразы NPC, если указан Id
         public static event Action<int> OnDialoguePhrase;
 
-        //[SerializeField]
-        //private float _speakerImageAlpha = 0.8f;
-        //[SerializeField]
-        //private float _speakerImageTone = 0.5f;
-
         private DialogueLine _currentDialogueLine;
         private int _currentDialoguePhraseIndex = 0;
 
@@ -65,15 +60,11 @@ namespace BigProject.Managers
 
             if (_currentDialogueLine.DialogueNPCPhrases.Count > _currentDialoguePhraseIndex)
             {
-                //SetImageAlpha(_leftCharacterImage, _speakerImageTone, _speakerImageAlpha);
-                //SetImageAlpha(_rightCharacterImage, 1f, 1f);
                 // NPC ещё не договорил - показываем следующую фразу
                 ShowNextPhrase();
             }
             else if (_currentDialogueLine.DialogueAnswerOptions.Count > 0)
             {
-                //SetImageAlpha(_rightCharacterImage, _speakerImageTone, _speakerImageAlpha);
-                //SetImageAlpha(_leftCharacterImage, 1f, 1f);
                 // NPC договорил и игроку есть что сказать - отображаем варианты ответов
                 _dialogueView.ShowAnswerOptions(_currentDialogueLine);
             }
@@ -121,11 +112,5 @@ namespace BigProject.Managers
                 gameplayManager.ChangeState(GameplayState.Play);
             }
         }
-
-        //private void SetImageAlpha(Image image, float tone, float alpha)
-        //{
-        //    Color color = new(tone, tone, tone, alpha);
-        //    image.color = color;
-        //}
     }
 }

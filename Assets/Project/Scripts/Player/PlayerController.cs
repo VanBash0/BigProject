@@ -51,17 +51,13 @@ namespace BigProject.Player
 
         private void OnClick()
         {
-            Debug.Log("Clicked");
             Vector2 mousePosition = _inputHandler.GetMousePosition();
             Ray ray = _camera.ScreenPointToRay(mousePosition);
 
-            Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 1f);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 if (EventSystem.current.IsPointerOverGameObject())
                     return;
-
-                Debug.Log($"Попал в: {hit.collider.name}");
                 
                 if (NavMesh.SamplePosition(hit.point, out NavMeshHit navMeshHit, _navMeshHitPointDistance, NavMesh.AllAreas))
                 {
@@ -121,12 +117,10 @@ namespace BigProject.Player
             _isMoving = true;
             _animatorController.SetBool(MOVING_ANIM_BOOL, true);
             _navMeshAgent.SetDestination(_destination);
-            Debug.Log($"Двигаюсь к точке {_destination}");
         }
 
         private void Interact()
         {
-            Debug.Log("Взаимодействие");
             if (_interactable != null)
                 _interactable.Interact();
         }

@@ -20,6 +20,11 @@ namespace BigProject.Systems.DialogueSystem
         private Button _nextButton;
 
         [SerializeField]
+        private float _speakerImageAlpha = 0.8f;
+        [SerializeField]
+        private float _speakerImageTone = 0.5f;
+
+        [SerializeField]
         private List<Button> _answerOptionButtons = new List<Button>();
         private List<TextMeshProUGUI> _answerOptionButtonTexts = new List<TextMeshProUGUI>();
 
@@ -53,6 +58,8 @@ namespace BigProject.Systems.DialogueSystem
 
         public void ShowAnswerOptions(DialogueLine dialogueLine)
         {
+            SetImageAlpha(_rightCharacterImage, _speakerImageTone, _speakerImageAlpha);
+            SetImageAlpha(_leftCharacterImage, 1f, 1f);
             // Включаем отображение кнопки продолжить и текст NPC
             _nextButton.gameObject.SetActive(false);
             _dialogueText.gameObject.SetActive(false);
@@ -79,11 +86,19 @@ namespace BigProject.Systems.DialogueSystem
         }
         public void ShowNPCPhrase(DialogueNPCPhrase dialogueNPCPhrase)
         {
+            SetImageAlpha(_leftCharacterImage, _speakerImageTone, _speakerImageAlpha);
+            SetImageAlpha(_rightCharacterImage, 1f, 1f);
             // Включаем отображение кнопки продолжить и текст NPC
             _nextButton.gameObject.SetActive(true);
             _dialogueText.gameObject.SetActive(true);
             _dialogueText.text = dialogueNPCPhrase.Text;
             _rightCharacterImage.sprite = dialogueNPCPhrase.CharacterSprite;
+        }
+
+        private void SetImageAlpha(Image image, float tone, float alpha)
+        {
+            Color color = new(tone, tone, tone, alpha);
+            image.color = color;
         }
     }
 }
