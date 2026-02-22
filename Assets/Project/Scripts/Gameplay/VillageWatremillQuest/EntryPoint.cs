@@ -13,8 +13,6 @@ namespace BigProject.Gameplay.VillageWatermillQuest
     {
         [SerializeField]
         QuestActions _questActions;
-        [SerializeField]
-        private DialogueModeSwitch _dialogueModeSwitch;
 
         [SerializeField]
         private AudioClip _music;
@@ -23,17 +21,11 @@ namespace BigProject.Gameplay.VillageWatermillQuest
         {
             _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<RunesSystem>(),
                 ServiceLocator.GetService<HUD>());
-            ServiceLocator.AddService(_dialogueModeSwitch);
 
             if (ServiceLocator.TryGetService(out MusicManager musicManager))
             {
                 musicManager.PlayMusic(_music, 0.1f, 0.1f);
             }
-        }
-
-        public void OnDestroy()
-        {
-            ServiceLocator.ReleaseService<DialogueModeSwitch>();
         }
     }
 }

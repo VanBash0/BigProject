@@ -5,23 +5,31 @@ using UnityEngine;
 
 namespace BigProject.NPC
 {
-    // Тестовый скрипт на диалоговых NPC - позже переделать или удалить и создать новый
+    // Для старта диалога с NPC
     public class DialogNPC : MonoBehaviour, IInteractable
     {
         // Диалоговая фраза, с которой начинается общение
         public DialogueLine StartDialogLine;
+
+        private DialogueManager _dialogueManager;
 
         public void Interact()
         {
             StartDialog();
         }
 
+        public void Init(DialogueManager dialogueManager)
+        {
+            _dialogueManager = dialogueManager;
+        }
+
         private void StartDialog()
         {
+            Debug.Log(StartDialogLine.DialogueNPCPhrases[0].Text);
             if (StartDialogLine)
             {
                 // Переходим в режим диалога, только если есть, что сказать
-                DialogueManager.Instance.StartDialogue(StartDialogLine);
+                _dialogueManager.StartDialogue(StartDialogLine);
             }
         }
     }
