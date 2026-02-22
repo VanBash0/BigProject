@@ -44,6 +44,9 @@ namespace BigProject.Managers
                 return;
             }
 
+            // Close Replicas
+            ReplicaManager.HideReplica();
+
             _currentDialogueLine = dialogueLine;
             _dialogueView.ShowDialogueWindow();
             ShowNextStep();
