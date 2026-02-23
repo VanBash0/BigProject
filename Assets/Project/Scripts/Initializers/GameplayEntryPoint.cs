@@ -5,6 +5,7 @@ using BigProject.Systems;
 using BigProject.Systems.DialogueSystem;
 using BigProject.Systems.HUD;
 using BigProject.UI;
+using BigProject.UI.Replica;
 using BigProject.Utilities;
 using System;
 using UnityEngine;
@@ -27,6 +28,8 @@ namespace BigProject.Initializers
         private GameObject _hudPrefab;
         [SerializeField]
         private GameObject _dialogueView;
+        [SerializeField]
+        private GameObject _replicaView;
 
         [field: SerializeField]
         public Scenes _sceneToLoad; // For feature load progress
@@ -34,6 +37,7 @@ namespace BigProject.Initializers
         private HUD _hud;
         private GameObject _hudObj;
         private GameObject _dialogueViewObj;
+        private GameObject _replicaViewObj;
         private QuestJournal _questJournal;
         private InventorySystem _inventory;
         private RunesSystem _runesSystem;
@@ -43,6 +47,7 @@ namespace BigProject.Initializers
         private PlayerInputHandler _playerInput;
         private GameplayStatesHandler _statesHandler;
         private DialogueManager _dialogueManager;
+        private ReplicaManager _replicaManager;
 
         private static bool _isInstantiated;
 
@@ -85,7 +90,8 @@ namespace BigProject.Initializers
             GameplayManager gameplayManager = new(ServiceLocator.GetService<ManualLoop>());
             _statesHandler = new(_hudConfig, gameplayManager, _playerInput, _hud);
 
-            InitDialogueView();
+            InitDialogue();
+            InitReplica();
 
             ServiceLocator.AddService(_questJournal);
             ServiceLocator.AddService(_runesSystem);
@@ -93,18 +99,26 @@ namespace BigProject.Initializers
             ServiceLocator.AddService(_hud);
             ServiceLocator.AddService(_playerInput);
             ServiceLocator.AddService(_dialogueManager);
+            ServiceLocator.AddService(_replicaManager);
             ServiceLocator.AddService(gameplayManager);
 
             InitHUD();
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES_COMPLETED);
         }
 
-        private void InitDialogueView()
+        private void InitDialogue()
         {
             _dialogueViewObj = Instantiate(_dialogueView);
             _dialogueManager = new DialogueManager(_dialogueViewObj.GetComponent<DialogueView>());
             _dialogueManager.Init();
             DontDestroyOnLoad(_dialogueViewObj);
+        }
+
+        private void InitReplica()
+        {
+            _replicaViewObj = Instantiate(_replicaView);
+            _replicaManager = new ReplicaManager(_replicaViewObj.GetComponent<ReplicaView>());
+            DontDestroyOnLoad(_replicaViewObj);
         }
 
         private void InitHUD()
@@ -144,6 +158,7 @@ namespace BigProject.Initializers
 
             Destroy(_hudObj);
             Destroy(_dialogueViewObj);
+            Destroy(_replicaViewObj);
 
             ServiceLocator.ReleaseService<QuestJournal>();
             ServiceLocator.ReleaseService<RunesSystem>();
@@ -153,6 +168,7 @@ namespace BigProject.Initializers
             ServiceLocator.ReleaseService<PlayerInputHandler>();
             ServiceLocator.ReleaseService<GameplayManager>();
             ServiceLocator.ReleaseService<DialogueManager>();
+            ServiceLocator.ReleaseService<ReplicaManager>();
         }
     }
 }
