@@ -36,7 +36,6 @@ namespace BigProject.Initializers
             ProgressManager pm = ServiceLocator.GetService<ProgressManager>();
 
             var actionsHandlers = FindObjectsByType<QuestActionHandlerMono>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            var dialogueNPCs = FindObjectsByType<DialogNPC>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestActionHandlerMono actionHandler in actionsHandlers)
             {
@@ -50,15 +49,21 @@ namespace BigProject.Initializers
                 container.Init(pm);
             }
 
+            InitDialogueNPCs();
+
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);
+            _initActions?.Invoke();
+        }
+
+        private void InitDialogueNPCs()
+        {
+            var dialogueNPCs = FindObjectsByType<DialogNPC>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             DialogueManager dialogueManager = ServiceLocator.GetService<DialogueManager>();
 
             foreach (DialogNPC dialogueNPC in dialogueNPCs)
             {
                 dialogueNPC.Init(dialogueManager);
             }
-
-            GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);
-            _initActions?.Invoke();
         }
     }
 }
