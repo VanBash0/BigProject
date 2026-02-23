@@ -9,16 +9,18 @@ namespace BigProject.Gameplay.VillageElderQuest
     {
         [SerializeField]
         private int _inventoryItemId;
+
+        private InventorySystem _inventory;
+
+        public void Init(InventorySystem inventory)
+        {
+            _inventory = inventory;
+        }
         
         public void Interact()
         {
-            InventorySystem inventory = ServiceLocator.GetService<InventorySystem>();
-            if (inventory != null)
-            {
-                inventory.AddItemByItemID(_inventoryItemId);
-                Debug.Log("Добавлена сумка");
-                Destroy(this);
-            }
+            _inventory.AddItemByItemID(_inventoryItemId);
+            Destroy(gameObject);
         }
     }
 }
