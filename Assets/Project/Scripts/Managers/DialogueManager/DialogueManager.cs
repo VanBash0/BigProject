@@ -6,13 +6,15 @@ namespace BigProject.Managers
 {
     public class DialogueManager
     {
-        // Событие срабатывает во время фразы NPC, если указан Id
+        // РЎРѕР±С‹С‚РёРµ СЃСЂР°Р±Р°С‚С‹РІР°РµС‚ РІРѕ РІСЂРµРјСЏ С„СЂР°Р·С‹ NPC, РµСЃР»Рё СѓРєР°Р·Р°РЅ Id
         public static event Action<int> OnDialoguePhrase;
 
         private DialogueLine _currentDialogueLine;
         private int _currentDialoguePhraseIndex = 0;
 
         private DialogueView _dialogueView;
+
+        public bool IsDialogue => _currentDialogueLine != null;
 
         public DialogueManager(DialogueView dialogueView)
         {
@@ -34,13 +36,13 @@ namespace BigProject.Managers
 
             if (dialogueLine == null)
             {
-                Debug.LogWarning("Не проинициализировали диалог");
+                Debug.LogWarning("РќРµ РїСЂРѕРёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°Р»Рё РґРёР°Р»РѕРі");
                 return;
             }
 
             if (dialogueLine.DialogueNPCPhrases.Count == 0 && dialogueLine.DialogueAnswerOptions.Count == 0)
             {
-                Debug.LogWarning("Не проинициализировали диалог");
+                Debug.LogWarning("РќРµ РїСЂРѕРёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°Р»Рё РґРёР°Р»РѕРі");
                 return;
             }
 
@@ -56,31 +58,31 @@ namespace BigProject.Managers
         {
             if (!_currentDialogueLine)
             {
-                // Нет продолжения диалога
+                // РќРµС‚ РїСЂРѕРґРѕР»Р¶РµРЅРёСЏ РґРёР°Р»РѕРіР°
                 EndDialogue();
                 return;
             }
 
             if (_currentDialogueLine.DialogueNPCPhrases.Count > _currentDialoguePhraseIndex)
             {
-                // NPC ещё не договорил - показываем следующую фразу
+                // NPC РµС‰С‘ РЅРµ РґРѕРіРѕРІРѕСЂРёР» - РїРѕРєР°Р·С‹РІР°РµРј СЃР»РµРґСѓСЋС‰СѓСЋ С„СЂР°Р·Сѓ
                 ShowNextPhrase();
             }
             else if (_currentDialogueLine.DialogueAnswerOptions.Count > 0)
             {
-                // NPC договорил и игроку есть что сказать - отображаем варианты ответов
+                // NPC РґРѕРіРѕРІРѕСЂРёР» Рё РёРіСЂРѕРєСѓ РµСЃС‚СЊ С‡С‚Рѕ СЃРєР°Р·Р°С‚СЊ - РѕС‚РѕР±СЂР°Р¶Р°РµРј РІР°СЂРёР°РЅС‚С‹ РѕС‚РІРµС‚РѕРІ
                 _dialogueView.ShowAnswerOptions(_currentDialogueLine);
             }
             else
             {
-                // Диалог окончен
+                // Р”РёР°Р»РѕРі РѕРєРѕРЅС‡РµРЅ
                 EndDialogue();
             }
         }
 
         private void ShowNextPhrase()
         {
-            // Включаем отображение кнопки продолжить и текст NPC
+            // Р’РєР»СЋС‡Р°РµРј РѕС‚РѕР±СЂР°Р¶РµРЅРёРµ РєРЅРѕРїРєРё РїСЂРѕРґРѕР»Р¶РёС‚СЊ Рё С‚РµРєСЃС‚ NPC
             DialogueNPCPhrase dialogueNPCPhrase =
                 _currentDialogueLine.DialogueNPCPhrases[_currentDialoguePhraseIndex];
 
@@ -89,7 +91,7 @@ namespace BigProject.Managers
 
             if (dialogueNPCPhrase.Id > 0)
             {
-                // Есть идентификатор фразы - уведомляем о том, что сейчас была сказана эта фраза
+                // Р•СЃС‚СЊ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ С„СЂР°Р·С‹ - СѓРІРµРґРѕРјР»СЏРµРј Рѕ С‚РѕРј, С‡С‚Рѕ СЃРµР№С‡Р°СЃ Р±С‹Р»Р° СЃРєР°Р·Р°РЅР° СЌС‚Р° С„СЂР°Р·Р°
                 OnDialoguePhrase.Invoke(dialogueNPCPhrase.Id);
             }
         }
