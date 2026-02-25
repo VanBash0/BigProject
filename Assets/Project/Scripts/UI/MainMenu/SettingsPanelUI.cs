@@ -5,8 +5,7 @@ namespace BigProject.UI
 {
     public class SettingsPanelUI : MainMenuPanel
     {
-        [SerializeField] Button _backButton;
-
+        [SerializeField] private Button _backButton;
 
         private void OnEnable()
         {

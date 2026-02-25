@@ -26,7 +26,7 @@ namespace BigProject.UI
 
             _inventoryItemUI = Instantiate(_inventoryItemPrefab, this.transform).GetComponent<InventoryItemUI>();
             _inventoryItemUI.SetItem(item, camera, noteImage);
-            _inventoryItemUI._onDrag += SlotSelected;
+            _inventoryItemUI.OnStartDrag += SlotSelected;
             _isEmpty = false;
             _isSelected = false;
             _slotImage.sprite = _fullSprite;

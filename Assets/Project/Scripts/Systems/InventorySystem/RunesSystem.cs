@@ -1,3 +1,4 @@
+using BigProject.Managers;
 using System;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace BigProject.Systems
 
             OnRuneAdded?.Invoke(_numberOfRunes);
             _numberOfRunes++;
+            GameLogManager.Info("Added rune");
         }
 
         public int GetNumberOfRunes()

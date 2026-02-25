@@ -6,13 +6,13 @@ namespace BigProject.Systems
     {
         public bool DoesUseItem(Item item)
         {
-            Debug.Log("Нужно переопределить метод DoesUseItem!");
+            Debug.Log("DoesUseItem() is not overridden!");
             return false;
         }
 
         public void UseItem(Item item)
         {
-            Debug.Log("Нужно переопределить метод UseItem!");   
+            Debug.Log("UseItem() is not overridden!");   
         }
     }
 }

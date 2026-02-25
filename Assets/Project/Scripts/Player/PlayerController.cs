@@ -64,7 +64,7 @@ namespace BigProject.Player
                     SetDestination(navMeshHit.position);
                     Move();
 
-                    // Передаем интерактивный объект игроку
+                    // handing interactable object over to player
                     IInteractable interactableObject = hit.collider.GetComponent<IInteractable>();
                     SetInterableObject(interactableObject);
                 }
@@ -93,16 +93,16 @@ namespace BigProject.Player
         {
             if (_navMeshAgent.velocity.sqrMagnitude > Mathf.Epsilon)
             {
-                // Получаем направление движения
+                // Getting the move direction
                 Vector3 moveDirection = _navMeshAgent.velocity.normalized;
                 moveDirection.y = 0; // Игнорируем вертикальную составляющую
 
                 if (moveDirection != Vector3.zero)
                 {
-                    // Создаем поворот к направлению движения
+                    // Creating quaternion towards move direction
                     Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
 
-                    // Плавно поворачиваем игрока
+                    // Smoothly rotating the player
                     transform.rotation = Quaternion.Slerp(
                         transform.rotation,
                         targetRotation,

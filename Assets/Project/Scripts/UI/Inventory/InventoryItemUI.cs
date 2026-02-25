@@ -17,9 +17,9 @@ namespace BigProject.UI
         private GameObject _noteObject;
         private bool _isNoteOpened;
 
-        public Action<bool> _onDrag;
+        public event Action<bool> OnStartDrag;
 
-        void Awake()
+        private void Awake()
         {
             _defaultParent = transform.parent;
         }
@@ -38,10 +38,10 @@ namespace BigProject.UI
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            transform.SetParent(transform.root); //, false); - тут приводит к изменения масштаба.
+            transform.SetParent(transform.root); //, false); - leads to change of scale
             transform.SetAsLastSibling();
             _image.raycastTarget = false;
-            _onDrag?.Invoke(true);
+            OnStartDrag?.Invoke(true);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -54,7 +54,7 @@ namespace BigProject.UI
             Vector2 mousePosition = Mouse.current.position.ReadValue();
             Ray ray = _camera.ScreenPointToRay(mousePosition);
             
-            //попали во что-то
+            // hit something
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 if (hit.collider.TryGetComponent<IUsesItem>(out IUsesItem interactableObject))
@@ -67,10 +67,10 @@ namespace BigProject.UI
                 }
             }
 
-            //не попали в нужный объект, возвращаем предмет на его позицию в инвентаре
+            // didn't hit anything, returning item to its inventory slot
             transform.SetParent(_defaultParent);
             _image.raycastTarget = true;
-            _onDrag?.Invoke(false);
+            OnStartDrag?.Invoke(false);
         }
 
         public void OnPointerClick(PointerEventData eventData)
