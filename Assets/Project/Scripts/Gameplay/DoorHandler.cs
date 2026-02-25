@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace BigProject.Gameplay
 {
+    /// <summary>
+    /// Door to new scene.
+    /// </summary>
     public class DoorHandler : MonoBehaviour, IInteractable
     {
         [SerializeField]

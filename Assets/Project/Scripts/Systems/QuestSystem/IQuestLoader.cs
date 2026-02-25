@@ -2,21 +2,15 @@ using System.Collections.Generic;
 
 namespace BigProject.Systems.QuestSystem
 {
-    /// <summary>
-    /// Загрузчик квестов.
-    /// </summary>
     public interface IQuestLoader
     {
         /// <summary>
-        /// Возвращает квест по имени.
+        /// Get quest by name.
         /// </summary>
-        /// <param name="name">Имя квеста</param>
-        /// <param name="quest">Возвращаемый квест.</param>
-        /// <returns>True если квест найден.</returns>
-        bool GetQuest(string name, out IQuest quest);
+        /// <returns>True when success.</returns>
+        public bool GetQuest(string name, out IQuest quest);
 
-        /// <returns>Все найденные квесты.</returns>
-        /// <exception cref="ArgumentException">Возникает при некорректных данных в загружаемых файлах.</exception>
-        List<IQuest> GetAllQuests();
+        /// <exception cref="ArgumentException">Thrown when loaded data has incorrect values.</exception>
+        public List<IQuest> GetAllQuests();
     }
 }

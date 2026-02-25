@@ -5,9 +5,6 @@ using UnityEngine;
 
 namespace BigProject.Gameplay.VillageElderQuest
 {
-    /// <summary>
-    /// Доп. зависимости (по хорошему надо будет убирать, т. к. это обход нехватки функционала в ряде модулей).
-    /// </summary>
     public class EntryPoint : MonoBehaviour
     {
         [SerializeField]

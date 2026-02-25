@@ -5,20 +5,20 @@ using UnityEngine;
 namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
-    /// Загрузчик json квестов.
-    /// Квесты хранятся в директории в Resources (все квесты при сборке упаковываются в билд и не видны игроку).
+    /// JSON quest loader.
+    /// Quests are stored in a directory in Resources.
     /// </summary>
     public class QuestJsonLoader : IQuestLoader
     {
-        private string _questsFolder; // Название директории в папке Resources.
+        private string _questsFolder; // The name of the directory in the Resources folder.
 
-        /// <param name="questsFolder">Название директории внутри Resources со всеми квестами</param>
+        /// <param name="questsFolder">The name of the directory inside Resources with all quests</param>
         public QuestJsonLoader(string questsFolder)
         {
             _questsFolder = questsFolder;
         }
 
-        // см. IQuestLoader
+        // See IQuestLoader
         public bool GetQuest(string name, out IQuest quest)
         {
             TextAsset jsonQuestAsset = Resources.Load<TextAsset>($"{_questsFolder}/{name}.json");
@@ -35,7 +35,7 @@ namespace BigProject.Systems.QuestSystem
             return true;
         }
 
-        // см. IQuestLoader
+        // See IQuestLoader
         public List<IQuest> GetAllQuests()
         {
             TextAsset[] jsonQuestAssets = Resources.LoadAll<TextAsset>(_questsFolder);

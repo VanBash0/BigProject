@@ -7,7 +7,7 @@ using UnityEngine;
 namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
-    /// Контейнер для QuestActionHandler, обращение по ключу через оператор [].
+    /// Container for QuestActionHandler, accessed by key via operator [].
     /// </summary>
     public class QuestActionHandlersContainer : MonoBehaviour
     {

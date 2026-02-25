@@ -24,6 +24,10 @@ namespace BigProject.Gameplay.Watermill
         Completed
     }
 
+
+    /// <summary>
+    /// Levers Puzzle Panel
+    /// </summary>
     public class ControlPanel : MonoBehaviour, IInteractable
     {
         [Header("Base settings")]
@@ -156,7 +160,7 @@ namespace BigProject.Gameplay.Watermill
         {
             _mechCamera.enabled = true;
             _gameplayManager.ChangeState(GameplayState.MiniGame);
-            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate(); // Wait one frame for calculate camera transition.
             yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime * 0.85f);
             _playerRenderer.enabled = false;
             _playerCollider.enabled = false;
@@ -176,7 +180,7 @@ namespace BigProject.Gameplay.Watermill
             _isActive = false;
             yield return new WaitForSeconds(_autoExitTime);
             _mechCamera.enabled = false;
-            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate(); // Wait one frame for calculate camera transition.
             yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime * 0.15f);
             _playerRenderer.enabled = true;
             _playerCollider.enabled = true;

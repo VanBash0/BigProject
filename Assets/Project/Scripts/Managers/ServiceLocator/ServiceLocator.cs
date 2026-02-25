@@ -7,7 +7,7 @@ using UnityEngine.Assertions;
 namespace BigProject.Managers
 {
     /// <summary>
-    /// Локатор базовых singleton служб.
+    /// Locator of base singleton services.
     /// </summary>
     public static class ServiceLocator
     {
@@ -20,7 +20,7 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Регистрирует сервис.
+        /// Register service.
         /// </summary>
         public static void AddService<T>(T service)
         {
@@ -36,7 +36,7 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Регистрирует делегат, выдающий сервис.
+        /// Registers the delegate issuing the service.
         /// </summary>
         public static void AddServiceResolver<T>(Func<T> resolver)
         {
@@ -52,7 +52,7 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Регистрирует делегат для поиска сервиса, который будет использован только при первом обращении к сервису.
+        /// Registers a delegate for the service lookup that will only be used the first time the service is accessed.
         /// </summary>
         public static void AddServiceResolverLazy<T>(Func<T> resolver)
         {
@@ -70,10 +70,7 @@ namespace BigProject.Managers
             });
         }
 
-        /// <summary>
-        /// Возвращает сервис.
-        /// </summary>
-        /// <returns>true если сервис найден.</returns>
+        /// <returns>True when success.</returns>
         public static bool TryGetService<T>(out T service)
         {
             if (_services.TryGetValue(typeof(T), out object foundService))
@@ -92,7 +89,6 @@ namespace BigProject.Managers
             return false;
         }
 
-        /// <returns>Сервис.</returns>
         public static T GetService<T>()
         {
             if (TryGetService(out T service))
@@ -106,7 +102,7 @@ namespace BigProject.Managers
         public static bool IsServiceExist<T>() => _services.ContainsKey(typeof(T)) || _resolvers.ContainsKey(typeof(T));
 
         /// <summary>
-        /// Удаляет сервис. Если не найден - игнорирует.
+        /// If no service with type - just ignore it.
         /// </summary>
         public static void ReleaseService<T>()
         {
@@ -117,8 +113,8 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// При переходах между сценами MonoBehaviour службы могут быть удалены движком.
-        /// Полезно вызывать после загрузки новой сцены для удаления пустых служб.
+        /// During scene transitions, MonoBehavior services may be removed by the engine.
+        /// Useful to call after loading a new scene to remove empty services.
         /// </summary>
         public static void ReleaseAllEmpty()
         {

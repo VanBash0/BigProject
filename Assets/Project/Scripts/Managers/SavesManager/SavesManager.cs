@@ -5,21 +5,19 @@ using UnityEngine;
 namespace BigProject.Managers
 {
     /// <summary>
-    /// Сохраняет и загружает данные коллекции ISavable.
+    /// Saves and loads ISavable collection data.
     /// </summary>
     public class SavesManager
     {
         /// <summary>
-        /// Сохраняет данные из коллекции ISavable
+        /// Stores data from an ISavable collection.
         /// </summary>
-        /// <param name="saveName">Имя сохранения</param>
-        /// <param name="data">Сохраняемые данные</param>
-        /// <returns>True если данные успешно сохранены.</returns>
+        /// <returns>True when success.</returns>
         public bool SaveGame(string saveName, IEnumerable<ISavable> data)
         {
             List<string> jsonRecs = new();
 
-            foreach (var savable in data)
+            foreach (ISavable savable in data)
             {
                 string jsonData = JsonUtility.ToJson(savable.SavingData);
 
@@ -29,7 +27,7 @@ namespace BigProject.Managers
                     continue;
                 }
 
-                // Собираем строку с id и данными объекта и добавляем в список.
+                // Collect a string with the object's id and data and add it to the list.
                 jsonData = $"[{savable.Key}]{jsonData}";
                 jsonRecs.Add(jsonData);
             }
@@ -40,7 +38,7 @@ namespace BigProject.Managers
                 return false;
             }
 
-            // Собираем все записи в одну и записываем под одним ключем.
+            // Collect all records to one and save with one key.
             string summaryData = String.Join('\n', jsonRecs);
             PlayerPrefs.SetString(saveName, summaryData);
             PlayerPrefs.Save();
@@ -49,11 +47,9 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Загружает данные в коллекцию ISavable
+        /// Load data to ISavable collection.
         /// </summary>
-        /// <param name="saveName">Имя сохранения</param>
-        /// <param name="data">Загружаемые данные</param>
-        /// <returns>True если данные успешно загружены.</returns>
+        /// <returns>True when success.</returns>
         public bool LoadGame(string saveName, IEnumerable<ISavable> data)
         {
             string summaryData = PlayerPrefs.GetString(saveName);
@@ -64,9 +60,9 @@ namespace BigProject.Managers
                 return false;
             }
 
-            if (GetJsonRecords(out var jsonRecs, summaryData, saveName))
+            if (GetJsonRecords(out Dictionary<string, string> jsonRecs, summaryData, saveName))
             {
-                foreach (var savable in data)
+                foreach (ISavable savable in data)
                 {
                     if (!jsonRecs.ContainsKey(savable.Key))
                     {
@@ -74,7 +70,7 @@ namespace BigProject.Managers
                         continue;
                     }
 
-                    // Перезаписываем поля объекта данными из соответствующей строки.
+                    // Write object's fields with data from the corresponding row.
                     JsonUtility.FromJsonOverwrite(jsonRecs[savable.Key], savable.SavingData);
                     savable.OnLoad();
                 }
@@ -88,7 +84,7 @@ namespace BigProject.Managers
             return false;
         }
 
-        public bool HasSaves(string saveName, IEnumerable<ISavable> data)
+        public bool HasSave(string saveName)
         {
             string summaryData = PlayerPrefs.GetString(saveName);
 
@@ -98,31 +94,24 @@ namespace BigProject.Managers
                 return false;
             }
 
-            if (GetJsonRecords(out var jsonRecs, summaryData, saveName))
-            {
-                Debug.Log($"Found saves for {saveName}.");
-                return true;
-            }
-
-            Debug.Log($"No saves found for {saveName}.");
-            return false;
+            Debug.Log($"Found saves for {saveName}.");
+            return true;
         }
 
         /// <summary>
-        /// Создает словарь json записей с данными.
+        /// Creates a json dictionary of data entries.
         /// </summary>
-        /// <param name="jsonRecs">Словарь json записей с данными</param>
-        /// <param name="summaryData">Исходные данные</param>
-        /// <param name="saveName">Имя сохранения</param>
-        /// <returns>True если словарь успешно создан.</returns>
+        /// <param name="jsonRecs">Records dictionary</param>
+        /// <param name="summaryData">Initial data</param>
+        /// <returns>True when success.</returns>
         private bool GetJsonRecords(out Dictionary<string, string> jsonRecs, string summaryData, string saveName)
         {
             jsonRecs = new();
 
-            // Проходим по всем строкам с данными.
+            // Go through all the rows with data.
             foreach (string jsonRec in summaryData.Split('\n'))
             {
-                // Находим id (key) записи.
+                // Find the id (key) of the record.
                 int keyStart = jsonRec.IndexOf('[') + 1;
                 int keyEnd = jsonRec.IndexOf(']');
 
@@ -134,14 +123,14 @@ namespace BigProject.Managers
 
                 string key = jsonRec[keyStart..keyEnd];
 
-                // Проверка на дубликаты.
+                // Check for duplicate.
                 if (jsonRecs.ContainsKey(key))
                 {
                     Debug.LogWarning($"Duplicate key {key} in save {saveName}. It will be ignored.");
                     continue;
                 }
 
-                // Json подстрока.
+                // Json substring.
                 string jsonData = jsonRec[(keyEnd + 1)..];
 
                 if (String.IsNullOrEmpty(jsonData))
@@ -156,9 +145,6 @@ namespace BigProject.Managers
             return jsonRecs.Count > 0;
         }
 
-        /// <summary>
-        /// Удаляет сохранение по имени.
-        /// </summary>
         public void DeleteSave(string saveName)
         {
            PlayerPrefs.DeleteKey(saveName);

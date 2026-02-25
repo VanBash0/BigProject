@@ -17,7 +17,7 @@ namespace BigProject.Initializers
     public class GameplaySceneEntryPoint : MonoBehaviour
     {
         [SerializeField]
-        PlayerController _playerController;
+        private PlayerController _playerController;
         [SerializeField, Tooltip("Actions to execute for early initialize.")]
         private UnityEvent _initActions;
 

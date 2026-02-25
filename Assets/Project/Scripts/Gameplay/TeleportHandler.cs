@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace BigProject.Gameplay
 {
+    /// <summary>
+    /// Trigger area to new scene.
+    /// </summary>
     public class TeleportHandler : MonoBehaviour
     {
         [SerializeField]

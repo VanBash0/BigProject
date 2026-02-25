@@ -6,7 +6,7 @@ using UnityEngine;
 namespace BigProject.Systems.HUD
 {
     /// <summary>
-    /// Конфигурация для журнала - какие тригеры вызывают запись.
+    /// Configuration for journal - what triggers cause the recording.
     /// </summary>
     [CreateAssetMenu(fileName = "QuestJournalConfig", menuName = "Scriptable Objects/Configs/QuestJournalConfig")]
     public class QuestJournalConfig : ScriptableObject, IEnumerable<QuestJournalTriggers>

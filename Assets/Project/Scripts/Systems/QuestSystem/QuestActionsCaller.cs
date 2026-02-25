@@ -6,6 +6,9 @@ using UnityEngine.Events;
 
 namespace BigProject.Systems.QuestSystem
 {
+    /// <summary>
+    /// Delegate caller by action state condition.
+    /// </summary>
     public class QuestActionsCaller : MonoBehaviour
     {
         [SerializeField]
@@ -21,7 +24,7 @@ namespace BigProject.Systems.QuestSystem
             public int id;
             public QuestActionState stateWhenCall;
             public bool checkOnAwake;
-            public UnityEvent questActions;
+            public UnityEvent questActions; // What to call when condition true.
 
             [HideInInspector]
             public IQuestActionHandler actionHandler;
@@ -47,7 +50,6 @@ namespace BigProject.Systems.QuestSystem
                 {
                     string msg = $"{gameObject.name} unable to get action {callCondition.id}. It will be ignored.";
                     Debug.LogWarning(msg);
-                    GameLogManager.Warning(msg);
                     continue;
                 }
 
@@ -59,7 +61,6 @@ namespace BigProject.Systems.QuestSystem
                 {
                     string dictMsg = $"{gameObject.name} unable to add action {callCondition.id} to dictionary of calls {callCondition.id}. {e.Message}";
                     Debug.LogWarning(dictMsg);
-                    GameLogManager.Warning(dictMsg);
                 }
 
                 callCondition.handler = () => OnStateChanged(callCondition.id);

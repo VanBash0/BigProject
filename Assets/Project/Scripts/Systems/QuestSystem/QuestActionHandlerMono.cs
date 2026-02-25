@@ -5,7 +5,7 @@ using BigProject.Managers;
 namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
-    /// MonoBehaviour обертка активности квеста.
+    /// MonoBehaviour action wrapper.
     /// </summary>
     public class QuestActionHandlerMono : MonoBehaviour, IQuestActionHandler
     {
@@ -14,7 +14,7 @@ namespace BigProject.Systems.QuestSystem
         [SerializeField, Tooltip("Tracked activity ID.")]
         private int _actionId;
 
-        // Делегируем логику обычному обработчику.
+        // Delegate the logic to a regular handler.
         private IQuestActionHandler _actionHandler;
 
         public event Action StateChanged;

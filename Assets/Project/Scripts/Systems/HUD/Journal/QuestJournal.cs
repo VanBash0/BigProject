@@ -5,12 +5,13 @@ using UnityEngine.Assertions;
 using System;
 using UnityEngine.Localization.Settings;
 using BigProject.Systems.QuestSystem;
+using BigProject.Utilities;
 
 
 namespace BigProject.Systems.HUD
 {
     /// <summary>
-    /// Логика журнала.
+    /// Journal logic.
     /// </summary>
     public class QuestJournal : IDisposable
     {
@@ -30,8 +31,8 @@ namespace BigProject.Systems.HUD
         {
             _config = config;
             _pm= pm;
-            Assert.IsNotNull(_config, "Config of journal is null.");
-            Assert.IsNotNull(pm, "Can't create journal: progress manager is null.");
+            ExceptionUtilities.ThrowIfNull(_config, String.Format(LogStr.CRITICAL_NULL_REFERENCE, "Quest journal", "Config"));
+            ExceptionUtilities.ThrowIfNull(_pm, String.Format(LogStr.CRITICAL_NULL_REFERENCE, "Quest journal", "Progress Manager"));
             //Init();
         }
 
@@ -54,10 +55,11 @@ namespace BigProject.Systems.HUD
             {
                 if (!_pm.AddQuestListener(questTriggers.QuestId, OnQuestStateChanged))
                 {
-                    Debug.LogWarning($"Journal unable to subscribe on quest {questTriggers.QuestId}.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"Journal unable to subscribe on quest {questTriggers.QuestId}"));
                     continue;
                 }
 
+                // When first active quest met - start recording.
                 if (!_hasActiveQuest && _pm.GetQuestState(questTriggers.QuestId) == QuestState.Active)
                 {
                     StartQuestRecord(questTriggers);
@@ -69,18 +71,19 @@ namespace BigProject.Systems.HUD
         {
             if (questTriggers == null)
             {
-                Debug.LogError("Journal unable to get triggers: quest triggers config is null.");
+                Debug.LogError(String.Format(LogStr.ERROR_QUEST, "journal unable to get triggers"));
                 return;
             }
 
             _hasActiveQuest = true;
             _currentQuestId = questTriggers.QuestId;
-            GameLogManager.Info($"Start record quest {_currentQuestId} tasks to journal.");
+            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, $"start record quest {_currentQuestId} tasks to journal"));
 
-            foreach (var questTrigger in questTriggers.Triggers)
+            foreach (QuestJournalTriggers.JournalTrigger questTrigger in questTriggers.Triggers)
             {
                 if (_pm.TryGetQuestActionHandler(questTriggers.QuestId, questTrigger.ActionId, out IQuestActionHandler actionHandler))
                 {
+                    // Add writer for this action handler.
                     Action writer = () =>
                     {
                         if (actionHandler.CurrentState == questTrigger.StateWhenWrite)
@@ -89,13 +92,14 @@ namespace BigProject.Systems.HUD
                         }
                     };
 
+                    // For case when condition already completed (ex. loading progress).
                     writer.Invoke();
                     actionHandler.StateChanged += writer;
                     _journalWriters.Add((actionHandler, writer));
                 }
                 else
                 {
-                    Debug.LogWarning($"Journal unable to get action {questTrigger.ActionId} of quest {_currentQuestId}.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"journal unable to get action {questTrigger.ActionId} of quest {_currentQuestId}"));
                 }
             }
 
@@ -108,7 +112,7 @@ namespace BigProject.Systems.HUD
         {
             if (_journalWriters.Count > 0)
             {
-                foreach (var writerRecord in _journalWriters)
+                foreach ((IQuestActionHandler, Action) writerRecord in _journalWriters)
                 {
                     writerRecord.Item1.StateChanged -= writerRecord.Item2;
                 }

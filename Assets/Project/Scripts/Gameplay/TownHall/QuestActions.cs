@@ -45,6 +45,7 @@ namespace BigProject.Gameplay.TownHall
             _pillarNoteTexInitial = Instantiate(_pillarNoteTex);
         }
 
+        // Draw clue to note texture.
         public void AddPillarNote(int pillarId)
         {
             if (pillarId >= _pillarsNotes.Length)
@@ -82,6 +83,7 @@ namespace BigProject.Gameplay.TownHall
 
         private void OnDestroy()
         {
+            // Return texture to initial state.
             _pillarNoteTex.SetPixels(_pillarNoteTexInitial.GetPixels());
             _pillarNoteTex.Apply();
         }

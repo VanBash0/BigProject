@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
-    /// —осто€ние квеста (веро€тно будет 2 в итоге - активен/пройден)
+    /// Task status (there will probably be two of them - active/completed).
     /// </summary>
     public enum QuestState
     {
@@ -15,9 +15,9 @@ namespace BigProject.Systems.QuestSystem
     }
 
     /// <summary>
-    /// —осто€ние любых активностей в квесте по типу: вз€ть шестерню, поговорить с нпс и т. п.
-    /// –асположены в пор€дке жизненного цикла активности, что учитываетс€ при разрешении конфликтов состо€ний
-    /// (когда по логике квеста объект может быть как Active, так и Completed например).
+    /// The state of any activity in a quest, such as picking up a gear, talking to an NPC, etc.
+    /// Arranged in order of the activity's life cycle, which is taken into account when resolving state conflicts
+    /// (for example, when, according to quest logic, an object can be either Active or Completed).
     /// </summary>
     public enum QuestActionState
     {
@@ -29,77 +29,59 @@ namespace BigProject.Systems.QuestSystem
         Released
     }
 
-    /// <summary>
-    /// “ип активности.
-    /// </summary>
     public enum QuestActionType
     {
         /// <summary>
-        /// "Ќесгораемый" результат. ѕри достижении состо€ни€ Completed/Failed возможен только переход в Released.
+        /// Upon reaching the Completed/Failed state, the only possible transition is to Released.
         /// </summary>
         FireproofResult,
 
         /// <summary>
-        /// ¬озможен переход из Completed/Failed обратно в Active/Inactive.
+        /// It is possible to switch from Completed/Failed back to Active/Inactive.
         /// </summary>
         MaxMet
     }
 
     /// <summary>
-    ///  вест представл€ет собой набор активностей (id активности + сост€ние) и св€зывающих их условий.
-    /// ¬нешний код соверщает допустимые переходы (не науршающие логику квеста), что автоматически мен€ет состо€ни€ св€занных услови€ми активностей.
+    /// quest is a set of activities (activity ID + state) and the conditions that link them.
+    /// External code executes valid transitions (that do not disrupt the quest logic), which automatically changes the states of the activities linked by the conditions.
     /// </summary>
     public interface IQuest
     {
-        int ID { get; }
-        string Name { get; }
-        QuestState CurrentState { get; }
+        public int ID { get; }
+        public string Name { get; }
+        public QuestState CurrentState { get; }
 
         /// <summary>
-        /// ƒл€ отслеживани€ прогресса люой активности в квесте.
+        /// To track the progress of any activity in the quest.
         /// </summary>
-        event Action<IQuest> Progressed;
+        public event Action<IQuest> Progressed;
 
         /// <summary>
-        /// ƒл€ отслеживани€ смены состо€ни€ всего квеста (завершен, провален и т. п.)
+        /// To track the change in the state of the entire quest(completed, failed, etc.)
         /// </summary>
-        event Action<IQuest> StateChanged;
- 
-        /// <summary>
-        /// —овершает ручной переход активности в новое состо€ние.
-        /// </summary>
-        /// <param name="actionId">ID активности</param>
-        /// <param name="newState">Ќовое состо€ние активности</param>
-        /// <param name="forced">≈сли true, то переход будет совершен, игнориру€ логику квеста. Ќе рекомендуетс€.</param>
-        /// <returns>True если переход был успешно совершен.</returns>
-        bool ManualTransition(int actionId, QuestActionState newState, bool forced = false);
+        public event Action<IQuest> StateChanged;
 
         /// <summary>
-        /// ¬озвращает состо€ние активности.
+        /// Performs a manual transition of the activity to a new state.
         /// </summary>
-        /// <param name="id">ID активности</param>
-        /// <param name="state">ѕолучаемое значение состо€ни€</param>
-        /// <returns>True если состо€ние успешно найдено.</returns>
-        bool TryGetActionState(int id, out QuestActionState state);
+        /// <param name="newState">New state</param>
+        /// <param name="forced">When true,transition will ignore quest logic. Not recomended.</param>
+        /// <returns>True when success.</returns>
+        public bool ManualTransition(int actionId, QuestActionState newState, bool forced = false);
+
+        /// <returns>True when success.</returns>
+        public bool TryGetActionState(int id, out QuestActionState state);
 
         /// <summary>
-        /// ¬озвращает последние изменившиес€ активности. 
-        /// ћожно использовать после вызова MakeTransition дл€ отслеживани€ прогресса квеста.
+        /// Returns the last changed actions.
+        /// Can be used after calling MakeTransition to track quest progress.
         /// </summary>
-        /// <returns>—ловарь с последними изменившимис€ активност€ми.</returns>
-        IReadOnlyDictionary<int, QuestActionState> GetLastChangedActions();
+        public IReadOnlyDictionary<int, QuestActionState> GetLastChangedActions();
 
-        /// <summary>
-        /// ¬озвращает все активности. 
-        /// <returns>—ловарь со всеми активност€ми.</returns>
-        IReadOnlyDictionary<int, QuestActionState> GetAllActions();
+        public IReadOnlyDictionary<int, QuestActionState> GetAllActions();
 
-        /// <summary>
-        /// ¬озвращает обработчика активности.
-        /// </summary>
-        /// <param name="actionId">ID активности</param>
-        /// <param name="actionHandler">ќобработчик активности</param>
-        /// <returns>True обработчик успешно создан.</returns>
-        bool TryGetActionHandler(int actionId, out IQuestActionHandler actionHandler);
+        /// <returns>True when success.</returns>
+        public bool TryGetActionHandler(int actionId, out IQuestActionHandler actionHandler);
     }
 }

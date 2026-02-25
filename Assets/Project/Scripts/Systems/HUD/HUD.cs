@@ -15,7 +15,7 @@ namespace BigProject.Systems.HUD
     }
 
     /// <summary>
-    /// Фасад HUD. Работает с IHUDWidget's.
+    /// HUD facade. Works with IHUDWidgets.
     /// </summary>
     public class HUD : IDisposable
     {
@@ -33,11 +33,6 @@ namespace BigProject.Systems.HUD
 
         }
 
-        /// <summary>
-        /// Добавляет виджет.
-        /// </summary>
-        /// <param name="id">id виджета.</param>
-        /// <param name="widget">виджет.</param>
         public void AddWidget(int id, IHUDWidget widget)
         {
             if (widget == null)
@@ -55,10 +50,6 @@ namespace BigProject.Systems.HUD
             _widgets.Add(id, widget);
         }
 
-        /// <summary>
-        /// Удаляет виджет.
-        /// </summary>
-        /// <param name="id">id виджета.</param>
         public void RemoveWidget(int id)
         {
             if (_widgets.ContainsKey(id))
@@ -68,9 +59,6 @@ namespace BigProject.Systems.HUD
             }
         }
 
-        /// <summary>
-        /// Удаляет все виджеты.
-        /// </summary>
         public void RemoveAllWidgets()
         {
             foreach (var id in _widgets.Keys)
@@ -82,12 +70,9 @@ namespace BigProject.Systems.HUD
             _widgetsRoutines.Clear();
         }
 
-        /// <summary>
-        /// Отображает виджет.
-        /// </summary>
-        /// <param name="id">id виджета.</param>
-        /// <param name="timeOffset">Время с момента вызова до отображения в секундах.</param>
-        /// <param name="time">Время отображения.</param>
+        /// <param name="id">widget id.</param>
+        /// <param name="timeOffset">Time from call to show in seconds</param>
+        /// <param name="time">Show time</param>
         public void ShowWidget(int id, float timeOffset = 0f, float time = float.PositiveInfinity)
         {
             if (!IsActualWidgetCommand(id, timeOffset, time))
@@ -121,11 +106,8 @@ namespace BigProject.Systems.HUD
             _ = WidgetRoutineAsync(widget, type, timeOffset, time);
         }
 
-        /// <summary>
-        /// Скрывает виджет.
-        /// </summary>
-        /// <param name="id">id виджета.</param>
-        /// <param name="timeOffset">Время с момента вызова до скрытия в секундах.</param>
+        /// <param name="id">Widget id</param>
+        /// <param name="timeOffset">Time from call to hide in seconds</param>
         public void HideWidget(int id, float timeOffset = 0f)
         {
             if (!IsActualWidgetCommand(id, timeOffset))
@@ -153,11 +135,10 @@ namespace BigProject.Systems.HUD
         }
 
         /// <summary>
-        /// Отображает все виджеты из списка.
+        /// Displays all widgets from the list.
         /// </summary>
-        /// <param name="ids">Список id виджетов.</param>
-        /// <param name="timeOffset">Время с момента вызова до отображения в секундах.</param>
-        /// <param name="time">Время отображения.</param>
+        /// <param name="timeOffset">Time from call to show in seconds</param>
+        /// <param name="time">Show time</param>
         public void ShowWidgets(IEnumerable<int> ids, float timeOffset = 0f, float time = float.PositiveInfinity)
         {
             if (ids == null)
@@ -173,10 +154,9 @@ namespace BigProject.Systems.HUD
         }
 
         /// <summary>
-        /// Скрывает все виджеты из списка.
+        /// Hide all widgets from the list.
         /// </summary>
-        /// <param name="ids">Список id виджетов.</param>
-        /// <param name="timeOffset">Время с момента вызова до скрытия в секундах.</param>
+        /// <param name="timeOffset">Time from call to hide in seconds.</param>
         public void HideWidgets(IEnumerable<int> ids, float timeOffset = 0f)
         {
             if (ids == null)
@@ -191,22 +171,13 @@ namespace BigProject.Systems.HUD
             }
         }
 
-        /// <summary>
-        /// Возвращает виджет.
-        /// </summary>
-        /// <param name="id">id виджета.</param>
-        /// <returns>Виджет или null, если не найден.</returns>
+        /// <returns>Widget or null if hasn't.</returns>
         public IHUDWidget GetWidget(int id)
         {
             return _widgets.GetValueOrDefault(id);
         }
 
-        /// <summary>
-        /// Возвращает виджет.
-        /// </summary>
-        /// <param name="id">id виджета.</param>
-        /// <param name="widget">Возвращаемый виджет.</param>
-        /// <returns>True если виджет найден.</returns>
+        /// <returns>True when success.</returns>
         public bool TryGetWidget(int id, out IHUDWidget widget)
         {
             if (_widgets.TryGetValue(id, out widget))

@@ -77,8 +77,7 @@ namespace BigProject.Gameplay.Watermill
             catch (Exception ex)
             {
                 string msg = $"Some error ocurred adding the item to inventory: {ex.Message}";
-                GameLogManager.Critical(msg);
-                Debug.Log(msg);
+                Debug.LogError(String.Format(LogStr.ERROR_QUEST, msg));
             }
 
             try
@@ -88,8 +87,7 @@ namespace BigProject.Gameplay.Watermill
             catch (Exception ex)
             {
                 string msg = $"Unable to make action transition from broken lever: {ex.Message}";
-                GameLogManager.Critical(msg);
-                Debug.Log(msg);
+                Debug.LogError(String.Format(LogStr.ERROR_QUEST, msg));
             }
         }
 

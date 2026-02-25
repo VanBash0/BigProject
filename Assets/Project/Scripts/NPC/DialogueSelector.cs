@@ -5,11 +5,13 @@ using BigProject.Systems.QuestSystem;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using BigProject.Managers;
+using BigProject.Systems;
+using BigProject.Utilities;
 
 namespace BigProject.NPC
 {
     /// <summary>
-    /// Потенциально поменяется, пока эта обертка нужна для работы с DialogueSystem.
+    /// Switch dialogue by quest action state.
     /// </summary>
     public class DialogueSelector : MonoBehaviour
     {
@@ -37,8 +39,8 @@ namespace BigProject.NPC
         private void Awake()
         {
             ServiceLocator.TryGetService(out ProgressManager pm);
-            Assert.IsNotNull(_dialogue, $"{gameObject.name} hasn't dialogue for select.");
-            Assert.IsNotNull(pm, $"{gameObject.name} unable to get progress manager.");
+            Assert.IsNotNull(_dialogue, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "NPC dialogue"));
+            ExceptionUtilities.ThrowIfNull(pm, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Progress manager"));
 
             List<DialogueCondition> conditionsToRemove = new();
 
@@ -49,8 +51,7 @@ namespace BigProject.NPC
                     continue;
                 }
 
-                string msg = $"{gameObject.name} unable to get action {condition.id}. It will be ignored.";
-                Debug.LogWarning(msg);
+                Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"{gameObject.name} unable to get action {condition.id}. It will be ignored"));
                 conditionsToRemove.Add(condition);
             }
 

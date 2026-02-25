@@ -6,7 +6,7 @@ using BigProject.Systems.QuestSystem;
 namespace BigProject.Systems.HUD
 {
     /// <summary>
-    /// Набор триггеров квеста для фиксации в журнале.
+    /// Set of quest triggers for recording in journal.
     /// </summary>
     [Serializable]
     public class QuestJournalTriggers

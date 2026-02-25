@@ -1,19 +1,21 @@
+using BigProject.Managers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEngine;
-using BigProject.Managers;
+using UnityEngine.UIElements.Experimental;
 
 namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
-    /// Квест, забирающий данные с Json строки.
+    /// Quest that retrieves data from a Json string.
     /// </summary>
     internal class QuestFromJson : IQuest, ISavable
     {
-        // Имена сериализируемых переменных даны с учетом того, что они в таком же виде отображаются и в json файле, поэтому нет нижних подчеркиваний и т. п.
-
+        //  The names of the serialized variables are given taking into account that they are displayed in the same form in the json file, therefore there are no underscores, etc.
+        
         [SerializeField]
         private int id;
         [SerializeField]
@@ -30,7 +32,7 @@ namespace BigProject.Systems.QuestSystem
         private Dictionary<int, QuestActionHandler> _actionHandlers;
 
         /// <summary>
-        /// Активность хранит свое состояние и условия переходов в другие состояния.
+        /// An activity stores its state and the conditions for transitions to other states.
         /// </summary>
         [Serializable]
         private class Action
@@ -44,23 +46,23 @@ namespace BigProject.Systems.QuestSystem
         }
 
         /// <summary>
-        /// Условие для перехода активности в заданное состояние.
-        /// Хранит зависимости от других состояний, при выполнении их условий совершается переход.
+        /// Condition for transitioning an activity to a given state.
+        /// Stores dependencies on other states; when their conditions are met, the transition occurs.
         /// </summary>
         [Serializable]
         private class ActionCondition
         {
-            // После выполнения условие может быть удалено.
-            // Полезно для разовых условий (пр.: после активации кнопки выполнение условий активации уже не требуется)
+            // Once the condition is met, it can be removed.
+            // Useful for one-time conditions (e.g., after a button is activated, the activation conditions are no longer required)
             public bool isOneShot;
 
-            // Из какого состояния переходим. 
+            // From which state are we transitioning.
             public QuestActionState fromState;
 
-            // В какое состояние переходит активность при выполнении условий.
+            // What state does the activity go to when the conditions are met.
             public QuestActionState toState;
 
-            // Зависимость включает в себя id влияющей активности и ее состояние, при котором ее требования считаются выполненными.
+            // Dependency includes the id of the influencing activity and its state at which its requirements are considered fulfilled.
             [Serializable]
             public class Dependency
             {
@@ -68,21 +70,21 @@ namespace BigProject.Systems.QuestSystem
                 public QuestActionState state;
             }
 
-            // Класс-обертка над списком зависимостей. Встроенный JsonUtility не умеет работать с вложенными списками.
+            // A wrapper class for a list of dependencies. The built-in JsonUtility cannot work with nested lists.
             [Serializable]
             public class DependencyPack
             {
-                // Условия выполняются при выполнении условий всех зависимостей из списка (по сути оператор И).
+                // The conditions are met when the conditions of all dependencies from the list are met (essentially the AND operator).
                 public List<Dependency> dependencies;
             }
 
-            // Список наборов зависимотсей. Нужен для возможности связывать условия оператором ИЛИ.
-            // Условия выполняются при выполнении любого из наборов условий.
+            // List of dependency sets. Needed to be able to link conditions with the OR operator.
+            // Conditions are met when any of the condition sets are met.
             public List<DependencyPack> dependencyPacks;
         }
 
         /// <summary>
-        /// Переходы, которые допускаются для ручного управления (внешним кодом).
+        /// Transitions that are allowed for manual control (by external code).
         /// </summary>
         [Serializable]
         private class ManualActionTransition
@@ -94,9 +96,9 @@ namespace BigProject.Systems.QuestSystem
         }
 
         /// <summary>
-        /// Условие для перехода квеста в заданное состояние.
-        /// Состояние квеста привязано к некоторой активности,
-        /// сложные условия можно задавать в самой привязанной активности.
+        /// Condition for transitioning the quest to a given state.
+        /// The quest state is linked to a specific activity.
+        /// Complex conditions can be set in the linked activity itself.
         /// </summary>
         [Serializable]
         private class QuestCondition
@@ -119,13 +121,13 @@ namespace BigProject.Systems.QuestSystem
         public event Action<IQuest> Progressed;
         public event Action<IQuest> StateChanged;
 
-        // Поля ISavable
+        // Field of ISavable.
         public string Key => $"Quest_{Name}";
-        // Сохраняем все параметры квеста.
+        // Save all data.
         public object SavingData => this;
 
 
-        /// <param name="jsonData">Данные квеста в формате Json</param>
+        /// <param name="jsonData">Quest data in json format</param>
         public QuestFromJson(string jsonData)
         {
             JsonUtility.FromJsonOverwrite(jsonData, this);
@@ -133,10 +135,10 @@ namespace BigProject.Systems.QuestSystem
             Init();
         }
 
-        // См. IQuest
+        // Check IQuest
         public bool ManualTransition(int actionId, QuestActionState newState, bool forced = false)
         {
-            // Действия возможны только в активном незавершенном квесте.
+            // Can transit only in active quest.
             if (CurrentState != QuestState.Active)
             {
                 Debug.LogWarning($"Quest [{Name}] in state [{CurrentState}], but you try to access it.");
@@ -170,8 +172,8 @@ namespace BigProject.Systems.QuestSystem
 
             foreach (var transition in targetAction.manualTransitions)
             {
-                // Если ручной переход допустим.
-                // Учитывается возможный переход из Undefined (в этом случае любое текущее состояние активности считается подходящим).
+                // If a manual transition is allowed.
+                // A possible transition from Undefined is taken into account (in this case, any current state of the activity is considered suitable).
                 if (IsEqualStates(transition.fromState, targetAction.currentState) && transition.toState ==  newState)
                 {
                     MakeTransition(targetAction, transition);
@@ -183,7 +185,7 @@ namespace BigProject.Systems.QuestSystem
             return false;
         }
 
-        // См. IQuest
+        // Check IQuest
         public bool TryGetActionState(int id, out QuestActionState state)
         {
             if (_actionsDict.TryGetValue(id, out Action action))
@@ -196,13 +198,13 @@ namespace BigProject.Systems.QuestSystem
             return false;
         }
 
-        // См. IQuest
+        // Check IQuest
         public IReadOnlyDictionary<int, QuestActionState> GetLastChangedActions() => _lastChangedActions;
 
-        // См. IQuest
+        // Check IQuest
         public IReadOnlyDictionary<int, QuestActionState> GetAllActions() => _actionsDict.ToDictionary(x => x.Key, x => x.Value.currentState);
 
-        // См. IQuest
+        // Check IQuest
         public bool TryGetActionHandler(int actionId, out IQuestActionHandler actionHandler)
         {
             if (_actionHandlers.ContainsKey(actionId))
@@ -219,7 +221,7 @@ namespace BigProject.Systems.QuestSystem
             }
 
             var targetAction = _actionsDict[actionId];
-            // Получаем все ручные транзакции.
+            // Get all manual transitions.
             var transitions = targetAction.manualTransitions.ToDictionary(x => x.id, x => (x.fromState, x.toState));
             actionHandler = new QuestActionHandler(this, actionId, targetAction.name, targetAction.currentState, transitions);
             _actionHandlers.Add(actionId, actionHandler as QuestActionHandler);
@@ -238,29 +240,27 @@ namespace BigProject.Systems.QuestSystem
             ActionsToDictionary();
             InitialActionsCheck();
 
-            // Доступные состояния квеста сортируем по убыванию на случай конфликтов
-            // (если текущее положение квеста удовелтворяет сразу нескольким состояниям).
+            // Available quest states are sorted in descending order in case of conflicts
+            // (if the current quest state satisfies several states at once).
             questStates.Sort((a, b) => b.state.CompareTo(a.state));
 
-            // Обновляем все состояния (возможно сразу есть выполняемые условия).
+            // Update all states (possibly there are conditions that are met immediately).
             ResetActions();
             ResetQuestState();
 
-            // После загрузки все активности представляют собой поcледние изменения.
+            // After loading, all activities represent the latest changes.
             _lastChangedActions = _actionsDict.ToDictionary(x => x.Key, x => x.Value.currentState);
-            //// Проверяем наличие неопределенных состояний.
-            //CheckForUndefinedActions();
         }
 
         /// <summary>
-        /// Совершает переход актвиности согласно транзакции.
+        /// Performs an activity transition according to the transaction.
         /// </summary>
         private void MakeTransition(Action action, ManualActionTransition transition)
         {
             _lastChangedActions.Clear(); // Сброс последних изменений перед новыми.
             action.currentState = transition.toState;
 
-            // Ручные переходы могут быть единоразовыми.
+            // Manual transitions can be one-time.
             if (transition.isOneShot)
             {
                 action.manualTransitions.Remove(transition);
@@ -277,23 +277,19 @@ namespace BigProject.Systems.QuestSystem
             ProgressNotify();
         }
 
-        /// <summary>
-        /// Все уведомления о прогрессе.
-        /// </summary>
+        // All progress notifications.
         private void ProgressNotify()
         {
             SendToActionHandlers();
             Progressed?.Invoke(this);
         }
 
-        /// <summary>
-        /// Рассылает уведомления об изменившемся состоянии.
-        /// </summary>
+        // Sends notifications about changed status.
         private void SendToActionHandlers()
         {
             foreach (var actionHandler in _actionHandlers)
             {
-                // Уведомляем только изменившиеся активности.
+                // Notify only changed activities.
                 if (_lastChangedActions.TryGetValue(actionHandler.Key, out var newState))
                 {
                     actionHandler.Value.OnStateChanged(newState);
@@ -302,18 +298,14 @@ namespace BigProject.Systems.QuestSystem
         }
 
 
-        /// <summary>
-        /// Для оптимизации поиска активности переводим в словарь.
-        /// </summary>
+        // Make dictionary from list to optimize work.
         private void ActionsToDictionary()
         {
             _actionsDict = actions.ToDictionary(x => x.id, x => x);
             //actions.Clear(); - можно стереть список, если не надо будет сохранять все активности в квесте.
         }
 
-        /// <summary>
-        /// Проверяет начальные состояния у активностей.
-        /// </summary>
+        // Check initial actions states.
         private void InitialActionsCheck()
         {
             foreach (var action in _actionsDict.Values)
@@ -331,12 +323,12 @@ namespace BigProject.Systems.QuestSystem
         }
 
         /// <summary>
-        /// Перепроверяет активности и меняет их состояния при выполнении условий.
+        /// Rechecks activities and changes their states when conditions are met.
         /// </summary>
         private void ResetActions()
         {
-            // Для перекрестных зависимостей - будем обходить состояния по кругу,
-            // пока не убедимся, что все состояния приняли конечные значения.
+            // For cross-dependencies, we'll iterate through the states,
+            // until we're sure all states have reached their final values.
             bool actionsChanged = false;
 
             do
@@ -357,7 +349,7 @@ namespace BigProject.Systems.QuestSystem
         }
 
         /// <summary>
-        /// Фиксирует активность в списке изменений.
+        /// Records activity in the change list.
         /// </summary>
         private void CommitActionChange(Action action)
         {
@@ -372,19 +364,19 @@ namespace BigProject.Systems.QuestSystem
         }
 
         /// <summary>
-        /// Проверяет состояние активности и меняет при выполнении условий.
+        /// Checks the activity state and changes it when conditions are met.
         /// </summary>
         private void ResetAction(Action action)
         {
-            // Для конфликтов, когда активность удовлетворяет нескольким состояниям - берем наибольшее.
+            // For conflicts, when the activity satisfies several states, we take the largest one.
             QuestActionState maxMetState = QuestActionState.Inactive;
 
-            // Список для выполненных условий с флагом isOneShot (см. ActionCondition)
+            // List of conditions met with the isOneShot flag (see ActionCondition)
             List<ActionCondition> conditionsToRemove = new();
 
             foreach (ActionCondition condition in action.conditions)
             {
-                // Если условия перехода не удовлетворяют текущему состоянию или переход не актуален с точки зрения наибольшего выполнимого состояния.
+                // If the transition conditions do not satisfy the current state or the transition is not relevant from the point of view of the largest feasible state.
                 if (!IsEqualStates(condition.fromState, action.currentState) || condition.toState <= maxMetState)
                 {
                     continue;
@@ -392,7 +384,7 @@ namespace BigProject.Systems.QuestSystem
 
                 if (IsConditionMet(condition))
                 {
-                    // При выполнении условий переходим в новое состояние, только если текущее ниже.
+                    // When the conditions are met, we move to a new state only if the current one is lower.
                     if (action.currentState < condition.toState)
                     {
                         action.currentState = condition.toState;
@@ -415,15 +407,15 @@ namespace BigProject.Systems.QuestSystem
 
                     maxMetState = action.currentState;
                 }
-                // Если мы перепрыгнули недопустимое состояние - опускаемся на ближайшее выполнимое.
-                // Такой сценарий работает при переходах Undefined->Конкретный, при несоблюдении будет авто откат на допустимое состояние.
+                // If we jumped over an invalid state, we fall back to the nearest feasible one.
+                // This scenario works for Undefined->Specific transitions. If the transition is not met, it will automatically roll back to a valid state.
                 else if (action.currentState >= condition.toState)
                 {
                     action.currentState = maxMetState;
                 }
             }
 
-            // Удаляем выполненные OneShot условия.
+            // Remove the conditions met by OneShot.
             action.conditions.RemoveAll(x => conditionsToRemove.Contains(x));
         }
 
@@ -471,37 +463,35 @@ namespace BigProject.Systems.QuestSystem
             return true;
         }
 
-        /// <returns>True если условие выполняется</returns>
         private bool IsConditionMet(ActionCondition condition)
         {
-            // Проходим по всем наборам зависимостей - между ними фактически связка ИЛИ
+            // We go through all the sets of dependencies - there is actually an OR connection between them
             foreach (var dependencyPack in condition.dependencyPacks)
             {
-                // Если выполнен хотя бы один из наборов - условия выполнены.
+                // If at least one of the sets is fulfilled, the conditions are met.
                 if (IsDependenciesSatisfied(dependencyPack.dependencies))
                 {
                     return true;
                 }
             }
 
-            // Если ни один из наборов не выполнен - условия не выполнены.
             return false;
         }
 
-        /// <returns>True если условия всех зависимостей соблюдены.</returns>
+        /// <returns>True if the conditions of all dependencies are met.</returns>
         private bool IsDependenciesSatisfied(List<ActionCondition.Dependency> dependencies)
         {
-            foreach (var dependency in dependencies)
+            foreach (ActionCondition.Dependency dependency in dependencies)
             {
-                // Находим влияющую активнсоть.
-                if (!_actionsDict.TryGetValue(dependency.id, out var influenceAction))
+                // Find the influencing action.
+                if (!_actionsDict.TryGetValue(dependency.id, out Action influenceAction))
                 {
                     Debug.LogWarning($"Quest [{name}]. Unable to find influence Action with id [{dependency.id}]. Skip condition.");
                     continue;
                 }
 
-                // Если она в неправильном состоянии - все условие не выполнено. Далее можно не проверять.
-                // Учитывается Undefined состояние в условии - тогда активность может быть в любом состоянии, что равносильно ее отсутствию в условиях.
+                // If it is in the wrong state - all condition is not met. Further can not be checked.
+                // Given the Undefined state in the condition - then the activity can be in any state, which is equivalent to its not being in the condition.
                 if (!IsEqualStates(influenceAction.currentState, dependency.state))
                 {
                     return false;
@@ -512,18 +502,18 @@ namespace BigProject.Systems.QuestSystem
         }
 
         /// <summary>
-        /// Проверяет глобальное состояние квеста и меняет его при выполнении условий.
+        /// Checks the global state of the quest and changes it when conditions are met.
         /// </summary>
         private void ResetQuestState()
         {
-            foreach (var questState in questStates)
+            foreach (QuestCondition questState in questStates)
             {
                 if (CurrentState == questState.state)
                 {
                     continue;
                 }
 
-                if (!_actionsDict.TryGetValue(questState.actionId, out var influenceAction))
+                if (!_actionsDict.TryGetValue(questState.actionId, out Action influenceAction))
                 {
                     Debug.LogWarning($"Quest [{name}] unable to find Action [{questState.actionId}] while changing quest global state.");
                     continue;
@@ -535,240 +525,16 @@ namespace BigProject.Systems.QuestSystem
                     Debug.Log($"Quest change global state to [(questState.state)]");
                     StateChanged?.Invoke(this);
 
-                    // Состояния осортированы по убыванию, при выполнении наибольшего дальнейшие условия можно не проверять.
+                    // States are sorted in descending order, when executing the largest further conditions cannot be checked.
                     break;
                 }
             }
         }
 
         /// <summary>
-        /// Сравнивает состояния активнсотей с учетом неопределенности.
+        /// Compares the states of activensotes considering uncertainty.
         /// </summary>
         private bool IsEqualStates(QuestActionState state1, QuestActionState state2) =>
             state1 == state2 || state1 == QuestActionState.Undefined || state2 == QuestActionState.Undefined;
-
-        #region FOR_TEST_PURPOSES
-
-        /// <summary>
-        /// Конструктор для тестов.
-        /// </summary>
-        public QuestFromJson()
-        {
-            //TestInit();
-            //TestWrite();
-            TestRead();
-            Init();
-        }
-
-        /// <summary>
-        /// Тестовая запись в json.
-        /// </summary>
-        private void TestWrite()
-        {
-            string questData = JsonUtility.ToJson(this);
-            string filePath = Application.persistentDataPath + "/quest.json";
-
-            using (StreamWriter writer = new StreamWriter(filePath))
-            {
-                writer.WriteLine(questData);
-            }
-        }
-
-        /// <summary>
-        /// Тестовое чтение из json.
-        /// </summary>
-        private void TestRead()
-        {
-            string filePath = Application.persistentDataPath + "/quest.json";
-            string questData = File.ReadAllText(filePath);
-            JsonUtility.FromJsonOverwrite(questData, this);
-        }
-
-        /// <summary>
-        /// Тестовая инициализация, только для тестов записи в json/проверки работы.
-        /// </summary>
-        private void TestInit()
-        {
-            id = 10;
-            name = "Tutorial";
-            CurrentState = QuestState.Active;
-
-            #region ACTIONS
-
-            Action action1 = new()
-            {
-                id = 0,
-                name = "Raise gear",
-                currentState = QuestActionState.Active,
-                manualTransitions = new()
-                {
-                    new()
-                    {
-                        id = 0,
-                        fromState = QuestActionState.Active,
-                        toState = QuestActionState.Completed
-                    },
-                    new()
-                    {
-                        id = 1,
-                        fromState = QuestActionState.Completed,
-                        toState = QuestActionState.Active
-                    }
-                }
-            };
-
-            Action action2 = new()
-            {
-
-                id = 1,
-                name = "Install gear",
-                currentState = QuestActionState.Inactive,
-                conditions = new()
-                {
-                    new ActionCondition()
-                    {
-                        fromState = QuestActionState.Inactive,
-                        toState = QuestActionState.Active,
-                        dependencyPacks = new()
-                        {
-                            new() { dependencies = new () { new() { id = 0, state = QuestActionState.Completed } } }
-                        }
-                    }
-                },
-                manualTransitions = new()
-                {
-                    new()
-                    {
-                        id = 0,
-                        fromState = QuestActionState.Active,
-                        toState = QuestActionState.Completed
-                    }
-                }
-            };
-
-            Action action3 = new()
-            {
-                id = 2,
-                name = "Down the lever",
-                currentState = QuestActionState.Inactive,
-                conditions = new()
-                {
-                    new ActionCondition()
-                    {
-                        fromState = QuestActionState.Inactive,
-                        toState = QuestActionState.Active,
-                        dependencyPacks = new()
-                        {
-                            new() { dependencies = new () { new () { id = 1, state = QuestActionState.Completed } } }
-                        }
-                    }
-                },
-                manualTransitions = new()
-                {
-                    new()
-                    {
-                        id = 0,
-                        fromState = QuestActionState.Active,
-                        toState = QuestActionState.Completed,
-                    },
-                    new()
-                    {
-                        id = 1,
-                        fromState = QuestActionState.Completed,
-                        toState = QuestActionState.Active,
-                    }
-                }
-            };
-
-            Action action4 = new()
-            {
-                id = 3,
-                name = "Push button",
-                currentState = QuestActionState.Inactive,
-                conditions = new()
-                {
-                    new ActionCondition()
-                    {
-                        fromState = QuestActionState.Inactive,
-                        toState = QuestActionState.Active,
-                        dependencyPacks = new()
-                        {
-                            new() { dependencies = new () { new () { id = 1, state = QuestActionState.Completed } } }
-                        }
-                    }
-                },
-                manualTransitions = new()
-                {
-                    new()
-                    {
-                        id = 0,
-                        fromState = QuestActionState.Active,
-                        toState = QuestActionState.Completed,
-                    }
-                }
-            };
-
-            Action action5 = new()
-            {
-                id = 4,
-                name = "Mill rotation",
-                currentState = QuestActionState.Inactive,
-                conditions = new()
-                {
-                    new ActionCondition()
-                    {
-                        fromState = QuestActionState.Inactive,
-                        toState = QuestActionState.Active,
-                        dependencyPacks = new()
-                        {
-                             new() { dependencies = new () { new () { id = 1, state = QuestActionState.Completed } } }
-                        }
-                    },
-
-                    new ActionCondition()
-                    {
-                        fromState = QuestActionState.Active,
-                        toState = QuestActionState.Completed,
-                        dependencyPacks = new()
-                        {
-                            new()
-                            {
-                                dependencies = new()
-                                {
-                                    new () { id = 2, state = QuestActionState.Completed },
-                                    new () { id = 3, state = QuestActionState.Completed }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-
-            #endregion
-
-            actions = new() { action1, action2, action3, action4, action5 };
-
-            #region QUEST_STATES
-
-            QuestCondition condition1 = new()
-            {
-                state = QuestState.Completed,
-                actionId = 4,
-                actionState = QuestActionState.Completed
-            };
-
-            QuestCondition condition2 = new()
-            {
-                state = QuestState.Failed,
-                actionId = 4,
-                actionState = QuestActionState.Failed
-            };
-
-            #endregion
-
-            questStates = new() { condition1, condition2 };
-        }
-
-        #endregion
     }
 }

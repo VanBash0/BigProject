@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace BigProject.Gameplay.Watermill
 {
+    // For apply repaired lever.
     public class LeverHandler : MonoBehaviour, IUsesItem
     {
         [SerializeField]

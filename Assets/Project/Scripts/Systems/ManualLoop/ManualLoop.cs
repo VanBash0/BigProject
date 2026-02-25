@@ -4,7 +4,7 @@ using UnityEngine;
 namespace BigProject.Systems
 {
     /// <summary>
-    /// Цикл ручного обновления на базе MonoBehaviour.Update
+    /// Manual update loop based on MonoBehaviour.Update.
     /// </summary>
     public class ManualLoop : MonoBehaviour
     {       
@@ -57,10 +57,9 @@ namespace BigProject.Systems
         }
 
         /// <summary>
-        /// Добавляет обновляемый объект.
+        /// Add updatable object.
         /// </summary>
-        /// <param name="tickable">Обновляемый объект</param>
-        /// <param name="queueId">Id очереди обновления</param>
+        /// <param name="queueId">Id of update queue</param>
         public void AddTickable(object tickable, int queueId = 0)
         {
             if (_tickQueues.TryGetValue(queueId, out TickQueue queue))
@@ -81,10 +80,9 @@ namespace BigProject.Systems
         }
 
         /// <summary>
-        /// Добавляет обновляемые объекты.
+        /// Add updatable object list.
         /// </summary>
-        /// <param name="tickables">Список объектов</param>
-        /// <param name="queueId">Id очереди обновления</param>
+        /// <param name="queueId">Id of update queue</param>
         public void AddTickables(List<object> tickables, int queueId = 0)
         {
             foreach (object tickable in tickables)
@@ -94,10 +92,8 @@ namespace BigProject.Systems
         }
 
         /// <summary>
-        /// Устанавливает актвинсоть очереди обновления.
+        /// Set queue activity.
         /// </summary>
-        /// <param name="queueId">Id очереди</param>
-        /// <param name="isActive">Флаг активности</param>
         public void SetTickableQueueActive(int queueId, bool isActive)
         {
             if (!_tickQueues.TryGetValue(queueId, out TickQueue queue))
@@ -118,8 +114,7 @@ namespace BigProject.Systems
                 _activeQueues.Remove(queue);
             }
         }
-        
-        /// <returns>True если очередь обновления активна.</returns>
+
         public bool IsTickableQueueActive(int queueId)
         {
             if (!_tickQueues.TryGetValue(queueId, out TickQueue queue))

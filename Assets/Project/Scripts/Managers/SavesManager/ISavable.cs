@@ -1,27 +1,27 @@
 namespace BigProject.Managers
 {
     /// <summary>
-    /// Интерфейс для сохраняемых/загружаемых объектов. 
-    /// Для успешной записи/загрузки сохраняемые параметры должны быть public ИЛИ serializable.
-    /// Важно: встроенная JsonUtility работает только с простыми данными, списками и одномерными массивами.
-    /// При необходимости записи сложных стрктур - можно завернуть их в подклассы.
+    /// Interface for saving/loading objects.
+    /// For successful saving/loading, saved parameters must be public or serializable.
+    /// Important: The built-in JsonUtility only works with simple data, lists, and one-dimensional arrays.
+    /// If you need to write complex structures, you can wrap them in subclasses.
     /// </summary>
     public interface ISavable
     {
         /// <summary>
-        /// Уникальный ключ, по которому будет записан объект внутри сохранения (у самого сохранения один единый ключ).
+        /// A unique key by which the object will be recorded within the save (the save itself has one single key).
         /// </summary>
-        string Key { get; }
+        public string Key { get; }
 
         /// <summary>
-        /// Данные для сохранения, запакованные в объект.
-        /// Если все public и serializable поля класса необходимо записывать - возвращаем this;
+        /// Data to be saved, packed into an object.
+        /// If all public and serializable fields of the class need to be written, return 'this' pointer;
         /// </summary>
-        object SavingData { get; }
+        public object SavingData { get; }
 
         /// <summary>
         /// Выхывается после загрузки данных в объект.
         /// </summary>
-        void OnLoad() { }
+        public void OnLoad() { }
     }
 }

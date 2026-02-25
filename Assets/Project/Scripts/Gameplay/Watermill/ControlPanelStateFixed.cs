@@ -31,11 +31,13 @@ namespace BigProject.Gameplay.Watermill
         private const float MIN_SWIPE_DELTA = 80f;
         private const float MAX_SWIPE_ANGLE_DELTA = 30f;
 
+        // Key points of lever route.
         private class LeverPoint
         {
             public Transform transform;
             public int id;
             public LeverPoint next, prev;
+            // Routes to move on.
             public Vector2 nextRail, prevRail;
             public bool isFree;
         }
@@ -64,8 +66,6 @@ namespace BigProject.Gameplay.Watermill
 
         public void Start()
         {
-            // реплика о починке
-            // появление записки
             OnStateChanged();
         }
         public void Stop()
@@ -95,6 +95,7 @@ namespace BigProject.Gameplay.Watermill
 
             _delta += delta;
 
+            // Move only if has enough swipe delta.
             if (_delta.magnitude < MIN_SWIPE_DELTA)
             {
                 return;
@@ -146,13 +147,19 @@ namespace BigProject.Gameplay.Watermill
             for (i = 0; i < pointsNumber; i++)
             {
                 LeverPoint point = _leversPoints[i];
+
+                // Levers points is dll.
                 point.next = _leversPoints[(i + 1) % pointsNumber];
                 point.prev = _leversPoints[(i - 1 + pointsNumber) % pointsNumber];
+
+                // Calculate routes for nodes.
                 point.nextRail = point.next.transform.localPosition - point.transform.localPosition;
                 point.prevRail = point.prev.transform.localPosition - point.transform.localPosition;
+
                 point.isFree = true;
             }
 
+            // Take initial points.
             foreach (Lever lever in _levers)
             {
                 _leversPoints.ElementAt(lever.PointId).isFree = false;

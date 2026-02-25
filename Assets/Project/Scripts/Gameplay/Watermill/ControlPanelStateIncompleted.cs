@@ -42,11 +42,7 @@ namespace BigProject.Gameplay.Watermill
             OnStateChanged();
         }
 
-        public void OnClicked()
-        {
-            // реплика
-        }
-
+        // Apply repaired lever to panel.
         public void ApplyItem(Item item)
         {
             _crSource = new();
@@ -69,6 +65,7 @@ namespace BigProject.Gameplay.Watermill
         {
             if (_isSkipped)
             {
+                // Set lever final position.
                 _repairedLever.transform.localPosition = _repairedLeverHolder.transform.localPosition;
                 SetVisibility();
             }

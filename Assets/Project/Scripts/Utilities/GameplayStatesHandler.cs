@@ -4,7 +4,6 @@ using BigProject.Settings;
 using BigProject.Systems.HUD;
 using System;
 
-
 namespace BigProject.Utilities
 {
     public class GameplayStatesHandler : IDisposable

@@ -6,6 +6,9 @@ namespace BigProject.Gameplay.Watermill
 {
     public interface IControlPanelState : IDisposable
     {
+        /// <summary>
+        /// Is ready to work.
+        /// </summary>
         public bool IsReady => true;
         public void Start() { }
         public void Stop() { }

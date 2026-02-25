@@ -3,6 +3,7 @@ using BigProject.Systems;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using System;
+using BigProject.Utilities;
 
 namespace BigProject.Managers
 {
@@ -17,7 +18,7 @@ namespace BigProject.Managers
     }
 
     /// <summary>
-    /// Переводит игру в различные геймплейные состояния, переключая очереди обновления.
+    /// Set different game states and switch manual update queues.
     /// </summary>
     public class GameplayManager
     {
@@ -30,16 +31,16 @@ namespace BigProject.Managers
 
         public GameplayManager(ManualLoop manualLoop)
         {
-            Assert.IsNotNull(manualLoop, "Gameplay Manager: manual loop is null.");
-            _state = GameplayState.Play;
             _manualLoop = manualLoop;
+            ExceptionUtilities.ThrowIfNull(_manualLoop, String.Format(LogStr.CRITICAL_NULL_REFERENCE, "Gameplay Manager", "manual loop"));
+            _state = GameplayState.Play;
         }
 
         /// <summary>
-        /// Добавляет очередь обновления с привязкой к состоянию игры.
+        /// Add update queue and bind it to game state.
         /// </summary>
-        /// <param name="state">Состояние игры</param>
-        /// <param name="id">Идентификатор очереди</param>
+        /// <param name="state">Game state</param>
+        /// <param name="id">Queue id</param>
         public void AddQueueToState(GameplayState state, int id)
         {
             if (_tickQueueIds.TryGetValue(state, out var stateIds))
@@ -58,9 +59,9 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Меняет состояние игры.
+        /// Change game state.
         /// </summary>
-        /// <param name="state">Новое состояние</param>
+        /// <param name="state">New state</param>
         public void ChangeState(GameplayState state)
         {
             if (_state == state)
@@ -68,6 +69,7 @@ namespace BigProject.Managers
                 return;
             }
 
+            // Turn off all active.
             foreach (int id in _activeQueueIds)
             {
                 _manualLoop.SetTickableQueueActive(id, false);

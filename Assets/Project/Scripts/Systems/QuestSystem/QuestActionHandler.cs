@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.VersionControl;
 using UnityEngine;
 
 namespace BigProject.Systems.QuestSystem
@@ -11,15 +12,12 @@ namespace BigProject.Systems.QuestSystem
         public event Action StateChanged;
         public IQuest Quest { get; private set; }
 
-        // Ручные транзакции.
+        // For manual transitions in external code.
         private Dictionary<int, (QuestActionState, QuestActionState)> _manualTransitions;
         private int _id;
 
-        /// <param name="quest">Квест, в рамках которого происходит активность</param>
-        /// <param name="actionId">IDактивности</param>
-        /// <param name="name">Имя активности</param>
-        /// <param name="state">Начальное состояние</param>
-        /// <param name="manualTransitions">Ручные транзакции данной активности</param>
+        /// <param name="state">Initial action state</param>
+        /// <param name="manualTransitions">Manual transitions of this action</param>
         internal QuestActionHandler(IQuest quest, int actionId, string name, QuestActionState state, Dictionary<int, (QuestActionState, QuestActionState)> manualTransitions)
         {
             Quest = quest;
@@ -31,19 +29,21 @@ namespace BigProject.Systems.QuestSystem
 
         public void MakeTransition(int transitionId) 
         {
-            // Ручной переход возможен только по корректному ID и из указанного в транзакции состояния.
+            // Manual transition is possible only with the correct ID and from the state specified in the transition.
             if (_manualTransitions.TryGetValue(transitionId, out var transition) &&
                 (CurrentState == transition.Item1 || transition.Item1 == QuestActionState.Undefined))
             {
                     if (!Quest.ManualTransition(_id, transition.Item2))
+                    {
                         Debug.LogWarning($"Activity handler of [{ActionName}] unable to make transition.");
+                    }
             }          
         }
 
         internal void RemoveTransition(int id) => _manualTransitions.Remove(id);
 
         /// <summary>
-        /// Вызывается владельцем обработчика при смене состояния активности.
+        /// Called by the handler owner when the activity state changes.
         /// </summary>
         internal void OnStateChanged(QuestActionState newState)
         {

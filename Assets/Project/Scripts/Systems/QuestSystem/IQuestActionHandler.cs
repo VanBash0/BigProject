@@ -3,28 +3,27 @@ using System;
 namespace BigProject.Systems.QuestSystem
 {
     /// <summary>
-    /// ќбработчик активности: обертка над активностью дл€ автоматизации отслеживани€ ее состо€ни€.
+    /// Action handler: a wrapper around an action to automate tracking of its state.
     /// </summary>
     public interface IQuestActionHandler
     {
-        string ActionName { get; }
-        QuestActionState CurrentState { get; }
+        public string ActionName { get; }
+        public QuestActionState CurrentState { get; }
 
         /// <summary>
-        /// —обытие вызываетс€ при изменении состо€ни€ активности.
+        /// The event is fired when the activity's state changes.
         /// </summary>
-        event Action StateChanged;
+        public event Action StateChanged;
 
         /// <summary>
-        /// »спользовать в случае необходимости ручного управлени€ квестом.
+        /// Use when manual control of the quest is required.
         /// </summary>
-        IQuest Quest { get; }
+        public IQuest Quest { get; }
 
         /// <summary>
-        /// —овершает переход активности квеста в новое состо€ние согласно протоколу с указанным id.
-        /// ѕри недопустимости перехода игнорирует его.
+        /// Transitions the quest activity to a new state according to the protocol with the specified id.
+        /// If the transition is invalid, ignores it.
         /// </summary>
-        /// <param name="transitionId">id перехода</param>
-        void MakeTransition(int transitionId);
+        public void MakeTransition(int transitionId);
     }
 }

@@ -7,15 +7,15 @@ using BigProject.Systems.QuestSystem;
 namespace BigProject.Managers
 {
     /// <summary>
-    /// Менеджер прогресса, управляет игровыми квестами и фиксацией прогресса.
+    /// Progress manager, manages game quests and progress recording.
     /// </summary>
     public class ProgressManager : ISavable, IDisposable
     {
-        // Объекты, чье состояние необходимо фиксировать при сохранении прогресса.
+        // Objects whose state needs to be fixed when saving progress.
         [SerializeField]
         private List<ISavable> _savable;
 
-        private string _profileName; // Ддля разделения профилей игроков.
+        private string _profileName; // To separate player profiles.
         private SavesManager _savesManager;
         private Dictionary<int, IQuest> _quests;
 
@@ -24,19 +24,18 @@ namespace BigProject.Managers
         public object SavingData => this;
 
         /// <summary>
-        /// При True сохраняет прогресс, когда какой-либо из отслеживаемых квестов меняет статус.
+        /// When True, saves progress when any of the tracked quests changes status.
         /// </summary>
         public bool AutoSave { get; set; } = true;
 
 
-        /// <param name="profileName">Имя профился игрока</param>
-        /// <param name="questLoader">Используемый загрузчик квестов</param>
-        /// <param name="savesManager">Менеджер сохранения</param>
+        /// <param name="profileName">Player profile name</param>
+        /// <param name="questLoader">Quest loader to use</param>
         public ProgressManager(string profileName, IQuestLoader questLoader, SavesManager savesManager)
         {
             _profileName = profileName;
 
-            // Как минимум фиксируем общие данные из Progress Manager.
+            // Record general data from Progress Manager.
             _savable = new() { this }; 
 
             _savesManager = savesManager;
@@ -65,11 +64,11 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Добавляет квесты в сохранения.
+        /// Add quests to save data.
         /// </summary>
         private void AddQuestsToSavable()
         {
-            foreach (var quest in _quests.Values)
+            foreach (IQuest quest in _quests.Values)
             {
                 if (quest is ISavable savable)
                 {
@@ -79,10 +78,8 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Подписка на квест.
+        /// Subscribe to quest.
         /// </summary>
-        /// <param name="quiestId">ID квеста</param>
-        /// <returns></returns>
         public bool AddQuestListener(int quiestId, Action<IQuest> callback)
         {
             if (!_quests.TryGetValue(quiestId, out var quest))
@@ -97,9 +94,8 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Отписка от квеста.
+        /// Unsubscribe from quest.
         /// </summary>
-        /// <param name="quiestId">ID квеста</param>
         public void RemoveQuestListener(int quiestId, Action<IQuest> callback)
         {
             if (_quests.TryGetValue(quiestId, out var quest))
@@ -113,9 +109,8 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Добавляет сохраняемый объект (пр. инвентарь, персонажей и т п).
+        /// Adds a saved object (e.g. inventory, characters, etc.).
         /// </summary>
-        /// <param name="savable"></param>
         public void AddSavable(ISavable savable)
         {
             if (_savable.Contains(savable))
@@ -128,9 +123,8 @@ namespace BigProject.Managers
         }
 
         /// <summary>
-        /// Удаляет объект из сохраняемых.
+        /// Remove object from saving data.
         /// </summary>
-        /// <param name="savable"></param>
         public void RemoveSavable(ISavable savable)
         {
             if (!_savable.Remove(savable))
@@ -151,15 +145,13 @@ namespace BigProject.Managers
 
         public bool HasSavedProgress()
         {
-            return _savesManager.HasSaves(_profileName, _savable);
+            return _savesManager.HasSave(_profileName);
         }
 
         /// <summary>
-        /// Ручное продвижение квеста.
+        /// Manual quest transition.
         /// </summary>
-        /// <param name="questId">ID квеста</param>
-        /// <param name="actionId">ID активности в квесте</param>
-        /// <param name="newState">Новое состояние активности</param>
+        /// <param name="newState">New action state</param>
         /// <returns></returns>
         public bool ManualProgress(int questId, int actionId, QuestActionState newState)
         {
@@ -173,9 +165,7 @@ namespace BigProject.Managers
             return quest.ManualTransition(actionId, newState);
         }
 
-        /// <param name="questId">ID квеста</param>
-        /// <param name="actionId">ID активности в квесте</param>
-        /// <returns>Состояние активнсоти квеста.</returns>
+        /// <returns>Quest's action state.</returns>
         public QuestActionState GetActionState(int questId, int actionId)
         {
             if (!_quests.TryGetValue(questId, out var quest))
@@ -193,8 +183,7 @@ namespace BigProject.Managers
             return actionState;
         }
 
-        /// <param name="questId">ID квеста</param>
-        /// <returns>Все активности квеста.</returns>
+        /// <returns>All quest's actions.</returns>
         public IReadOnlyDictionary<int, QuestActionState> GetAllActions(int questId)
         {
             if (!_quests.TryGetValue(questId, out var quest))
@@ -206,13 +195,8 @@ namespace BigProject.Managers
             return quest.GetAllActions();
         }
 
-        /// <summary>
-        /// Возвращает обработчика активности квеста.
-        /// </summary>
-        /// <param name="questId">ID квеста</param>
-        /// <param name="actionId">ID активности</param>
-        /// <param name="actionHandler">обработчик</param>
-        /// <returns>True если обработчик успешно получен.</returns>
+        /// <param name="actionHandler">Quest action handler</param>
+        /// <returns>True when success.</returns>
         public bool TryGetQuestActionHandler(int questId, int actionId, out IQuestActionHandler actionHandler)
         {
             if (!_quests.TryGetValue(questId, out var quest))
@@ -225,7 +209,7 @@ namespace BigProject.Managers
             return quest.TryGetActionHandler(actionId, out actionHandler);
         }
 
-        /// <returns>Текущее состояние квеста.</returns>
+        /// <returns>Actual state of quest.</returns>
         public QuestState GetQuestState(int questId)
         {
             if (!_quests.TryGetValue(questId, out var quest))

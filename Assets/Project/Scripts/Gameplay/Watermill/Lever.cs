@@ -11,6 +11,8 @@ namespace BigProject.Gameplay.Watermill
         public Transform Transform { get; private set; }
         [field: SerializeField]
         public int PointId { get; set; }
+
+        // Lever can have several target points.
         [SerializeField]
         private List<int> _targetIds = new();
 
