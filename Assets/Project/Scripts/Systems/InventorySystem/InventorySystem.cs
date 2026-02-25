@@ -1,3 +1,6 @@
+using BigProject.Managers;
+using BigProject.UI;
+using BigProject.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +21,9 @@ namespace BigProject.Systems
             {
                 _heldItems.Add(-1);
             }
+
             _itemsDatabase = itemsDatabase;
+            ExceptionUtilities.ThrowIfNull(_itemsDatabase, "InventorySystem", "itemsDatabase is null");
             SceneManager.activeSceneChanged += OnSceneChanged;
         }
 
@@ -43,6 +48,7 @@ namespace BigProject.Systems
                 }
             }
 
+            GameLogManager.Info("Added item to inventory");
             OnInventoryUpdated?.Invoke();
         }
         
@@ -54,7 +60,8 @@ namespace BigProject.Systems
                 _heldItems[i] = _heldItems[i + 1];
             }
             _heldItems[_heldItems.Count - 1] = -1;
-
+            
+            GameLogManager.Info("Removed item from inventory");
             OnInventoryUpdated?.Invoke();
         }
 
@@ -65,7 +72,7 @@ namespace BigProject.Systems
         {
             if (itemID >= _itemsDatabase._items.Count)
             {
-                Debug.LogError($"Индекс выходит за границы БД предметов");
+                Debug.LogError($"itemID out of itemsDB bounds");
                 return;
             }
 
@@ -76,7 +83,7 @@ namespace BigProject.Systems
         {
             if (_itemsDatabase._items.Where(x => x._name.Equals(itemName)).Count() == 0)
             {
-                Debug.LogError($"Предмета {itemName} нет в БД предметов");
+                Debug.LogError($"Item {itemName} does not exist in itemsDB");
                 return;
             }
             
@@ -91,13 +98,13 @@ namespace BigProject.Systems
         {
             if (_heldItems.Count == 0)
             {
-                Debug.LogError("Инвентарь пуст, невозможно удалить предмет");
+                Debug.LogError("Can't remove an item from an empty inventory");
                 return;
             }
 
             if (itemID >= _itemsDatabase._items.Count)
             {
-                Debug.LogError($"Индекс выходит за границы БД предметов");
+                Debug.LogError($"itemID out of itemsDB bounds");
                 return;
             }
 
@@ -109,20 +116,20 @@ namespace BigProject.Systems
         {
             if (_heldItems.Count == 0)
             {
-                Debug.LogError("Инвентарь пуст, невозможно удалить предмет");
+                Debug.LogError("Can't remove an item from an empty inventory");
                 return;
             }
 
             if (_itemsDatabase._items.Where(x => x._name == itemName).Count() == 0)
             {
-                Debug.LogError($"Предмета {itemName} нет в БД предметов");
+                Debug.LogError($"Item {itemName} does not exist in itemsDB");
                 return;
             }
 
             int itemID = _itemsDatabase._items.IndexOf(_itemsDatabase._items.Where(x => x._name == itemName).First());
             if (itemID == -1)
             {
-                Debug.LogError($"Предмета {itemName} нет в инвентаре");
+                Debug.LogError($"Item {itemName} does not exist in inventory");
                 return;
             }
 

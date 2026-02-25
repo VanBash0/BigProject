@@ -9,18 +9,18 @@ namespace BigProject.Player
         private InputSystemActions _inputActions;
         
         //Player Actions
-        public Action Click;
-        public Action OpenMap;
-        public Action OpenMenu;
+        public event Action Click;
+        public event Action OpenMap;
+        public event Action OpenMenu;
 
         //UIActions
         //...
 
         //Mini-game Actions
-        public Action MiniGameClick;
-        public Action MiniGameRightClick;
-        public Action<Vector2> MiniGameSwipe;
-        public Action MiniGameUnclick;
+        public event Action MiniGameClick;
+        public event Action MiniGameRightClick;
+        public event Action<Vector2> MiniGameSwipe;
+        public event Action MiniGameUnclick;
 
         public PlayerInputHandler()
         {
