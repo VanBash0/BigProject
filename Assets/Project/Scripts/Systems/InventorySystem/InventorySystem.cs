@@ -109,6 +109,12 @@ namespace BigProject.Systems
             }
 
             int itemInventoryID = _heldItems.IndexOf(itemID);
+            if (itemInventoryID == -1)
+            {
+                Debug.LogError($"Item with id {itemID} does not exist in inventory");
+                return;
+            }
+
             RemoveFromInventory(itemInventoryID);
         }
 
@@ -127,13 +133,13 @@ namespace BigProject.Systems
             }
 
             int itemID = _itemsDatabase._items.IndexOf(_itemsDatabase._items.Where(x => x._name == itemName).First());
-            if (itemID == -1)
+            int itemInventoryID = _heldItems.IndexOf(itemID);
+            if (itemInventoryID == -1)
             {
                 Debug.LogError($"Item {itemName} does not exist in inventory");
                 return;
             }
 
-            int itemInventoryID = _heldItems.IndexOf(itemID);
             RemoveFromInventory(itemInventoryID);
         }
 

@@ -15,7 +15,6 @@ namespace BigProject.UI
         private Camera _camera;
         private Item _item;
         private GameObject _noteObject;
-        private bool _isNoteOpened;
 
         public event Action<bool> OnStartDrag;
 
@@ -80,16 +79,13 @@ namespace BigProject.UI
                 return;
             }
 
-            _isNoteOpened = !_isNoteOpened;
-            _noteObject.SetActive(_isNoteOpened);
+            _noteObject.SetActive(!_noteObject.activeInHierarchy);
         }
 
         private void OnDestroy()
         {
-            _isNoteOpened = false;
             if (_noteObject != null)
             {
-                _noteObject.SetActive(false);
                 _noteObject = null;
             }
         }

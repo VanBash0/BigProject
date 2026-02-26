@@ -40,23 +40,34 @@ namespace BigProject.UI
 
         private void UpdateInventory()
         {
+            bool hasNote = false;
             List<Item> heldItems = _inventorySystem.GetAllHeldItems();
 
             if (heldItems.Count == 0)
             {
                 for (int i = 0; i < _inventorySlots.Count; i++)
                     _inventorySlots[i].ClearSlot();
+                
+                _noteImage.gameObject.SetActive(false);
                 return;
             }
 
             for (int i = 0; i < heldItems.Count; i++)
             {
                 _inventorySlots[i].SetSlot(heldItems[i], Camera.main, _noteImage);
+                if (heldItems[i]._noteSprite != null)
+                    hasNote = true;
             }
 
             for (int i = heldItems.Count; i < _inventorySlots.Count; i++)
             {
                 _inventorySlots[i].ClearSlot();
+            }
+
+            // hides note image if there is no corresponding item
+            if (!hasNote)
+            {
+                _noteImage.gameObject.SetActive(false);
             }
         }
 
