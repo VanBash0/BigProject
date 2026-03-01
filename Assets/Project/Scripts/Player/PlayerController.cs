@@ -23,6 +23,8 @@ namespace BigProject.Player
 
         private const string MOVING_ANIM_BOOL = "IsMoving";
 
+        public bool IsMoving => _isMoving;
+
         public void Init(PlayerInputHandler inputHandler)
         {
             _inputHandler = inputHandler;
@@ -112,7 +114,7 @@ namespace BigProject.Player
             }
         }
 
-        private void Move()
+        public void Move()
         {
             _isMoving = true;
             _animatorController.SetBool(MOVING_ANIM_BOOL, true);
