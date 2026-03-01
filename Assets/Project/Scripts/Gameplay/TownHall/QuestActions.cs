@@ -79,6 +79,9 @@ namespace BigProject.Gameplay.TownHall
             }
 
             _pillarNoteTex.Apply();
+
+            // For test only
+            _inventory.AddItemByItemID(pillarId + 6);
         }
 
         private void OnDestroy()
