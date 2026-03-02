@@ -240,7 +240,7 @@ namespace BigProject.Gameplay.Watermill
             if (_activateMechAction.CurrentState >= QuestActionState.Completed)
             {
                 _controlPanel.ChangeState(ControlPanelState.Completed);
-                _controlPanel.DeactivateMiniGame();
+                _controlPanel.Deactivate();
             }
         }
     }

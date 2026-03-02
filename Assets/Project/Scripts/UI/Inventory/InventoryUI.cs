@@ -73,7 +73,10 @@ namespace BigProject.UI
 
         public void SetNoteVisibility(bool isVisible)
         {
-            _noteImage.gameObject.SetActive(isVisible);
+            if (_noteImage.sprite != null)
+            {
+                _noteImage.gameObject.SetActive(isVisible);
+            }
         }
 
         public void Show()

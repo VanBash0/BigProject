@@ -96,7 +96,7 @@ namespace BigProject.Gameplay.Watermill
             if (_getBrokenLeverAction.CurrentState >= QuestActionState.Completed)
             {
                 _controlPanel.ChangeState(ControlPanelState.Incompleted);
-                _controlPanel.DeactivateMiniGame();
+                _controlPanel.Deactivate();
             }
         }
     }

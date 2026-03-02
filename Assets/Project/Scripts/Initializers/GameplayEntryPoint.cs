@@ -5,6 +5,7 @@ using BigProject.Systems;
 using BigProject.Systems.DialogueSystem;
 using BigProject.Systems.HUD;
 using BigProject.UI;
+using BigProject.UI.Common;
 using BigProject.UI.Replica;
 using BigProject.Utilities;
 using System;
@@ -41,7 +42,7 @@ namespace BigProject.Initializers
         private QuestJournal _questJournal;
         private InventorySystem _inventory;
         private RunesSystem _runesSystem;
-        private JournalView _journalView;
+        private JournalUI _journalView;
         private InventoryUI _inventoryUI;
         private RunePanelUI _runeUI;
         private PlayerInputHandler _playerInput;
@@ -125,9 +126,10 @@ namespace BigProject.Initializers
         {
             GameLogManager.Info(LogStr.INFO_INITIALIZING_HUD);
             _hudObj = Instantiate(_hudPrefab);
-            _journalView = _hudObj.GetComponentInChildren<JournalView>();
+            _journalView = _hudObj.GetComponentInChildren<JournalUI>();
             _runeUI = _hudObj.GetComponentInChildren<RunePanelUI>();
             _inventoryUI = _hudObj.GetComponentInChildren<InventoryUI>();
+            CancelUI cancelUI = _hudObj.GetComponentInChildren<CancelUI>();
             ServiceLocator.AddService(_inventoryUI);
 
             DontDestroyOnLoad(_hudObj);
@@ -139,9 +141,11 @@ namespace BigProject.Initializers
             _hud.AddWidget(_hudConfig.HUDInventoryWidgetId, _inventoryUI);
             _hud.AddWidget(_hudConfig.HUDJournalWidgetId, _journalView);
             _hud.AddWidget(_hudConfig.HUDRunesWidgetId, _runeUI);
+            _hud.AddWidget(_hudConfig.HUDCancelWidgetId, cancelUI);
             _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
             _hud.HideWidget(_hudConfig.HUDJournalWidgetId);
-            _hud.HideWidget(_hudConfig.HUDRunesWidgetId);
+            _hud.HideWidget(_hudConfig.HUDCancelWidgetId);
+            _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
             _hud.ShowWidget(_hudConfig.HUDInventoryWidgetId, 2f);
             _hud.ShowWidget(_hudConfig.HUDJournalWidgetId, 2f);
             GameLogManager.Info(LogStr.INFO_INITIALIZING_HUD_COMPLETED);

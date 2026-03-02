@@ -9,7 +9,7 @@ namespace BigProject.UI
     /// <summary>
     /// Отображение журнала в интерфейсе.
     /// </summary>
-    public class JournalView : MonoBehaviour, IHUDWidget, IDisposable
+    public class JournalUI : MonoBehaviour, IHUDWidget, IDisposable
     {
         [SerializeField]
         private GameObject _journalObj;
