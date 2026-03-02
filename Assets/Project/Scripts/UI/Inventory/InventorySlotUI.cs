@@ -11,8 +11,7 @@ namespace BigProject.UI
         [SerializeField] private Image _slotImage;
         
         [Header("Спрайты для слота")]
-        [SerializeField] private Sprite _emptySprite;
-        [SerializeField] private Sprite _fullSprite;
+        [SerializeField] private Sprite _defaultSprite;
         [SerializeField] private Sprite _selectedSprite;
         [SerializeField] private Sprite _hoverSprite;
         
@@ -29,7 +28,6 @@ namespace BigProject.UI
             _inventoryItemUI.OnStartDrag += SlotSelected;
             _isEmpty = false;
             _isSelected = false;
-            _slotImage.sprite = _fullSprite;
         }
 
         public void ClearSlot()
@@ -41,12 +39,11 @@ namespace BigProject.UI
             _inventoryItemUI = null;
             _isEmpty = true;
             _isSelected = false;
-            _slotImage.sprite = _emptySprite;
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (_isEmpty || _isSelected)
+            if (_isSelected)
                 return;
 
             _slotImage.sprite = _hoverSprite;
@@ -54,10 +51,10 @@ namespace BigProject.UI
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (_isEmpty || _isSelected)
+            if (_isSelected)
                 return;
             
-            _slotImage.sprite = _fullSprite;
+            _slotImage.sprite = _defaultSprite;
         }
 
         private void SlotSelected(bool slotSelected)
@@ -73,7 +70,7 @@ namespace BigProject.UI
             else
             {
                 _isSelected = false;
-                _slotImage.sprite = _isEmpty ? _emptySprite : _fullSprite;
+                _slotImage.sprite = _defaultSprite;
             }
         }
     }
