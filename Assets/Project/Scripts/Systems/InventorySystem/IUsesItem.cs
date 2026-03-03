@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace BigProject.Systems
+namespace BigProject.Systems.Inventory
 {
     public interface IUsesItem
     {

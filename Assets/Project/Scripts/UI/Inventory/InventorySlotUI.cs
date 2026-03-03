@@ -1,4 +1,6 @@
-using BigProject.Systems;
+using BigProject.Systems.Inventory;
+using BigProject.Systems.Inventory.ItemsModifiers;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -18,13 +20,14 @@ namespace BigProject.UI
         private InventoryItemUI _inventoryItemUI;
         private bool _isEmpty = true;
         private bool _isSelected = false;
-        public void SetSlot(Item item, Camera camera, Image noteImage = null)
+
+        public void SetSlot(Item item, Camera camera, Image noteImage = null, IReadOnlyList<ItemModifier> modifiers = null)
         {
             if (_inventoryItemUI != null)
                 ClearSlot();
 
             _inventoryItemUI = Instantiate(_inventoryItemPrefab, this.transform).GetComponent<InventoryItemUI>();
-            _inventoryItemUI.SetItem(item, camera, noteImage);
+            _inventoryItemUI.SetItem(item, camera, noteImage, modifiers);
             _inventoryItemUI.OnStartDrag += SlotSelected;
             _isEmpty = false;
             _isSelected = false;

@@ -4,6 +4,8 @@ using BigProject.Settings;
 using BigProject.Systems;
 using BigProject.Systems.DialogueSystem;
 using BigProject.Systems.HUD;
+using BigProject.Systems.Inventory;
+using BigProject.Systems.Inventory.ItemsModifiers;
 using BigProject.UI;
 using BigProject.UI.Common;
 using BigProject.UI.Replica;
@@ -23,6 +25,8 @@ namespace BigProject.Initializers
         private HUDConfig _hudConfig;
         [SerializeField]
         private ItemsDatabaseSO _itemsDatabase;
+        [SerializeField]
+        private ModifiersDatabaseSO _modifiersDatabase;
         [SerializeField]
         private QuestJournalConfig _journalConfig;
         [SerializeField]
@@ -82,7 +86,7 @@ namespace BigProject.Initializers
         public void InitServices()
         {
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES);
-            _inventory = new InventorySystem(_itemsDatabase);
+            _inventory = new InventorySystem(_itemsDatabase, _modifiersDatabase);
             _hud = new();
             _playerInput = new();
             _questJournal = new QuestJournal(ServiceLocator.GetService<ProgressManager>(), _journalConfig);

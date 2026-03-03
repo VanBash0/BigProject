@@ -2,6 +2,7 @@ using BigProject.Gameplay.Common;
 using BigProject.Intercatable;
 using BigProject.Managers;
 using BigProject.Systems;
+using BigProject.Systems.Inventory;
 using BigProject.UI;
 using BigProject.Utilities;
 using DG.Tweening;

@@ -1,4 +1,5 @@
 using BigProject.Managers;
+using BigProject.Systems.Inventory.ItemsModifiers;
 using BigProject.UI;
 using BigProject.Utilities;
 using System;
@@ -7,15 +8,17 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace BigProject.Systems
+namespace BigProject.Systems.Inventory
 {
     public class InventorySystem : IDisposable
     {
         private ItemsDatabaseSO _itemsDatabase;
+        private ModifiersDatabaseSO _modifiersDatabase;
         private List<int> _heldItems = new List<int>();
+        private Dictionary<string, List<ItemModifier>> _itemsModifiers = new();
         public event Action OnInventoryUpdated;
 
-        public InventorySystem(ItemsDatabaseSO itemsDatabase)
+        public InventorySystem(ItemsDatabaseSO itemsDatabase, ModifiersDatabaseSO modifiersDatabase)
         {
             for (int i = 0; i < 5; i++)
             {
@@ -23,7 +26,9 @@ namespace BigProject.Systems
             }
 
             _itemsDatabase = itemsDatabase;
+            _modifiersDatabase = modifiersDatabase;
             ExceptionUtilities.ThrowIfNull(_itemsDatabase, "InventorySystem", "itemsDatabase is null");
+            ExceptionUtilities.ThrowIfNull(_modifiersDatabase, String.Format(LogStr.CRITICAL_NULL_REFERENCE, "InventorySystem", "Modifiers Database"));
             SceneManager.activeSceneChanged += OnSceneChanged;
         }
 
@@ -55,12 +60,15 @@ namespace BigProject.Systems
         //here, id is not a database id but an inventory id
         private void RemoveFromInventory(int id)
         {
+            _itemsModifiers.Remove(_itemsDatabase._items.ElementAtOrDefault(_heldItems[id])._name);
+
             for (int i = id; i < _heldItems.Count - 1; i++)
             {
                 _heldItems[i] = _heldItems[i + 1];
             }
+
             _heldItems[_heldItems.Count - 1] = -1;
-            
+
             GameLogManager.Info("Removed item from inventory");
             OnInventoryUpdated?.Invoke();
         }
@@ -89,6 +97,38 @@ namespace BigProject.Systems
             
             int itemID = _itemsDatabase._items.IndexOf(_itemsDatabase._items.Where(x => x._name.Equals(itemName)).First());
             AddToInventory(itemID);
+        }
+
+        public void AddItemModifier(string itemModifierName)
+        {
+            if (!_modifiersDatabase.TryGetModifier(itemModifierName, out ItemModifier itemModifier))
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_QUEST, $"has no modifier {itemModifierName}"));
+                return;
+            }
+
+            string itemName = itemModifier.ItemName;
+
+            if (!HasItemByName(itemName))
+            {
+                Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"has no item {itemName} to add modifier {itemModifierName}"));
+                return;
+            }
+
+            int key = _heldItems.FindIndex(x => _itemsDatabase._items[x]._name.Equals(itemName));
+
+            if (!_itemsModifiers.ContainsKey(itemName))
+            {
+                _itemsModifiers.Add(itemName, new());
+            }
+            else if (_itemsModifiers[itemName].Contains(itemModifier))
+            {
+                Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"already has modifier {itemModifierName} on item {itemName}"));
+                return;
+            }
+
+            _itemsModifiers[itemName].Add(itemModifier);
+            OnInventoryUpdated?.Invoke();
         }
 
         /// <summary>
@@ -177,6 +217,9 @@ namespace BigProject.Systems
 
             return true;
         }
+
+        /// <returns>All modifiers that item has.</returns>
+        public IReadOnlyList<ItemModifier> GetHeldItemModifiers(string name) => _itemsModifiers.ContainsKey(name) ? _itemsModifiers[name] : null;
 
         /// <summary>
         /// Returns list of all held items

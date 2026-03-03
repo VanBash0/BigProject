@@ -1,6 +1,7 @@
 using BigProject.Managers;
-using BigProject.Systems;
 using BigProject.Systems.HUD;
+using BigProject.Systems.Inventory;
+using BigProject.Systems.Inventory.ItemsModifiers;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -43,10 +44,19 @@ namespace BigProject.UI
             bool hasNote = false;
             List<Item> heldItems = _inventorySystem.GetAllHeldItems();
 
+            // Clear note because of all items will be recreated regardless of their presence.
+            // For not duplicate modifiers.
+            foreach (Transform child in _noteImage.gameObject.transform)
+            {
+                Destroy(child.gameObject);
+            }
+
             if (heldItems.Count == 0)
             {
                 for (int i = 0; i < _inventorySlots.Count; i++)
+                {
                     _inventorySlots[i].ClearSlot();
+                }
                 
                 _noteImage.gameObject.SetActive(false);
                 return;
@@ -54,9 +64,12 @@ namespace BigProject.UI
 
             for (int i = 0; i < heldItems.Count; i++)
             {
-                _inventorySlots[i].SetSlot(heldItems[i], Camera.main, _noteImage);
+                _inventorySlots[i].SetSlot(heldItems[i], Camera.main, _noteImage, _inventorySystem.GetHeldItemModifiers(heldItems[i]._name));
+
                 if (heldItems[i]._noteSprite != null)
+                {
                     hasNote = true;
+                }
             }
 
             for (int i = heldItems.Count; i < _inventorySlots.Count; i++)

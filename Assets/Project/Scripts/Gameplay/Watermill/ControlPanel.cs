@@ -4,7 +4,7 @@ using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Systems;
 using BigProject.Systems.QuestSystem;
-using BigProject.UI;
+using BigProject.Systems.Inventory;
 using BigProject.Utilities;
 using DG.Tweening;
 using System;

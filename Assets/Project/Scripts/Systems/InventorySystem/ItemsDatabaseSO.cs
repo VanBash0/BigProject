@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using BigProject.Systems.Inventory.ItemsModifiers;
 
-namespace BigProject.Systems
+namespace BigProject.Systems.Inventory
 {
     [Serializable]
     public struct Item

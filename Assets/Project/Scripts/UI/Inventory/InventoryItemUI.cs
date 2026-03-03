@@ -1,5 +1,8 @@
-using BigProject.Systems;
+using BigProject.Systems.Inventory;
+using BigProject.Systems.Inventory.ItemsModifiers;
 using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -23,7 +26,7 @@ namespace BigProject.UI
             _defaultParent = transform.parent;
         }
 
-        public void SetItem(Item item, Camera camera, Image noteImage)
+        public void SetItem(Item item, Camera camera, Image noteImage, IReadOnlyList<ItemModifier> modifiers)
         {
             _image.sprite = item._itemSprite;
             _camera = camera;
@@ -33,6 +36,8 @@ namespace BigProject.UI
                 noteImage.sprite = item._noteSprite;
                 _noteObject = noteImage.gameObject;
             }
+
+            AddModifiers(modifiers);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -61,6 +66,7 @@ namespace BigProject.UI
                     if (interactableObject.DoesUseItem(_item))
                     { 
                         interactableObject.UseItem(_item);
+                        OnStartDrag?.Invoke(false);
                         return;
                     }
                 }
@@ -80,6 +86,47 @@ namespace BigProject.UI
             }
 
             _noteObject.SetActive(!_noteObject.activeInHierarchy);
+        }
+
+        private void AddModifiers(IReadOnlyList<ItemModifier> modifiers)
+        {
+            if (modifiers == null || modifiers.Count == 0)
+            {
+                return;
+            }
+
+            foreach (ItemModifier itemModifier in modifiers)
+            {
+                if (itemModifier.ItemSprite != null)
+                {
+                    AddModifierOnParent(itemModifier.ItemSprite, itemModifier.ItemUV, _image.transform);
+                }
+
+                if (itemModifier.NoteSprite != null && _noteObject != null)
+                {
+                    AddModifierOnParent(itemModifier.NoteSprite, itemModifier.NoteUV, _noteObject.transform);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add modifier game object with image as child.
+        /// </summary>
+        /// <param name="sprite">Modifier sprite.</param>
+        /// <param name="UV">UV coords from 0 to 1.</param>
+        /// <param name="parent">Parent transform.</param>
+        private void AddModifierOnParent(Sprite sprite, Vector2 UV, Transform parent)
+        {
+            GameObject modifierObj = new GameObject("Modifier", typeof(RectTransform), typeof(Image));
+            modifierObj.transform.SetParent(parent, false);
+            RectTransform rect = modifierObj.GetComponent<RectTransform>();
+            Vector2 anchorPos = new Vector2(UV.x, 1f - UV.y);
+            rect.pivot = new Vector2(0, 1);
+            rect.anchorMin = anchorPos;
+            rect.anchorMax = anchorPos;
+            rect.anchoredPosition = Vector2.zero;
+            Image image = modifierObj.GetComponent<Image>();
+            image.sprite = sprite;
         }
 
         private void OnDestroy()

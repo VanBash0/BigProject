@@ -1,7 +1,7 @@
 using BigProject.Gameplay.Common;
 using BigProject.Managers;
 using BigProject.Player;
-using BigProject.Systems;
+using BigProject.Systems.Inventory;
 using BigProject.UI;
 using UnityEngine;
 
