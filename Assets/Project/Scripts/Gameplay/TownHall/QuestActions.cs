@@ -44,8 +44,8 @@ namespace BigProject.Gameplay.TownHall
             _inventory.AddItemModifier(recordName);
 
             // For test only
-            _inventory.AddItemByItemID(pillarId);
-            pillarId++;
+            //_inventory.AddItemByItemID(pillarId);
+            //pillarId++;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using BigProject.Systems.QuestSystem;
+using BigProject.Systems;
 
 namespace BigProject.Managers
 {
@@ -19,6 +20,10 @@ namespace BigProject.Managers
         private SavesManager _savesManager;
         private Dictionary<int, IQuest> _quests;
 
+        private const string ADDITIONAL_DATA_NAME = "additional_data";
+        private readonly string _additionalDataFullName;
+        private Dictionary<string, bool> _additionalRelevance = new();
+
         // ISavable
         public string Key => "GeneralProgress";
         public object SavingData => this;
@@ -34,6 +39,7 @@ namespace BigProject.Managers
         public ProgressManager(string profileName, IQuestLoader questLoader, SavesManager savesManager)
         {
             _profileName = profileName;
+            _additionalDataFullName = $"{_profileName}_{ADDITIONAL_DATA_NAME}";
 
             // Record general data from Progress Manager.
             _savable = new() { this }; 
@@ -135,12 +141,40 @@ namespace BigProject.Managers
 
         public void SaveProgress()
         {
-            _savesManager.SaveGame(_profileName, _savable);
+            try
+            {
+                _savesManager.SaveGame(_profileName, _savable);
+            }
+            catch
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", "unable to save progress"));
+                return;
+            }
+
+            foreach (string key in _additionalRelevance.Keys.ToList())
+            {
+                _additionalRelevance[key] = true;
+            }
         }
 
         public void LoadProgress()
         {
-            _savesManager.LoadGame(_profileName, _savable);
+            try
+            {
+                _savesManager.LoadGame(_profileName, _savable);
+            }
+            catch
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", "unable to load progress"));
+                return;
+            }
+
+            List<string> _additionalToDelete = _additionalRelevance.Where(x => !x.Value).Select(x => x.Key).ToList();
+
+            foreach (string key in _additionalToDelete)
+            {
+                    DeleteAdditionalData(key);
+            }
         }
 
         public bool HasSavedProgress()
@@ -212,13 +246,84 @@ namespace BigProject.Managers
         /// <returns>Actual state of quest.</returns>
         public QuestState GetQuestState(int questId)
         {
-            if (!_quests.TryGetValue(questId, out var quest))
+            if (!_quests.TryGetValue(questId, out IQuest quest))
             {
                 Debug.LogWarning($"Progress manager has no quest [{questId}], but you try to get quest state.");
                 return QuestState.Inactive;
             }
 
             return quest.CurrentState;            
+        }
+
+        /// <summary>
+        /// Add additional data.
+        /// </summary>
+        /// <returns>True when success.</returns>
+        public bool SaveAdditionalData(ISavable savable)
+        {
+            bool result;
+
+            try
+            {
+                result = _savesManager.AddToSave(_additionalDataFullName, savable);
+            }
+            catch
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", "unable to add additional data to save"));
+                return false;
+            }
+
+            if (result)
+            {
+                if (_additionalRelevance.ContainsKey(savable.Key))
+                {
+                    _additionalRelevance[savable.Key] = false;
+                }
+                else
+                {
+                    _additionalRelevance.Add(savable.Key, false);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Load additional data.
+        /// </summary>
+        /// <param name="removeAfterLoad">When true data will be removed after loading.</param>
+        /// <param name="silent">When true errors and warning won't be trigger (usefull when not sure about data availability).</param>
+        /// <returns>True when success.</returns>
+        public bool LoadAdditionalData(ISavable savable, bool removeAfterLoad = false, bool silent = true)
+        {
+            bool result;
+
+            try
+            {
+                result = _savesManager.LoadFromSave(_additionalDataFullName, savable, removeAfterLoad, silent);
+            }
+            catch
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", "unable to load additional data from save"));
+                return false;
+            }
+
+            if (result && removeAfterLoad)
+            {
+                _additionalRelevance.Remove(savable.Key);
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Delete one record from additional data.
+        /// </summary>
+        public void DeleteAdditionalData(string key)
+        {
+            _savesManager.DeleteFromSave(_additionalDataFullName, key);
+            _additionalRelevance.Remove(key);
         }
 
         private void OnQuestProgressed(IQuest quest)
@@ -238,7 +343,7 @@ namespace BigProject.Managers
 
         public void Dispose()
         {
-            foreach (var quest in _quests.Values)
+            foreach (IQuest quest in _quests.Values)
             {
                 quest.Progressed -= OnQuestProgressed;
             }

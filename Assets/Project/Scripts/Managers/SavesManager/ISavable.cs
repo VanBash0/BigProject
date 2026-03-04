@@ -20,7 +20,12 @@ namespace BigProject.Managers
         public object SavingData { get; }
 
         /// <summary>
-        /// Выхывается после загрузки данных в объект.
+        /// Called after saving try.
+        /// </summary>
+        public void OnSaved(bool isSuccess) { }
+
+        /// <summary>
+        /// Called after loading.
         /// </summary>
         public void OnLoad() { }
     }

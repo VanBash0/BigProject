@@ -86,10 +86,12 @@ namespace BigProject.Initializers
         public void InitServices()
         {
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES);
+            ProgressManager progressManager = ServiceLocator.GetService<ProgressManager>();
             _inventory = new InventorySystem(_itemsDatabase, _modifiersDatabase);
+            progressManager.AddSavable(_inventory);
             _hud = new();
             _playerInput = new();
-            _questJournal = new QuestJournal(ServiceLocator.GetService<ProgressManager>(), _journalConfig);
+            _questJournal = new QuestJournal(progressManager, _journalConfig);
             _questJournal.Init();
             _runesSystem = new();
             GameplayManager gameplayManager = new(ServiceLocator.GetService<ManualLoop>());

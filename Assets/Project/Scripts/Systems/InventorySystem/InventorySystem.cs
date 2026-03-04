@@ -10,21 +10,39 @@ using UnityEngine.SceneManagement;
 
 namespace BigProject.Systems.Inventory
 {
-    public class InventorySystem : IDisposable
+    public class InventorySystem : IDisposable, ISavable
     {
         private ItemsDatabaseSO _itemsDatabase;
         private ModifiersDatabaseSO _modifiersDatabase;
-        private List<int> _heldItems = new List<int>();
+        private List<int> _heldItems;
         private Dictionary<string, List<ItemModifier>> _itemsModifiers = new();
+        private DataToSave _dataToSave;
         public event Action OnInventoryUpdated;
+
+        private const int INVENTORY_SIZE = 5;
+
+
+        [Serializable]
+        private class DataToSave
+        {
+            public List<int> items;
+            public List<string> modifiers = new();
+        }
+
+        public string Key => "Inventory";
+
+        public object SavingData
+        {
+            get
+            {
+                CreateDTO();
+                return _dataToSave;
+            }
+        }
 
         public InventorySystem(ItemsDatabaseSO itemsDatabase, ModifiersDatabaseSO modifiersDatabase)
         {
-            for (int i = 0; i < 5; i++)
-            {
-                _heldItems.Add(-1);
-            }
-
+            InitHeldItems();
             _itemsDatabase = itemsDatabase;
             _modifiersDatabase = modifiersDatabase;
             ExceptionUtilities.ThrowIfNull(_itemsDatabase, "InventorySystem", "itemsDatabase is null");
@@ -32,9 +50,65 @@ namespace BigProject.Systems.Inventory
             SceneManager.activeSceneChanged += OnSceneChanged;
         }
 
+        public void OnSaved(bool _) => _dataToSave = null;
+
+        public void OnLoad()
+        {
+            if (_dataToSave == null)
+            {
+                return;
+            }
+
+            InitHeldItems();
+
+            foreach (int id in _dataToSave.items)
+            {
+                AddToInventory(id);
+            }
+
+            _itemsModifiers.Clear();
+
+            foreach (string modifierName in _dataToSave.modifiers)
+            {
+                AddItemModifier(modifierName);
+            }
+
+            _dataToSave = null;
+            OnInventoryUpdated?.Invoke();
+        }
+
         public void Dispose()
         {
             SceneManager.activeSceneChanged -= OnSceneChanged;
+        }
+
+        private void InitHeldItems()
+        {
+            _heldItems = new(INVENTORY_SIZE);
+
+            for (int i = 0; i < INVENTORY_SIZE; i++)
+            {
+                _heldItems.Add(-1);
+            }
+        }
+
+        private void CreateDTO()
+        {
+            if (_dataToSave == null)
+            {
+                _dataToSave = new();
+            }
+
+            _dataToSave.items = _heldItems;
+            _dataToSave.modifiers.Clear();
+
+            foreach (List<ItemModifier> itemModifiers in _itemsModifiers.Values)
+            {
+                foreach (ItemModifier itemModifier in itemModifiers)
+                {
+                    _dataToSave.modifiers.Add(itemModifier.ModifierName);
+                }
+            }
         }
 
         private void OnSceneChanged(Scene _, Scene __)
@@ -60,7 +134,7 @@ namespace BigProject.Systems.Inventory
         //here, id is not a database id but an inventory id
         private void RemoveFromInventory(int id)
         {
-            _itemsModifiers.Remove(_itemsDatabase._items.ElementAtOrDefault(_heldItems[id])._name);
+            RemoveModifiers(id);
 
             for (int i = id; i < _heldItems.Count - 1; i++)
             {
@@ -72,6 +146,9 @@ namespace BigProject.Systems.Inventory
             GameLogManager.Info("Removed item from inventory");
             OnInventoryUpdated?.Invoke();
         }
+
+        private void RemoveModifiers(int id) =>
+            _itemsModifiers.Remove(_itemsDatabase._items.ElementAtOrDefault(_heldItems[id])._name);
 
         /// <summary>
         /// Adds item by its id in database

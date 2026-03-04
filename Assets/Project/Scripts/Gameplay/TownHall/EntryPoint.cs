@@ -31,8 +31,10 @@ namespace BigProject.Gameplay.TownHall
         public void Init()
         {
             _questActions.Init(ServiceLocator.GetService<InventorySystem>(), _itemsDB);
-            _chestPuzzle.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>());
-            _miniGameActivator.Init(ServiceLocator.GetService<GameplayManager>(), ServiceLocator.GetService<PlayerInputHandler>(), ServiceLocator.GetService<InventoryUI>());
+            _chestPuzzle.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(),
+                ServiceLocator.GetService<ProgressManager>());
+            _miniGameActivator.Init(ServiceLocator.GetService<GameplayManager>(), ServiceLocator.GetService<PlayerInputHandler>(),
+                ServiceLocator.GetService<InventoryUI>());
         }
     }
 }
