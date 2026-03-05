@@ -1,12 +1,13 @@
 using BigProject.Managers;
+using BigProject.Systems.DialogueSystem;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace BigProject.Systems.DialogueSystem
+namespace BigProject.UI.Dialogue
 {
-    public class DialogueView : MonoBehaviour
+    public class DialogueUI : MonoBehaviour
     {
         [SerializeField]
         public GameObject _dialogueWindow;
@@ -18,6 +19,10 @@ namespace BigProject.Systems.DialogueSystem
         private Image _leftCharacterImage;
         [SerializeField]
         private Button _nextButton;
+        [SerializeField]
+        private GameObject _leftCharacterNameField;
+        [SerializeField]
+        private GameObject _rightCharacterNameField;
 
         [SerializeField]
         private float _speakerImageAlpha = 0.8f;
@@ -26,7 +31,10 @@ namespace BigProject.Systems.DialogueSystem
 
         [SerializeField]
         private List<Button> _answerOptionButtons = new List<Button>();
+
         private List<TextMeshProUGUI> _answerOptionButtonTexts = new List<TextMeshProUGUI>();
+        private TextMeshProUGUI _leftNameTMPro;
+        private TextMeshProUGUI _rightNameTMPro;
 
         public void Init(DialogueManager dialogueManager)
         {
@@ -44,13 +52,17 @@ namespace BigProject.Systems.DialogueSystem
                 }
             }
 
+            // Name fields
+            _leftNameTMPro = _leftCharacterNameField.GetComponentInChildren<TextMeshProUGUI>();
+            _rightNameTMPro = _rightCharacterNameField.GetComponentInChildren<TextMeshProUGUI>();
+
             // Обработчик нажатия на кнопку "Продолжить"
             _nextButton.onClick.AddListener(() => dialogueManager.ShowNextStep());
         }
 
         public void HideAnswerOptions()
         {
-            foreach (var answerOptionButton in _answerOptionButtons)
+            foreach (Button answerOptionButton in _answerOptionButtons)
             {
                 answerOptionButton.gameObject.SetActive(false);
             }
@@ -63,6 +75,11 @@ namespace BigProject.Systems.DialogueSystem
             // Включаем отображение кнопки продолжить и текст NPC
             _nextButton.gameObject.SetActive(false);
             _dialogueText.gameObject.SetActive(false);
+
+            // Saying Player (left character)
+            _leftCharacterNameField.SetActive(true);
+            _rightCharacterNameField.SetActive(false);
+
             // Количество кнопок, которые нужно показать
             int buttonCount = Mathf.Min(
                 _answerOptionButtons.Count,
@@ -88,6 +105,10 @@ namespace BigProject.Systems.DialogueSystem
         {
             SetImageAlpha(_leftCharacterImage, _speakerImageTone, _speakerImageAlpha);
             SetImageAlpha(_rightCharacterImage, 1f, 1f);
+            // Saying NPC (right character)
+            _leftCharacterNameField.SetActive(false);
+            _rightCharacterNameField.SetActive(true);
+            _rightNameTMPro.text = dialogueNPCPhrase.Name;
             // Включаем отображение кнопки продолжить и текст NPC
             _nextButton.gameObject.SetActive(true);
             _dialogueText.gameObject.SetActive(true);

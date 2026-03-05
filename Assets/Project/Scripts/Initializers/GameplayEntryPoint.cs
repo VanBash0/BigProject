@@ -5,6 +5,7 @@ using BigProject.Systems;
 using BigProject.Systems.DialogueSystem;
 using BigProject.Systems.HUD;
 using BigProject.UI;
+using BigProject.UI.Dialogue;
 using BigProject.UI.Replica;
 using BigProject.Utilities;
 using System;
@@ -109,7 +110,7 @@ namespace BigProject.Initializers
         private void InitDialogue()
         {
             _dialogueViewObj = Instantiate(_dialogueView);
-            _dialogueManager = new DialogueManager(_dialogueViewObj.GetComponent<DialogueView>());
+            _dialogueManager = new DialogueManager(_dialogueViewObj.GetComponent<DialogueUI>());
             _dialogueManager.Init();
             DontDestroyOnLoad(_dialogueViewObj);
         }

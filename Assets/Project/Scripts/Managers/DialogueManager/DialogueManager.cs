@@ -1,4 +1,5 @@
 using BigProject.Systems.DialogueSystem;
+using BigProject.UI.Dialogue;
 using System;
 using UnityEngine;
 
@@ -12,11 +13,11 @@ namespace BigProject.Managers
         private DialogueLine _currentDialogueLine;
         private int _currentDialoguePhraseIndex = 0;
 
-        private DialogueView _dialogueView;
+        private DialogueUI _dialogueView;
 
         public bool IsDialogue => _currentDialogueLine != null;
 
-        public DialogueManager(DialogueView dialogueView)
+        public DialogueManager(DialogueUI dialogueView)
         {
             _dialogueView = dialogueView;
         }
