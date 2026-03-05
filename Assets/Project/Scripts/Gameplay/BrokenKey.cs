@@ -1,6 +1,6 @@
 using UnityEngine;
 using BigProject.Intercatable;
-using BigProject.Systems;
+using BigProject.Systems.Inventory;
 using BigProject.Utilities;
 
 namespace BigProject.Gameplay

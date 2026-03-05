@@ -1,6 +1,6 @@
-using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Systems;
+using BigProject.Systems.Inventory;
 using BigProject.Systems.QuestSystem;
 using BigProject.Utilities;
 using System;
@@ -96,7 +96,7 @@ namespace BigProject.Gameplay.Watermill
             if (_getBrokenLeverAction.CurrentState >= QuestActionState.Completed)
             {
                 _controlPanel.ChangeState(ControlPanelState.Incompleted);
-                _controlPanel.DeactivateMiniGame();
+                _controlPanel.Deactivate();
             }
         }
     }

@@ -28,6 +28,7 @@ namespace BigProject.Managers
         private readonly List<int> _activeQueueIds = new();
 
         public event Action<GameplayState> StateChanged;
+        public GameplayState State => _state;
 
         public GameplayManager(ManualLoop manualLoop)
         {

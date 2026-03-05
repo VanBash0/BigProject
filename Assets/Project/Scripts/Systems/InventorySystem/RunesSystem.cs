@@ -2,7 +2,7 @@ using BigProject.Managers;
 using System;
 using UnityEngine;
 
-namespace BigProject.Systems
+namespace BigProject.Systems.Inventory
 {
     public class RunesSystem
     {

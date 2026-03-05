@@ -1,6 +1,5 @@
 using BigProject.Intercatable;
-using BigProject.Managers;
-using BigProject.Systems;
+using BigProject.Systems.Inventory;
 using UnityEngine;
 
 namespace BigProject.Gameplay.VillageElderQuest

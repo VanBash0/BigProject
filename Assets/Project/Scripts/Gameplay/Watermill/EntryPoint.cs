@@ -1,6 +1,7 @@
+using BigProject.Gameplay.Common;
 using BigProject.Managers;
 using BigProject.Player;
-using BigProject.Systems;
+using BigProject.Systems.Inventory;
 using BigProject.UI;
 using UnityEngine;
 
@@ -11,6 +12,8 @@ namespace BigProject.Gameplay.Watermill
         [SerializeField]
         private ControlPanel _controlPanel;
         [SerializeField]
+        private MiniGameActivator _miniGameActivator;
+        [SerializeField]
         private AudioClip _music;
 
         public void Init()
@@ -20,9 +23,10 @@ namespace BigProject.Gameplay.Watermill
                 musicManager.PlayMusic(_music, 0.1f, 0.1f);
             }
 
-            _controlPanel.Init(ServiceLocator.GetService<GameplayManager>(),
-                ServiceLocator.GetService<PlayerInputHandler>(), ServiceLocator.GetService<InventorySystem>(),
-                ServiceLocator.GetService<InventoryUI>());
+            GameplayManager gameplayManager = ServiceLocator.GetService<GameplayManager>();
+            PlayerInputHandler inputHandler = ServiceLocator.GetService<PlayerInputHandler>();
+            _controlPanel.Init(gameplayManager, inputHandler, ServiceLocator.GetService<InventorySystem>());
+            _miniGameActivator.Init(gameplayManager, inputHandler, ServiceLocator.GetService<InventoryUI>());
         }
     }
 }

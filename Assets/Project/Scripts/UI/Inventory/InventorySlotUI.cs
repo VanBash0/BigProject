@@ -1,4 +1,6 @@
-using BigProject.Systems;
+using BigProject.Systems.Inventory;
+using BigProject.Systems.Inventory.ItemsModifiers;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -11,25 +13,24 @@ namespace BigProject.UI
         [SerializeField] private Image _slotImage;
         
         [Header("Спрайты для слота")]
-        [SerializeField] private Sprite _emptySprite;
-        [SerializeField] private Sprite _fullSprite;
+        [SerializeField] private Sprite _defaultSprite;
         [SerializeField] private Sprite _selectedSprite;
         [SerializeField] private Sprite _hoverSprite;
         
         private InventoryItemUI _inventoryItemUI;
         private bool _isEmpty = true;
         private bool _isSelected = false;
-        public void SetSlot(Item item, Camera camera, Image noteImage = null)
+
+        public void SetSlot(Item item, Camera camera, Image noteImage = null, IReadOnlyList<ItemModifier> modifiers = null)
         {
             if (_inventoryItemUI != null)
                 ClearSlot();
 
             _inventoryItemUI = Instantiate(_inventoryItemPrefab, this.transform).GetComponent<InventoryItemUI>();
-            _inventoryItemUI.SetItem(item, camera, noteImage);
+            _inventoryItemUI.SetItem(item, camera, noteImage, modifiers);
             _inventoryItemUI.OnStartDrag += SlotSelected;
             _isEmpty = false;
             _isSelected = false;
-            _slotImage.sprite = _fullSprite;
         }
 
         public void ClearSlot()
@@ -41,12 +42,11 @@ namespace BigProject.UI
             _inventoryItemUI = null;
             _isEmpty = true;
             _isSelected = false;
-            _slotImage.sprite = _emptySprite;
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (_isEmpty || _isSelected)
+            if (_isSelected)
                 return;
 
             _slotImage.sprite = _hoverSprite;
@@ -54,10 +54,10 @@ namespace BigProject.UI
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (_isEmpty || _isSelected)
+            if (_isSelected)
                 return;
             
-            _slotImage.sprite = _fullSprite;
+            _slotImage.sprite = _defaultSprite;
         }
 
         private void SlotSelected(bool slotSelected)
@@ -73,7 +73,7 @@ namespace BigProject.UI
             else
             {
                 _isSelected = false;
-                _slotImage.sprite = _isEmpty ? _emptySprite : _fullSprite;
+                _slotImage.sprite = _defaultSprite;
             }
         }
     }

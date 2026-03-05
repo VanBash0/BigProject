@@ -1,31 +1,23 @@
+using BigProject.Gameplay.Common;
 using BigProject.Intercatable;
 using BigProject.Managers;
-using BigProject.Player;
 using BigProject.Systems;
+using BigProject.Systems.Inventory;
 using BigProject.UI;
 using BigProject.Utilities;
 using DG.Tweening;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.UI;
-
 
 namespace BigProject.Gameplay.TownHall
 {
-    public enum ChestPuzzleState
+    public class ChestPuzzle : MonoBehaviour, IInteractable, ISavable
     {
-        Closed,
-        
-        Open
-    }
-
-    public class ChestPuzzle : MonoBehaviour, IInteractable
-    {
-        [Header("Base settings")]
+        [SerializeField]
+        private MiniGameActivator _activator;
         [SerializeField]
         private List<Transform> _keysHolders;
         [SerializeField]
@@ -33,131 +25,121 @@ namespace BigProject.Gameplay.TownHall
         [SerializeField]
         private List<int> _correctKeysIds;
         [SerializeField]
-        private CinemachineCamera _chestCamera;
-        [SerializeField]
-        private GameObject _exitButton;
-        [SerializeField]
-        private float _autoExitTime = 0.5f;
-        [SerializeField]
-        private Collider _collider;
-        [SerializeField]
         private Transform _chestCup;
-        [SerializeField]
-        private Image _note; 
 
-        [Header("Player settings")]
-        //[SerializeField]
-        //private QuestActionHandlersContainer _actions;
-        [SerializeField]
-        private SkinnedMeshRenderer _playerRenderer;
-        [SerializeField]
-        private Collider _playerCollider;
-        [SerializeField]
-        private int _noteItemId;
-
-        private GameplayManager _gameplayManager;
         private InventorySystem _inventory;
         private InventoryUI _inventoryUI;
-        private bool _isActive = false;
         private List<int> _keysIds;
         private List<GameObject> _keys = new();
         private List<string> _keysNames = new();
+        private DataToSave _dataToSave = new();
+        private ProgressManager _progressManager;
+        private bool _hasChanges;
 
-        public void Init(GameplayManager gameplayManager, PlayerInputHandler inputHandler, InventorySystem inventory, InventoryUI inventoryUI)
+        [Serializable]
+        private class DataToSave
         {
-            _gameplayManager = gameplayManager;
+            [Serializable]
+            public class HolderKeyPair
+            {
+                public string keyName;
+                public int holderId;
+                public int keyId;
+            }
+
+            public List<HolderKeyPair> keysData = new();
+        }
+
+        public string Key => "Townhall_data";
+
+        public object SavingData => _dataToSave;
+
+        public void Init(InventorySystem inventory, InventoryUI inventoryUI, ProgressManager progressManager)
+        {
             _inventory = inventory;
             _inventoryUI = inventoryUI;
+            _progressManager = progressManager;
+            ExceptionUtilities.ThrowIfNull(_inventory, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Gameplay Manager"));
+            ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
+            ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Progress Manager"));
+            _hasChanges = false;
         }
 
         private void Awake()
         {
-            Assert.IsNotNull(_chestCamera, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Cinemachine Camera"));
-            Assert.IsNotNull(_exitButton, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Exit Button"));
-            Assert.IsNotNull(_collider, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Collider"));
-            //Assert.IsTrue(_keysHolders.Count == _keysPrefabs.Count && _keysPrefabs.Count == _correctKeysIds.Count, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name,
-            //    "Keys holder and prefabs and ids containers must have same size"));
+            Assert.IsNotNull(_activator, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Activator"));
+            Assert.IsNotNull(_chestCup, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Chest cup"));
             _keysIds = Enumerable.Repeat(-1, _keysHolders.Count).ToList();
+        }
+
+        private void Start()
+        {
+            _progressManager.LoadAdditionalData(this);
+        }
+
+        private void OnDestroy()
+        {
+            if (_hasChanges)
+            {
+                _progressManager.SaveAdditionalData(this);
+            }
+        }
+
+        public void OnLoad()
+        {
+            foreach (DataToSave.HolderKeyPair holderKeyPair in _dataToSave.keysData)
+            {
+                SetKeyToHolder(holderKeyPair.keyName, holderKeyPair.holderId, holderKeyPair.keyId);
+            }
         }
 
         public void Interact()
         {
-            ActivateMiniGame();
-        }
-
-        public void ActivateMiniGame()
-        {
-            if (!_isActive)
-            {
-                StartCoroutine(ActivateRoutine());
-            }
-        }
-
-        public void DeactivateMiniGame()
-        {
-            if (_isActive)
-            {
-                StartCoroutine(DeactivateRoutine());
-            }
-        }
-
-        private IEnumerator ActivateRoutine()
-        {
-            _chestCamera.enabled = true;
-            _gameplayManager.ChangeState(GameplayState.MiniGame);
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime * 0.85f);
-            _playerRenderer.enabled = false;
-            _playerCollider.enabled = false;
-            yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime);
-            _collider.enabled = false;
-            _isActive = true;
-            _exitButton.SetActive(true);
-
-            // test only
-            _inventoryUI.SetNoteVisibility(false);
-
-            if (_inventory.HasItemByName("townhall_note"))
-            {
-                Item note = _inventory.GetItemByName("townhall_note");
-                _note.sprite = note._noteSprite;
-                _note.enabled = true;
-            }
-        }
-
-        private IEnumerator DeactivateRoutine()
-        {
-            _exitButton.SetActive(false);
-            _inventoryUI.SetNoteVisibility(false);
-            _isActive = false;
-            yield return new WaitForSeconds(_autoExitTime);
-            _chestCamera.enabled = false;
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime * 0.15f);
-            _playerRenderer.enabled = true;
-            _playerCollider.enabled = true;
-            yield return new WaitForSeconds(GameplayUtilities.CurrentCameraTransitionTime);
-            _collider.enabled = true;
-            _gameplayManager.ChangeState(GameplayState.Play);
-
-            // test only
-            _note.enabled = false;
+            _activator.ActivateMiniGame();
         }
 
         public void InstallKey(string itemName, int keyHolderId, int keyPrefabId)
+        {
+            if (!SetKeyToHolder(itemName, keyHolderId, keyPrefabId))
+            {
+                Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, "chest puzzle unable to set key to holder"));
+                return;
+            }
+
+            if (_inventory.HasItemByName(itemName))
+            {
+                _inventory.RemoveItemByName(itemName);
+            }
+
+            _dataToSave.keysData.Add(new DataToSave.HolderKeyPair() 
+            {
+                keyName = itemName,
+                holderId = keyHolderId, 
+                keyId = keyPrefabId 
+            });
+
+            _hasChanges = true;
+
+            if (IsAllKeysInside())
+            {
+                ApplyKeys();
+            }
+        }
+
+        private bool SetKeyToHolder(string itemName, int keyHolderId, int keyPrefabId)
         {
             Transform keyHolder = _keysHolders.ElementAtOrDefault(keyHolderId);
 
             if (keyHolder == null)
             {
                 Debug.LogError(string.Format(LogStr.ERROR_QUEST, $"chest puzzle unable to use key holder {keyHolderId}"));
-                return;
+                return false;
             }
 
             if (_keysIds[keyHolderId] >= 0)
             {
                 GameLogManager.Info(string.Format(LogStr.INFO_QUEST, $"chest puzzle try to fill busy key holder {keyHolderId}"));
-                return;
+                return false;
             }
 
             GameObject keyPrefab = _keysPrefabs.ElementAtOrDefault(keyPrefabId);
@@ -165,7 +147,7 @@ namespace BigProject.Gameplay.TownHall
             if (keyPrefab == null)
             {
                 Debug.LogError(string.Format(LogStr.ERROR_QUEST, $"chest puzzle unable to instantiate key prefab {keyPrefabId}"));
-                return;
+                return false;
             }
 
             GameObject key = Instantiate(keyPrefab, keyHolder);
@@ -173,15 +155,9 @@ namespace BigProject.Gameplay.TownHall
             key.transform.eulerAngles = new(0f, 90f, -90f);
             key.transform.localScale = new(2f, 2f, 2f);
             _keys.Add(key);
-            _inventory.RemoveItemByName(itemName);
-            _inventoryUI.SetNoteVisibility(true);
             _keysIds[keyHolderId] = keyPrefabId;
             _keysNames.Add(itemName);
-
-            if (IsAllKeysInside())
-            {
-                ApplyKeys();
-            }
+            return true;
         }
 
         private void ApplyKeys()
@@ -199,7 +175,7 @@ namespace BigProject.Gameplay.TownHall
                     key.transform.DOLocalRotate(targetAngles, 2f);
                 }
 
-                DeactivateMiniGame();
+                _activator.DeactivateMiniGame();
             }
             else
             {
@@ -222,6 +198,10 @@ namespace BigProject.Gameplay.TownHall
 
                 _keysNames.Clear();
             }
+
+            _dataToSave.keysData.Clear();
+            _progressManager.DeleteAdditionalData(Key);
+            _hasChanges = false;
         }
 
         private bool IsCorrectKeys()

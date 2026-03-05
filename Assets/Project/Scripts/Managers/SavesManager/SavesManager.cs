@@ -1,5 +1,8 @@
+using BigProject.Systems;
+using BigProject.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace BigProject.Managers
@@ -15,7 +18,9 @@ namespace BigProject.Managers
         /// <returns>True when success.</returns>
         public bool SaveGame(string saveName, IEnumerable<ISavable> data)
         {
+            ExceptionUtilities.ThrowIfNull(data, String.Format(LogStr.CRITICAL_NULL_REFERENCE, "Saves manager", "Savables collection"));
             List<string> jsonRecs = new();
+            List<ISavable> successSaved = new();
 
             foreach (ISavable savable in data)
             {
@@ -23,26 +28,31 @@ namespace BigProject.Managers
 
                 if (String.IsNullOrEmpty(jsonData))
                 {
-                    Debug.LogWarning($"Data with key {savable.Key} in save {saveName} is empty. It will be ignored.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager",
+                        $"data with key {savable.Key} in save {saveName} is empty. It will be ignored"));
                     continue;
                 }
 
                 // Collect a string with the object's id and data and add it to the list.
                 jsonData = $"[{savable.Key}]{jsonData}";
                 jsonRecs.Add(jsonData);
+                successSaved.Add(savable);
             }
 
             if (jsonRecs.Count == 0)
             {
-                Debug.LogWarning("Try to save empty data.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager", "try to save empty data"));
                 return false;
             }
 
             // Collect all records to one and save with one key.
-            string summaryData = String.Join('\n', jsonRecs);
-            PlayerPrefs.SetString(saveName, summaryData);
-            PlayerPrefs.Save();
-            Debug.Log("Game progress saved.");
+            SaveStringsList(saveName, jsonRecs);
+
+            foreach (ISavable savable in data)
+            {
+                savable.OnSaved(successSaved.Contains(savable));
+            }
+
             return true;
         }
 
@@ -52,11 +62,12 @@ namespace BigProject.Managers
         /// <returns>True when success.</returns>
         public bool LoadGame(string saveName, IEnumerable<ISavable> data)
         {
+            ExceptionUtilities.ThrowIfNull(data, String.Format(LogStr.CRITICAL_NULL_REFERENCE, "Saves manager", "Savables collection"));
             string summaryData = PlayerPrefs.GetString(saveName);
 
             if (String.IsNullOrEmpty(summaryData))
             {
-                Debug.LogWarning($"Try to load non-existent save {saveName}.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager", $"try to load non-existent save {saveName}"));
                 return false;
             }
 
@@ -66,7 +77,8 @@ namespace BigProject.Managers
                 {
                     if (!jsonRecs.ContainsKey(savable.Key))
                     {
-                        Debug.LogWarning($"Try to load non-existent data with key {savable.Key} in save {saveName}. It will be ignored.");
+                        Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager",
+                            $"try to load non-existent data with key {savable.Key} in save {saveName}. It will be ignored"));
                         continue;
                     }
 
@@ -75,12 +87,12 @@ namespace BigProject.Managers
                     savable.OnLoad();
                 }
 
-                Debug.Log("Game progress loaded.");
+                Debug.Log(String.Format(LogStr.INFO_SYSTEM, "SavesManager", "Game progress loaded"));
                 return true;
             }
-            
 
-            Debug.LogError($"Unable to load save {saveName}.");
+
+            Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "SavesManager", $"Unable to load save {saveName}"));
             return false;
         }
 
@@ -90,12 +102,112 @@ namespace BigProject.Managers
 
             if (String.IsNullOrEmpty(summaryData))
             {
-                Debug.LogWarning($"Checking save data for non-existent save {saveName}.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager", $"checking save data for non-existent save {saveName}"));
                 return false;
             }
 
-            Debug.Log($"Found saves for {saveName}.");
+            Debug.Log(String.Format(LogStr.INFO_SYSTEM, "SavesManager", $"found saves for {saveName}"));
             return true;
+        }
+
+        /// <summary>
+        /// Add savable record to existent save or create new one.
+        /// </summary>
+        /// <returns>True when success.</returns>
+        public bool AddToSave(string saveName, ISavable savable)
+        {
+            ExceptionUtilities.ThrowIfNull(saveName, String.Format(LogStr.CRITICAL_NULL_REFERENCE, "Saves manager", "Savable record"));
+            string summaryData = PlayerPrefs.GetString(saveName);
+
+            if (String.IsNullOrEmpty(summaryData))
+            {
+                return SaveGame(saveName, new[] { savable });
+            }
+
+            Dictionary<string, string> jsonRecs;
+
+            if (GetJsonRecords(out jsonRecs, summaryData, saveName) && jsonRecs.ContainsKey(savable.Key))
+            {
+                string record = JsonUtility.ToJson(savable.SavingData);
+
+                if (jsonRecs.ContainsKey(savable.Key))
+                {
+                    jsonRecs[savable.Key] = record;
+                }
+                else
+                {
+                    jsonRecs.Add(savable.Key, record);
+                }
+            }
+            else
+            {
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager", "unable to add record, save is broken"));
+                savable.OnSaved(false);
+                return false;
+            }
+
+            SaveStringsList(saveName, jsonRecs.Select(x => $"[{x.Key}]{x.Value}").ToList());
+            savable.OnSaved(true);
+            return true;
+        }
+
+        /// <summary>
+        /// Load savable record data from existent save.
+        /// </summary>
+        /// <param name="removeAfterLoad">When true record will be removed after loading.</param>
+        /// <param name="silent">When true errors and warning won't be trigger (usefull when not sure about data availability).</param>
+        /// <returns>True when success.</returns>
+        public bool LoadFromSave(string saveName, ISavable savable, bool removeAfterLoad, bool silent)
+        {
+            ExceptionUtilities.ThrowIfNull(saveName, String.Format(LogStr.CRITICAL_NULL_REFERENCE, "Saves manager", "Savable record"));
+            string summaryData = PlayerPrefs.GetString(saveName);
+
+            if (String.IsNullOrEmpty(summaryData))
+            {
+                Log(Debug.LogWarning, $"Try to load record from non-existent save {saveName}.", silent);
+                return false;
+            }
+
+            if (GetJsonRecords(out Dictionary<string, string> jsonRecs, summaryData, saveName) &&
+                jsonRecs.TryGetValue(savable.Key, out string data))
+            {
+                JsonUtility.FromJsonOverwrite(data, savable.SavingData);
+                savable.OnLoad();
+
+                if (removeAfterLoad)
+                {
+                    jsonRecs.Remove(savable.Key);
+                    SaveStringsList(saveName, jsonRecs.Select(x => $"[{x.Key}]{x.Value}").ToList());
+                }
+
+                Debug.Log(String.Format(LogStr.INFO_SYSTEM, "SavesManager", $"{savable.Key} loaded from {saveName}"));
+                savable.OnLoad();
+                return true;
+            }
+
+            Log(Debug.LogError, $"Unable to load record {savable.Key} from save {saveName}.", silent);
+            return false;
+        }
+
+        public void DeleteSave(string saveName)
+        {
+            PlayerPrefs.DeleteKey(saveName);
+            Debug.Log(String.Format(LogStr.INFO_SYSTEM, "SavesManager", $"save {saveName} deleted"));
+        }
+
+        /// <summary>
+        /// Delete one record from save if exist.
+        /// </summary>
+        public void DeleteFromSave(string saveName, string key)
+        {
+            string summaryData = PlayerPrefs.GetString(saveName);
+
+            if (!String.IsNullOrEmpty(summaryData) &&
+                GetJsonRecords(out Dictionary<string, string> jsonRecs, summaryData, saveName) && jsonRecs.ContainsKey(key))
+            {
+                jsonRecs.Remove(key);
+                SaveStringsList(saveName, jsonRecs.Select(x => $"[{x.Key}]{x.Value}").ToList());
+            }
         }
 
         /// <summary>
@@ -117,7 +229,8 @@ namespace BigProject.Managers
 
                 if (keyStart == -1 || keyEnd == -1 || keyEnd < keyStart)
                 {
-                    Debug.LogWarning($"Incorrect record format in save {saveName}: {jsonRec}.\nIt will be ignored.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager",
+                        $"incorrect record format in save {saveName}: {jsonRec}.\nIt will be ignored"));
                     continue;
                 }
 
@@ -126,7 +239,7 @@ namespace BigProject.Managers
                 // Check for duplicate.
                 if (jsonRecs.ContainsKey(key))
                 {
-                    Debug.LogWarning($"Duplicate key {key} in save {saveName}. It will be ignored.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager", $"duplicate key {key} in save {saveName}. It will be ignored"));
                     continue;
                 }
 
@@ -135,7 +248,7 @@ namespace BigProject.Managers
 
                 if (String.IsNullOrEmpty(jsonData))
                 {
-                    Debug.LogWarning($"Empty entry with key {key} in save {saveName}. It will be ignored.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "SavesManager", $"empty entry with key {key} in save {saveName}. It will be ignored"));
                     continue;
                 }
 
@@ -145,10 +258,20 @@ namespace BigProject.Managers
             return jsonRecs.Count > 0;
         }
 
-        public void DeleteSave(string saveName)
+        private void SaveStringsList(string saveName, List<string> data)
         {
-           PlayerPrefs.DeleteKey(saveName);
-           Debug.Log($"Save {saveName} deleted.");
+            string summaryData = String.Join('\n', data);
+            PlayerPrefs.SetString(saveName, summaryData);
+            PlayerPrefs.Save();
+            Log(Debug.Log, "Game progress saved.");
+        }
+
+        private void Log(Action<object> logger, string msg, bool silent = false)
+        {
+            if (!silent)
+            {
+                logger(string.Format(LogStr.INFO_SYSTEM, "SavesManager", msg));
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using BigProject.Managers;
 using BigProject.Systems;
+using BigProject.Systems.Inventory;
 using BigProject.Utilities;
 using System;
 using System.Linq;
@@ -11,14 +12,11 @@ namespace BigProject.Gameplay.TownHall
     public class QuestActions : MonoBehaviour
     {
         [SerializeField]
-        private int _pillarNoteId;
-        [SerializeField]
-        private PillarNote[] _pillarsNotes;
+        private string _noteItemName;
 
         private InventorySystem _inventory;
         private ItemsDatabaseSO _itemsDB;
-        private Texture2D _pillarNoteTexInitial;
-        private Texture2D _pillarNoteTex;
+        private int pillarId = 6;
 
         [Serializable]
         private struct PillarNote
@@ -35,60 +33,19 @@ namespace BigProject.Gameplay.TownHall
             ExceptionUtilities.ThrowIfNull(_itemsDB, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Items Database"));
         }
 
-        private void Start()
-        {
-            Item pillarNote = _itemsDB._items.ElementAtOrDefault(_pillarNoteId);
-            ExceptionUtilities.ThrowIfNull(pillarNote, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Piallar Note"));
-            _pillarNoteTex = pillarNote._noteSprite.texture;
-            ExceptionUtilities.ThrowIfNull(_pillarNoteTex, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Piallar Note Texture"));
-            Assert.IsNotNull(_pillarsNotes, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject, "Pillars Notes"));
-            _pillarNoteTexInitial = Instantiate(_pillarNoteTex);
-        }
-
         // Draw clue to note texture.
-        public void AddPillarNote(int pillarId)
+        public void AddRecordToNote(string recordName)
         {
-            if (pillarId >= _pillarsNotes.Length)
+            if (!_inventory.HasItemByName(_noteItemName))
             {
-                Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"pillar id {pillarId} out of notes range"));
-                return;
-            }
+                _inventory.AddItemByName(_noteItemName);
+            }    
 
-            if (!_inventory.HasItemByID(_pillarNoteId))
-            {
-                _inventory.AddItemByItemID(_pillarNoteId);
-            }
-
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, $"get pillar {pillarId} note"));
-            PillarNote pillarNote = _pillarsNotes.ElementAtOrDefault(pillarId);
-
-            if (pillarNote.image == null)
-            {
-                return;
-            }
-
-            Vector2Int texPos = new((int)(_pillarNoteTex.width * pillarNote.uv.x), (int)(_pillarNoteTex.height * pillarNote.uv.y));
-
-            try
-            {
-                _pillarNoteTex.SetPixels(texPos.x, texPos.y, pillarNote.image.width, pillarNote.image.height, pillarNote.image.GetPixels());
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(String.Format(LogStr.ERROR_QUEST, $"unable to write pillar note to texture. {e.Message}"));
-            }
-
-            _pillarNoteTex.Apply();
+            _inventory.AddItemModifier(recordName);
 
             // For test only
-            _inventory.AddItemByItemID(pillarId + 6);
-        }
-
-        private void OnDestroy()
-        {
-            // Return texture to initial state.
-            _pillarNoteTex.SetPixels(_pillarNoteTexInitial.GetPixels());
-            _pillarNoteTex.Apply();
+            //_inventory.AddItemByItemID(pillarId);
+            //pillarId++;
         }
     }
 }

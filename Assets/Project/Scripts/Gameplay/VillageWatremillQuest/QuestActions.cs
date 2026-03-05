@@ -3,6 +3,7 @@ using BigProject.Managers;
 using BigProject.Settings;
 using BigProject.Systems;
 using BigProject.Systems.HUD;
+using BigProject.Systems.Inventory;
 using BigProject.Utilities;
 using System;
 using UnityEngine;

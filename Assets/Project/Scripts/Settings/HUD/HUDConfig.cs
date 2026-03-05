@@ -14,5 +14,7 @@ namespace BigProject.Settings
         public int HUDJournalWidgetId { get; private set; }
         [field: SerializeField]
         public int HUDRunesWidgetId { get; private set; }
+        [field: SerializeField]
+        public int HUDCancelWidgetId { get; private set; }
     }
 }
