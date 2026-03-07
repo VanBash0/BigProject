@@ -3,10 +3,12 @@ using BigProject.Intercatable;
 using BigProject.Managers;
 using BigProject.Systems;
 using BigProject.Systems.Inventory;
+using BigProject.Systems.QuestSystem;
 using BigProject.UI;
 using BigProject.Utilities;
 using DG.Tweening;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,6 +28,18 @@ namespace BigProject.Gameplay.TownHall
         private List<int> _correctKeysIds;
         [SerializeField]
         private Transform _chestCup;
+        [SerializeField]
+        private string _brokenKeyItemName;
+        [SerializeField]
+        private float _brokenKeyMovingTime;
+        [SerializeField]
+        private QuestActionHandlersContainer _actionHandlers;
+        [SerializeField]
+        private string _actionTryBrokenKeyName;
+        [SerializeField]
+        private string _actionOpenName;
+        [SerializeField]
+        private string _noteItemName;
 
         private InventorySystem _inventory;
         private InventoryUI _inventoryUI;
@@ -34,7 +48,9 @@ namespace BigProject.Gameplay.TownHall
         private List<string> _keysNames = new();
         private DataToSave _dataToSave = new();
         private ProgressManager _progressManager;
-        private bool _hasChanges;
+
+        private readonly Vector3 BROKEN_KEY_MOVING_OFFSET = new(0f, -1f, -0.5f);
+        private readonly Vector3 BROKEN_KEY_ROTATION_OFFSET = new(-40f, 0f, 0f);
 
         [Serializable]
         private class DataToSave
@@ -61,28 +77,20 @@ namespace BigProject.Gameplay.TownHall
             _progressManager = progressManager;
             ExceptionUtilities.ThrowIfNull(_inventory, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Gameplay Manager"));
             ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
-            ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Progress Manager"));
-            _hasChanges = false;
+            ExceptionUtilities.ThrowIfNull(_progressManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Progress Manager"));
         }
 
         private void Awake()
         {
             Assert.IsNotNull(_activator, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Activator"));
             Assert.IsNotNull(_chestCup, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Chest cup"));
+            Assert.IsNotNull(_actionHandlers, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Quest action handler"));
             _keysIds = Enumerable.Repeat(-1, _keysHolders.Count).ToList();
         }
 
         private void Start()
         {
             _progressManager.LoadAdditionalData(this);
-        }
-
-        private void OnDestroy()
-        {
-            if (_hasChanges)
-            {
-                _progressManager.SaveAdditionalData(this);
-            }
         }
 
         public void OnLoad()
@@ -111,6 +119,12 @@ namespace BigProject.Gameplay.TownHall
                 _inventory.RemoveItemByName(itemName);
             }
 
+            if (itemName.Equals(_brokenKeyItemName))
+            {
+                RemoveBrokenKey();
+                return;
+            }
+
             _dataToSave.keysData.Add(new DataToSave.HolderKeyPair() 
             {
                 keyName = itemName,
@@ -118,12 +132,37 @@ namespace BigProject.Gameplay.TownHall
                 keyId = keyPrefabId 
             });
 
-            _hasChanges = true;
-
             if (IsAllKeysInside())
             {
                 ApplyKeys();
             }
+        }
+
+        private void RemoveBrokenKey()
+        {
+            _keysNames.Clear();
+            GameObject key = _keys.ElementAtOrDefault(0);
+            _keys.Clear();
+            ResetKeysIds();
+            
+            if (key != null)
+            {
+                StartCoroutine(RemoveBrokenKeyRoutine(key.transform));
+            }
+        }
+
+        private IEnumerator RemoveBrokenKeyRoutine(Transform key)
+        {
+            Vector3 newPosition = key.localPosition;
+            newPosition += BROKEN_KEY_MOVING_OFFSET;
+            Vector3 newAngles = key.localEulerAngles;
+            newAngles += BROKEN_KEY_ROTATION_OFFSET;
+            key.DOLocalRotate(newAngles, _brokenKeyMovingTime);
+            key.DOLocalMove(newPosition, _brokenKeyMovingTime);
+            _actionHandlers[_actionTryBrokenKeyName].MakeTransition(0);
+            yield return new WaitForSeconds(_brokenKeyMovingTime + 0.1f);
+            Destroy(key.gameObject);
+            _activator.DeactivateMiniGame();
         }
 
         private bool SetKeyToHolder(string itemName, int keyHolderId, int keyPrefabId)
@@ -175,33 +214,42 @@ namespace BigProject.Gameplay.TownHall
                     key.transform.DOLocalRotate(targetAngles, 2f);
                 }
 
+                _inventory.RemoveItemByName(_noteItemName);
+                _actionHandlers[_actionOpenName].MakeTransition(0);
                 _activator.DeactivateMiniGame();
             }
             else
             {
-                for (int i = 0; i < _keysIds.Count; i++)
-                {
-                    _keysIds[i] = -1;
-                }
+                ResetKeys();
+            }
+        }
 
-                foreach (GameObject key in _keys)
-                {
-                    Destroy(key);
-                }
+        private void ResetKeysIds()
+        {
+            for (int i = 0; i < _keysIds.Count; i++)
+            {
+                _keysIds[i] = -1;
+            }
+        }
 
-                _keys.Clear();
+        private void ResetKeys()
+        {
+            ResetKeysIds();
 
-                foreach (string itemName in _keysNames)
-                {
-                    _inventory.AddItemByName(itemName);
-                }
-
-                _keysNames.Clear();
+            foreach (GameObject key in _keys)
+            {
+                Destroy(key);
             }
 
+            _keys.Clear();
+
+            foreach (string itemName in _keysNames)
+            {
+                _inventory.AddItemByName(itemName);
+            }
+
+            _keysNames.Clear();
             _dataToSave.keysData.Clear();
-            _progressManager.DeleteAdditionalData(Key);
-            _hasChanges = false;
         }
 
         private bool IsCorrectKeys()
@@ -218,5 +266,34 @@ namespace BigProject.Gameplay.TownHall
         }
 
         private bool IsAllKeysInside() => !_keysIds.Contains(-1);
+
+        private void OnActivated(bool isActivated)
+        {
+            if (!isActivated && _actionHandlers[_actionOpenName].CurrentState != QuestActionState.Completed)
+            {
+                ResetKeys();
+            }
+        }
+
+        private void OnEnable()
+        {
+            _activator.Activated += OnActivated;
+            _actionHandlers[_actionOpenName].StateChanged += OnStateChanged;
+        }
+
+        private void OnDisable()
+        {
+            _activator.Activated -= OnActivated;
+            _actionHandlers[_actionOpenName].StateChanged -= OnStateChanged;
+        }
+
+        private void OnStateChanged()
+        {
+            if (_actionHandlers[_actionOpenName].CurrentState == QuestActionState.Completed)
+            {
+                ReplicaManager.ShowReplica("Óðà!!!");
+                _progressManager.SaveAdditionalData(this);
+            }
+        }
     }
 }

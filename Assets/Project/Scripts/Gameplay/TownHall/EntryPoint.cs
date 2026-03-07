@@ -14,23 +14,31 @@ namespace BigProject.Gameplay.TownHall
         [SerializeField]
         private QuestActions _questActions;
         [SerializeField]
-        private ItemsDatabaseSO _itemsDB;
-        [SerializeField]
         private ChestPuzzle _chestPuzzle;
         [SerializeField]
         private MiniGameActivator _miniGameActivator;
+        [SerializeField]
+        private GameObject _townhallQuestObject;
+        [SerializeField]
+        private int _townhallQuestId;
 
         private void Awake()
         {
             Assert.IsNotNull(_questActions, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Quest Actions"));
-            Assert.IsNotNull(_itemsDB, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Items Database"));
             Assert.IsNotNull(_chestPuzzle, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Chest Puzzle"));
             Assert.IsNotNull(_miniGameActivator, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Mini Game Activator"));
+            Assert.IsNotNull(_townhallQuestObject, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Quest objects"));
         }
 
         public void Init()
         {
-            _questActions.Init(ServiceLocator.GetService<InventorySystem>(), _itemsDB);
+            if (ServiceLocator.GetService<ProgressManager>().GetQuestState(_townhallQuestId) == Systems.QuestSystem.QuestState.Active)
+            {
+                _townhallQuestObject.SetActive(true);
+            }
+
+            _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(),
+                ServiceLocator.GetService<GameplayManager>(), ServiceLocator.GetService<RunesSystem>());
             _chestPuzzle.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(),
                 ServiceLocator.GetService<ProgressManager>());
             _miniGameActivator.Init(ServiceLocator.GetService<GameplayManager>(), ServiceLocator.GetService<PlayerInputHandler>(),

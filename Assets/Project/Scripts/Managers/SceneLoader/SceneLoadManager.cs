@@ -16,7 +16,8 @@ namespace BigProject.Managers
         WatermillScene,
         VillageMainScene,
         MainMenu,
-        TownHall
+        TownHall,
+        VillageTwoQuests
     }
 
     public class SceneLoadManager : IDisposable

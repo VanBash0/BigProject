@@ -79,7 +79,7 @@ namespace BigProject.Player
 
         private void OnCancel(InputAction.CallbackContext _)
         {
-            Cancel.Invoke();
+            Cancel?.Invoke();
         }
 
         public void SwitchToPlayerActionMap()

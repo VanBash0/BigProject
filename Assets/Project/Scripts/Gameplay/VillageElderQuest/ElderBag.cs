@@ -1,5 +1,6 @@
 using BigProject.Intercatable;
 using BigProject.Systems.Inventory;
+using BigProject.Systems.QuestSystem;
 using UnityEngine;
 
 namespace BigProject.Gameplay.VillageElderQuest
@@ -7,19 +8,23 @@ namespace BigProject.Gameplay.VillageElderQuest
     public class ElderBag : MonoBehaviour, IInteractable
     {
         [SerializeField]
-        private int _inventoryItemId;
+        private QuestActionHandlerMono _actionHandler;
 
-        private InventorySystem _inventory;
-
-        public void Init(InventorySystem inventory)
+        private void Start()
         {
-            _inventory = inventory;
+            if (_actionHandler.CurrentState == QuestActionState.Completed)
+            {
+                Destroy(gameObject);
+            }
         }
-        
+
         public void Interact()
         {
-            _inventory.AddItemByItemID(_inventoryItemId);
-            Destroy(gameObject);
+            if (_actionHandler.CurrentState == QuestActionState.Active)
+            {
+                _actionHandler.MakeTransition(0);
+                Destroy(gameObject);
+            }
         }
     }
 }

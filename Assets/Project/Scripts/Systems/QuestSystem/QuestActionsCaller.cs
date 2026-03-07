@@ -53,17 +53,20 @@ namespace BigProject.Systems.QuestSystem
                     continue;
                 }
 
+                int key = GetKey(callCondition.id, callCondition.stateWhenCall);
+
                 try
                 {
-                    _callsConditionsDict.Add(callCondition.id, callCondition);
+                    _callsConditionsDict.Add(key, callCondition);
                 }
                 catch (ArgumentException e)
                 {
                     string dictMsg = $"{gameObject.name} unable to add action {callCondition.id} to dictionary of calls {callCondition.id}. {e.Message}";
                     Debug.LogWarning(dictMsg);
+                    continue;
                 }
 
-                callCondition.handler = () => OnStateChanged(callCondition.id);
+                callCondition.handler = () => OnStateChanged(key);
 
                 if (callCondition.checkOnAwake)
                 {
@@ -73,9 +76,9 @@ namespace BigProject.Systems.QuestSystem
 
             _callsConditions.Clear();
         }
-        private void OnStateChanged(int id)
+        private void OnStateChanged(int key)
         {
-            CallCondition callCondition = _callsConditionsDict[id];
+            CallCondition callCondition = _callsConditionsDict[key];
 
             if (callCondition.actionHandler.CurrentState == callCondition.stateWhenCall)
             {
@@ -97,6 +100,12 @@ namespace BigProject.Systems.QuestSystem
             {
                 callCondition.actionHandler.StateChanged -= callCondition.handler;
             }
+        }
+
+        private int GetKey(int id, QuestActionState state)
+        {
+            int stateVal = (int)state;
+            return (id + stateVal) * (id + stateVal + 1) / 2 + stateVal;
         }
     }
 }
