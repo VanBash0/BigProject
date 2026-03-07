@@ -6,7 +6,8 @@ namespace BigProject.Systems.DialogueSystem
     public class DialogueNPCPhrase : ScriptableObject
     {
         // Идентификатор фразы. Если указан, то будет вызываться событие OnDialogueStep
-        public int Id = 0; 
+        public int Id = 0;
+        public string Name = "";
         public string Text;
         public Sprite CharacterSprite;
     }
