@@ -13,7 +13,7 @@ namespace BigProject.UI
             {
                 _mainMenuPanelManager.GetMenuPanel().gameObject.SetActive(true);
                 _mainMenuPanelManager.GetStudioLogo().SetActive(true);
-                _mainMenuPanelManager.GetBlurScreen().SetActive(false);
+                _mainMenuPanelManager.ToggleBlur(false);
                 gameObject.SetActive(false);
             });
         }

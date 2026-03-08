@@ -57,7 +57,7 @@ namespace BigProject.UI
                 //Debug.Log("Clicked Settings Button");
                 _mainMenuPanelManager.GetSettingsPanel().gameObject.SetActive(true);
                 _mainMenuPanelManager.GetStudioLogo().SetActive(false);
-                _mainMenuPanelManager.GetBlurScreen().SetActive(true);
+                _mainMenuPanelManager.ToggleBlur(true);
                 gameObject.SetActive(false);
             });
 
