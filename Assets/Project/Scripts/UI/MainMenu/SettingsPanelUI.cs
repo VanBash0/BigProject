@@ -12,6 +12,8 @@ namespace BigProject.UI
             _backButton.onClick.AddListener(() =>
             {
                 _mainMenuPanelManager.GetMenuPanel().gameObject.SetActive(true);
+                _mainMenuPanelManager.GetStudioLogo().SetActive(true);
+                _mainMenuPanelManager.GetBlurScreen().SetActive(false);
                 gameObject.SetActive(false);
             });
         }
