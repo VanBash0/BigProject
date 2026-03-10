@@ -1,7 +1,9 @@
 using BigProject.Gameplay.Common;
 using BigProject.Managers;
 using BigProject.Player;
+using BigProject.Settings;
 using BigProject.Systems;
+using BigProject.Systems.HUD;
 using BigProject.Systems.Inventory;
 using BigProject.UI;
 using UnityEngine;
@@ -32,17 +34,21 @@ namespace BigProject.Gameplay.TownHall
 
         public void Init()
         {
-            if (ServiceLocator.GetService<ProgressManager>().GetQuestState(_townhallQuestId) == Systems.QuestSystem.QuestState.Active)
+            ProgressManager progressmanager = ServiceLocator.GetService<ProgressManager>();
+
+            if (progressmanager.GetQuestState(_townhallQuestId) == Systems.QuestSystem.QuestState.Active)
             {
                 _townhallQuestObject.SetActive(true);
             }
 
-            _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(),
-                ServiceLocator.GetService<GameplayManager>(), ServiceLocator.GetService<RunesSystem>());
-            _chestPuzzle.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(),
-                ServiceLocator.GetService<ProgressManager>());
-            _miniGameActivator.Init(ServiceLocator.GetService<GameplayManager>(), ServiceLocator.GetService<PlayerInputHandler>(),
-                ServiceLocator.GetService<InventoryUI>());
+            InventorySystem inventorySystem = ServiceLocator.GetService<InventorySystem>();
+            InventoryUI inventoryUI = ServiceLocator.GetService<InventoryUI>();
+            GameplayManager gameplayManager = ServiceLocator.GetService<GameplayManager>();
+            PlayerInputHandler inputHandler = ServiceLocator.GetService<PlayerInputHandler>();
+
+            _questActions.Init(inventorySystem, inventoryUI, gameplayManager, ServiceLocator.GetService<RunesSystem>());
+            _chestPuzzle.Init(inventorySystem, inventoryUI, progressmanager, ServiceLocator.GetService<HUD>(), inputHandler);
+            _miniGameActivator.Init(gameplayManager, inputHandler, inventoryUI);
         }
     }
 }

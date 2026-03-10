@@ -1,7 +1,10 @@
 using BigProject.Gameplay.Common;
 using BigProject.Intercatable;
 using BigProject.Managers;
+using BigProject.Player;
+using BigProject.Settings;
 using BigProject.Systems;
+using BigProject.Systems.HUD;
 using BigProject.Systems.Inventory;
 using BigProject.Systems.QuestSystem;
 using BigProject.UI;
@@ -40,6 +43,10 @@ namespace BigProject.Gameplay.TownHall
         private string _actionOpenName;
         [SerializeField]
         private string _noteItemName;
+        [SerializeField]
+        private float _timeBeforeClue;
+        [SerializeField]
+        private HUDConfig _hudConfig;
 
         private InventorySystem _inventory;
         private InventoryUI _inventoryUI;
@@ -48,6 +55,10 @@ namespace BigProject.Gameplay.TownHall
         private List<string> _keysNames = new();
         private DataToSave _dataToSave = new();
         private ProgressManager _progressManager;
+        private bool _returnToInventory = true;
+        private HUD _hud;
+        private PlayerInputHandler _inputHandler;
+        private Coroutine _clueCoroutine;
 
         private readonly Vector3 BROKEN_KEY_MOVING_OFFSET = new(0f, -1f, -0.5f);
         private readonly Vector3 BROKEN_KEY_ROTATION_OFFSET = new(-40f, 0f, 0f);
@@ -70,14 +81,18 @@ namespace BigProject.Gameplay.TownHall
 
         public object SavingData => _dataToSave;
 
-        public void Init(InventorySystem inventory, InventoryUI inventoryUI, ProgressManager progressManager)
+        public void Init(InventorySystem inventory, InventoryUI inventoryUI, ProgressManager progressManager, HUD hud, PlayerInputHandler inputHandler)
         {
             _inventory = inventory;
             _inventoryUI = inventoryUI;
             _progressManager = progressManager;
+            _hud = hud;
+            _inputHandler = inputHandler;
             ExceptionUtilities.ThrowIfNull(_inventory, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Gameplay Manager"));
             ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
             ExceptionUtilities.ThrowIfNull(_progressManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Progress Manager"));
+            ExceptionUtilities.ThrowIfNull(_hud, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "HUD"));
+            ExceptionUtilities.ThrowIfNull(_inputHandler, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
         }
 
         private void Awake()
@@ -85,6 +100,7 @@ namespace BigProject.Gameplay.TownHall
             Assert.IsNotNull(_activator, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Activator"));
             Assert.IsNotNull(_chestCup, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Chest cup"));
             Assert.IsNotNull(_actionHandlers, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Quest action handler"));
+            Assert.IsNotNull(_hudConfig, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "HUD Config"));
             _keysIds = Enumerable.Repeat(-1, _keysHolders.Count).ToList();
         }
 
@@ -104,6 +120,21 @@ namespace BigProject.Gameplay.TownHall
         public void Interact()
         {
             _activator.ActivateMiniGame();
+
+            if (_actionHandlers[_actionOpenName].CurrentState == QuestActionState.Active)
+            {
+                _hud.ShowWidget(_hudConfig.HUDResetWidgetId);
+
+                if (_keys.Count == 0)
+                {
+                    if (_clueCoroutine != null)
+                    {
+                        StopCoroutine(_clueCoroutine);
+                    }
+
+                    _clueCoroutine = StartCoroutine(ClueRoutine());
+                }
+            }
         }
 
         public void InstallKey(string itemName, int keyHolderId, int keyPrefabId)
@@ -131,6 +162,11 @@ namespace BigProject.Gameplay.TownHall
                 holderId = keyHolderId, 
                 keyId = keyPrefabId 
             });
+
+            if (_clueCoroutine != null)
+            {
+                StopCoroutine(_clueCoroutine);
+            }
 
             if (IsAllKeysInside())
             {
@@ -203,6 +239,7 @@ namespace BigProject.Gameplay.TownHall
         {
             if (IsCorrectKeys())
             {
+                _hud.HideWidget(_hudConfig.HUDResetWidgetId);
                 Vector3 targetAngles = _chestCup.transform.localEulerAngles;
                 targetAngles.x -= 90f;
                 _chestCup.DOLocalRotate(targetAngles, 2f);
@@ -216,6 +253,7 @@ namespace BigProject.Gameplay.TownHall
 
                 _inventory.RemoveItemByName(_noteItemName);
                 _actionHandlers[_actionOpenName].MakeTransition(0);
+                _returnToInventory = false;
                 _activator.DeactivateMiniGame();
             }
             else
@@ -243,9 +281,12 @@ namespace BigProject.Gameplay.TownHall
 
             _keys.Clear();
 
-            foreach (string itemName in _keysNames)
+            if (_returnToInventory)
             {
-                _inventory.AddItemByName(itemName);
+                foreach (string itemName in _keysNames)
+                {
+                    _inventory.AddItemByName(itemName);
+                }
             }
 
             _keysNames.Clear();
@@ -275,23 +316,35 @@ namespace BigProject.Gameplay.TownHall
             }
         }
 
+        private IEnumerator ClueRoutine()
+        {
+            yield return new WaitForSeconds(_timeBeforeClue);
+
+            if (_activator.IsActivated)
+            {
+                ReplicaManager.ShowReplica("Связь есть");
+            }
+        }
+
         private void OnEnable()
         {
             _activator.Activated += OnActivated;
             _actionHandlers[_actionOpenName].StateChanged += OnStateChanged;
+            _inputHandler.Reset += ResetKeys;
         }
 
         private void OnDisable()
         {
             _activator.Activated -= OnActivated;
             _actionHandlers[_actionOpenName].StateChanged -= OnStateChanged;
+            _inputHandler.Reset -= ResetKeys;
         }
 
         private void OnStateChanged()
         {
             if (_actionHandlers[_actionOpenName].CurrentState == QuestActionState.Completed)
             {
-                ReplicaManager.ShowReplica("Ура!!!");
+                //ReplicaManager.ShowReplica("Ура!!!");
                 _progressManager.SaveAdditionalData(this);
             }
         }

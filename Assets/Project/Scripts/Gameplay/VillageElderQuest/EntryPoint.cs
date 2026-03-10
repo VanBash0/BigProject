@@ -3,6 +3,7 @@ using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Systems;
 using BigProject.Systems.Inventory;
+using BigProject.UI;
 using Managers.Gameplay;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -35,7 +36,7 @@ namespace BigProject.Gameplay.VillageElderQuest
 
         public void Init()
         {
-            _questActions.Init(ServiceLocator.GetService<InventorySystem>());
+            _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(), ServiceLocator.GetService<GameplayManager>());
             _questTownhallObjects.SetActive(true);
             _miller.SetActive(false);
             _ambassadorDialogueManager.Init(_player, ServiceLocator.GetService<DialogueManager>());

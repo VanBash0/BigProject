@@ -137,6 +137,7 @@ namespace BigProject.Initializers
             _runeUI = _hudObj.GetComponentInChildren<RunePanelUI>();
             _inventoryUI = _hudObj.GetComponentInChildren<InventoryUI>();
             CancelUI cancelUI = _hudObj.GetComponentInChildren<CancelUI>();
+            ResetUI resetUI = _hudObj.GetComponentInChildren<ResetUI>();
             ServiceLocator.AddService(_inventoryUI);
 
             DontDestroyOnLoad(_hudObj);
@@ -149,10 +150,12 @@ namespace BigProject.Initializers
             _hud.AddWidget(_hudConfig.HUDJournalWidgetId, _journalView);
             _hud.AddWidget(_hudConfig.HUDRunesWidgetId, _runeUI);
             _hud.AddWidget(_hudConfig.HUDCancelWidgetId, cancelUI);
+            _hud.AddWidget(_hudConfig.HUDResetWidgetId, resetUI);
             _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
             _hud.HideWidget(_hudConfig.HUDJournalWidgetId);
             _hud.HideWidget(_hudConfig.HUDCancelWidgetId);
             _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
+            _hud.HideWidget(_hudConfig.HUDResetWidgetId);
             _hud.ShowWidget(_hudConfig.HUDInventoryWidgetId, 2f);
             _hud.ShowWidget(_hudConfig.HUDJournalWidgetId, 2f);
             GameLogManager.Info(LogStr.INFO_INITIALIZING_HUD_COMPLETED);

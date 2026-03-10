@@ -5,7 +5,6 @@ using BigProject.UI;
 using BigProject.Utilities;
 using System;
 using System.Collections;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
 namespace BigProject.Gameplay.TownHall
@@ -34,7 +33,7 @@ namespace BigProject.Gameplay.TownHall
         private Coroutine _firstInteractionClue;
         private Coroutine _interactPillarsClue;
         private GameplayManager _gameplayManager;
-        RunesSystem _runesSystem;
+        private RunesSystem _runesSystem;
 
         public void Init(InventorySystem inventory, InventoryUI inventoryUI, GameplayManager gameplayManager, RunesSystem runesSystem)
         {
@@ -46,13 +45,6 @@ namespace BigProject.Gameplay.TownHall
             ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Inventory UI"));
             ExceptionUtilities.ThrowIfNull(_gameplayManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Gameplay Manager"));
             ExceptionUtilities.ThrowIfNull(_runesSystem, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Runes System"));
-
-            // test
-            _inventory.AddItemByName(_noteItemName);
-            _inventory.AddItemByName("key_1");
-            _inventory.AddItemByName("key_2");
-            _inventory.AddItemByName("key_3");
-            _inventory.AddItemByName("key_4");
         }
 
         private void Awake()
@@ -84,20 +76,26 @@ namespace BigProject.Gameplay.TownHall
         public void FirstTownHallMeeting()
         {
             ReplicaManager.ShowReplica("Так, тут есть опоры");
-            _firstInteractionClue = StartCoroutine(InteractionClueRoutune());
         }
 
-        public void FirstInteraction()
+        public void FirstInteraction(bool isCompleted)
         {
-            if (_firstInteractionClue != null)
+            if (isCompleted)
             {
-                StopCoroutine(_firstInteractionClue);
-            }
+                if (_firstInteractionClue != null)
+                {
+                    StopCoroutine(_firstInteractionClue);
+                }
 
-            if (_firstTouchChestTrigger != null)
+                if (_firstTouchChestTrigger != null)
+                {
+                    ReplicaManager.ShowReplica("Теперь сундук");
+                    Destroy(_firstTouchChestTrigger);
+                }
+            }
+            else
             {
-                ReplicaManager.ShowReplica("Теперь сундук");
-                Destroy(_firstTouchChestTrigger);
+                _firstInteractionClue = StartCoroutine(InteractionClueRoutune());
             }
         }
 
@@ -124,14 +122,22 @@ namespace BigProject.Gameplay.TownHall
 
         public void BrokenKeyInserted()
         {
-            _interactPillarsClue = StartCoroutine(CheckPillarsRoutine());
-            //_gameplayManager.StateChanged += DisableChestColliderRoutine;
-            StartCoroutine(DisableChestColliderRoutine());
+            StartCoroutine(GameplayUtilities.DoAfterConditionRoutine(() => _gameplayManager.State == GameplayState.Play, 
+            () =>
+            {
+                _chestCollider.enabled = false;
+                ReplicaManager.ShowReplica("Посмотрим что еще тут есть");
+            }
+            ));
         }
 
-        public void PillarHasTouched()
+        public void InteractPillarsClue(bool isActive)
         {
-            if (_interactPillarsClue != null)
+            if (isActive)
+            {
+                _interactPillarsClue = StartCoroutine(CheckPillarsRoutine());
+            }
+            else if (_interactPillarsClue != null)
             {
                 StopCoroutine(_interactPillarsClue);
             }
@@ -139,16 +145,13 @@ namespace BigProject.Gameplay.TownHall
 
         public void PuzzleWasPlayed()
         {
-            //if (_gameplayManager.State == GameplayState.Play)
-            //{
-            //    _chestCollider.enabled = false;
-            //}
-            //else
-            //{
-                StartCoroutine(CheckPillarsRoutine());
-                StartCoroutine(DisableChestColliderRoutine());
-                //_gameplayManager.StateChanged += DisableChestColliderRoutine;
-            //}
+            StartCoroutine(GameplayUtilities.DoAfterConditionRoutine(() => _gameplayManager.State == GameplayState.Play,
+                () =>
+                {
+                    _chestCollider.enabled = false;
+                    ReplicaManager.ShowReplica("Ура, что же там.");
+                }
+                ));
         }
 
         public void ShowRune()
@@ -170,18 +173,8 @@ namespace BigProject.Gameplay.TownHall
 
         private IEnumerator CheckPillarsRoutine()
         {
-            yield return new WaitForSeconds(_checkTownhallClueTime);
-            ReplicaManager.ShowReplica("Посмотрим что еще тут есть");
             yield return new WaitForSeconds(_checkPillarsClueTime);
             ReplicaManager.ShowReplica("Колонны!");
-        }
-
-        private IEnumerator DisableChestColliderRoutine()
-        {
-            yield return new WaitUntil(() => _gameplayManager.State == GameplayState.Play);
-            _chestCollider.enabled = false;
-            //_chestCollider.enabled = false;
-            //_gameplayManager.StateChanged -= DisableChestColliderRoutine;
         }
     }
 }

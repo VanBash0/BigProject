@@ -39,6 +39,7 @@ namespace BigProject.Utilities
                     _hud.ShowWidget(_hudConfig.HUDJournalWidgetId, 0.1f);
                     _hud.ShowWidget(_hudConfig.HUDInventoryWidgetId, 0.1f);
                     _hud.HideWidget(_hudConfig.HUDCancelWidgetId);
+                    _hud.HideWidget(_hudConfig.HUDResetWidgetId);
                     _input.SwitchToPlayerActionMap();
                     break;
                 case GameplayState.MiniGame:

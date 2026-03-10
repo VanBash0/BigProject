@@ -1,6 +1,7 @@
 using BigProject.Managers;
 using BigProject.Systems;
 using BigProject.Systems.Inventory;
+using BigProject.UI;
 using BigProject.Utilities;
 using System;
 using System.Collections.Generic;
@@ -21,11 +22,17 @@ namespace BigProject.Gameplay.VillageElderQuest
         private List<string> _keysItemsNames;
 
         private InventorySystem _inventory;
+        private InventoryUI _inventoryUI;
+        private GameplayManager _gameplayManager;
 
-        public void Init(InventorySystem inventory)
+        public void Init(InventorySystem inventory, InventoryUI inventoryUI, GameplayManager gameplayManager)
         {
             _inventory = inventory;
+            _inventoryUI = inventoryUI;
+            _gameplayManager = gameplayManager;
             ExceptionUtilities.ThrowIfNull(_inventory, String.Format(gameObject.name, "Inventory System"));
+            ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(gameObject.name, "Inventory UI"));
+            ExceptionUtilities.ThrowIfNull(_gameplayManager, String.Format(gameObject.name, "Gameplay Manager"));
         }
 
         private void Start()
@@ -48,12 +55,15 @@ namespace BigProject.Gameplay.VillageElderQuest
 
         public void RemoveBag()
         {
+            RemoveAmbassador();
             GameLogManager.Info(String.Format(LogStr.INFO_QUEST, "remove bag from inventory."));
-            _inventory.AddItemByName(_bagItemName);
+            _inventory.RemoveItemByName(_bagItemName);
+            GameplayUtilities.DoAfterConditionRoutine(() => _gameplayManager.State == GameplayState.Play, () => ReplicaManager.ShowReplica("К кузнецу надо!"));
         }
 
         public void AmbassadorAppearance()
         {
+            _inventoryUI.SetNoteVisibility(false);
             _ambassador.SetActive(true);
         }
 

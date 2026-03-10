@@ -13,6 +13,10 @@ namespace BigProject.Systems.QuestSystem
         private int _actionId;
         [SerializeField]
         private int _transitionId;
+        [SerializeField]
+        private bool _destroyAfterInteract = false;
+        [SerializeField]
+        private bool _destroyWithGameObject = false;
 
         private ProgressManager _progressManager;
         private IQuestActionHandler _actionHandler;
@@ -43,6 +47,11 @@ namespace BigProject.Systems.QuestSystem
         public void Interact()
         {
             _actionHandler.MakeTransition(_transitionId);
+
+            if (_destroyAfterInteract)
+            {
+                Destroy(_destroyWithGameObject ? gameObject : this);
+            }
         }
     }
 }
