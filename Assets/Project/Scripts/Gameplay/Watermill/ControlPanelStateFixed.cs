@@ -240,6 +240,7 @@ namespace BigProject.Gameplay.Watermill
             if (_activateMechAction.CurrentState >= QuestActionState.Completed)
             {
                 _controlPanel.ChangeState(ControlPanelState.Completed);
+                _controlPanel.PlayFixedMusic();
                 _controlPanel.Deactivate();
             }
         }
