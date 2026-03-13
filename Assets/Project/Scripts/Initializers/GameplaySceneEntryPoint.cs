@@ -49,6 +49,20 @@ namespace BigProject.Initializers
                 container.Init(pm);
             }
 
+            QuestInteractableHandler[] interactableHandlers = FindObjectsByType<QuestInteractableHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            foreach (QuestInteractableHandler interactableHandler in interactableHandlers)
+            {
+                interactableHandler.Init(pm);
+            }
+
+            QuestTriggerHandler[] triggersHandlers = FindObjectsByType<QuestTriggerHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            foreach (QuestTriggerHandler triggerHandler in triggersHandlers)
+            {
+                triggerHandler.Init(pm);
+            }
+
             InitDialogueNPCs();
 
             GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);

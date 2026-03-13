@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -33,6 +35,12 @@ namespace BigProject.Utilities
                 CinemachineBlend blend = brain.ActiveBlend;
                 return blend != null ? blend.Duration - blend.TimeInBlend : 0f;
             }
+        }
+
+        public static IEnumerator DoAfterConditionRoutine(Func<bool> conditionFunc, Action actionFunc)
+        {
+            yield return new WaitUntil(conditionFunc);
+            actionFunc();
         }
     }
 }

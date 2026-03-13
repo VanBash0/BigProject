@@ -13,6 +13,7 @@ namespace BigProject.Player
         public event Action OpenMap;
         public event Action OpenMenu;
         public event Action Cancel;
+        public event Action Reset;
 
         //UIActions
         //...
@@ -32,6 +33,7 @@ namespace BigProject.Player
             _inputActions.MiniGame.Disable();
 
             _inputActions.UI.Cancel.performed += OnCancel;
+            _inputActions.UI.Reset.performed += OnReset;
 
             _inputActions.Player.Click.performed += OnClick;
             _inputActions.Player.OpenMap.performed += OnOpenedMap;
@@ -79,7 +81,12 @@ namespace BigProject.Player
 
         private void OnCancel(InputAction.CallbackContext _)
         {
-            Cancel.Invoke();
+            Cancel?.Invoke();
+        }
+
+        private void OnReset(InputAction.CallbackContext _)
+        {
+            Reset?.Invoke();
         }
 
         public void SwitchToPlayerActionMap()
@@ -103,7 +110,8 @@ namespace BigProject.Player
         {
             _inputActions.Disable();
 
-            _inputActions.UI.Cancel.performed += OnCancel;
+            _inputActions.UI.Cancel.performed -= OnCancel;
+            _inputActions.UI.Reset.performed -= OnReset;
 
             _inputActions.Player.Click.performed -= OnClick;
             _inputActions.Player.OpenMap.performed -= OnOpenedMap;

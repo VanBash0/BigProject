@@ -274,7 +274,16 @@ namespace BigProject.Player
                     ""name"": ""Cancel"",
                     ""type"": ""Button"",
                     ""id"": ""15cef263-9014-4fd5-94d9-4e4a6234a6ef"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Reset"",
+                    ""type"": ""Button"",
+                    ""id"": ""c9762ab0-d162-4264-a8e0-81b30014e12a"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -632,6 +641,17 @@ namespace BigProject.Player
                 },
                 {
                     ""name"": """",
+                    ""id"": ""483b9261-be5c-4965-acda-b65b9a0329a4"",
+                    ""path"": ""<Keyboard>/{Submit}"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse;Gamepad;Touch;Joystick;XR"",
+                    ""action"": ""Reset"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""c52c8e0b-8179-41d3-b8a1-d149033bbe86"",
                     ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
@@ -843,6 +863,7 @@ namespace BigProject.Player
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
             m_UI_Submit = m_UI.FindAction("Submit", throwIfNotFound: true);
             m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
+            m_UI_Reset = m_UI.FindAction("Reset", throwIfNotFound: true);
             m_UI_Point = m_UI.FindAction("Point", throwIfNotFound: true);
             m_UI_Click = m_UI.FindAction("Click", throwIfNotFound: true);
             m_UI_RightClick = m_UI.FindAction("RightClick", throwIfNotFound: true);
@@ -1171,6 +1192,7 @@ namespace BigProject.Player
         private readonly InputAction m_UI_Navigate;
         private readonly InputAction m_UI_Submit;
         private readonly InputAction m_UI_Cancel;
+        private readonly InputAction m_UI_Reset;
         private readonly InputAction m_UI_Point;
         private readonly InputAction m_UI_Click;
         private readonly InputAction m_UI_RightClick;
@@ -1201,6 +1223,10 @@ namespace BigProject.Player
             /// Provides access to the underlying input action "UI/Cancel".
             /// </summary>
             public InputAction @Cancel => m_Wrapper.m_UI_Cancel;
+            /// <summary>
+            /// Provides access to the underlying input action "UI/Reset".
+            /// </summary>
+            public InputAction @Reset => m_Wrapper.m_UI_Reset;
             /// <summary>
             /// Provides access to the underlying input action "UI/Point".
             /// </summary>
@@ -1264,6 +1290,9 @@ namespace BigProject.Player
                 @Cancel.started += instance.OnCancel;
                 @Cancel.performed += instance.OnCancel;
                 @Cancel.canceled += instance.OnCancel;
+                @Reset.started += instance.OnReset;
+                @Reset.performed += instance.OnReset;
+                @Reset.canceled += instance.OnReset;
                 @Point.started += instance.OnPoint;
                 @Point.performed += instance.OnPoint;
                 @Point.canceled += instance.OnPoint;
@@ -1305,6 +1334,9 @@ namespace BigProject.Player
                 @Cancel.started -= instance.OnCancel;
                 @Cancel.performed -= instance.OnCancel;
                 @Cancel.canceled -= instance.OnCancel;
+                @Reset.started -= instance.OnReset;
+                @Reset.performed -= instance.OnReset;
+                @Reset.canceled -= instance.OnReset;
                 @Point.started -= instance.OnPoint;
                 @Point.performed -= instance.OnPoint;
                 @Point.canceled -= instance.OnPoint;
@@ -1510,6 +1542,13 @@ namespace BigProject.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnCancel(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Reset" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnReset(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "Point" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>

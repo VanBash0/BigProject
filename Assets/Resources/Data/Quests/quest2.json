@@ -1,7 +1,7 @@
 {
     "id":2,
     "name":"Quest2_mill",
-    "currentState":1,
+    "currentState":0,
     "actions":
     [
         {
