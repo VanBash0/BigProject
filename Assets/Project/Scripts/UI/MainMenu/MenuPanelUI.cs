@@ -29,7 +29,7 @@ namespace BigProject.UI
                 if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
                 {
                     Bootstrapper.SetStage(GameExecutionStage.Gameplay);
-                    sceneLoader.LoadScene(Scenes.VillageMainScene);
+                    sceneLoader.LoadScene(Scenes.Village);
                 }
                 else
                 {
@@ -43,7 +43,7 @@ namespace BigProject.UI
                 //Debug.Log("Clicked Continue Button");
                 if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
                 {
-                    sceneLoader.LoadScene(Scenes.VillageMainScene);
+                    sceneLoader.LoadScene(Scenes.Village);
                 }
                 else
                 {
