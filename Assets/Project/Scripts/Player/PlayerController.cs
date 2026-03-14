@@ -53,23 +53,23 @@ namespace BigProject.Player
 
         private void OnClick()
         {
+            if (GameplayUtilities.IsPointerOverUI())
+            {
+                return;
+            }
+
             Vector2 mousePosition = _inputHandler.GetMousePosition();
             Ray ray = _camera.ScreenPointToRay(mousePosition);
 
-            if (Physics.Raycast(ray, out RaycastHit hit))
-            {
-                if (EventSystem.current.IsPointerOverGameObject())
-                    return;
-                
-                if (NavMesh.SamplePosition(hit.point, out NavMeshHit navMeshHit, _navMeshHitPointDistance, NavMesh.AllAreas))
-                {
-                    SetDestination(navMeshHit.position);
-                    Move();
+            if (Physics.Raycast(ray, out RaycastHit hit) && 
+                NavMesh.SamplePosition(hit.point, out NavMeshHit navMeshHit, _navMeshHitPointDistance, NavMesh.AllAreas))
+            {                
+                SetDestination(navMeshHit.position);
+                Move();
 
-                    // handing interactable object over to player
-                    IInteractable interactableObject = hit.collider.GetComponent<IInteractable>();
-                    SetInterableObject(interactableObject);
-                }
+                // handing interactable object over to player
+                IInteractable interactableObject = hit.collider.GetComponent<IInteractable>();
+                SetInterableObject(interactableObject);
             }
         }
 
