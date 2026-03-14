@@ -36,9 +36,9 @@ namespace BigProject.Systems
         public const string CRITICAL_NOT_SERIALIZED_FIELD = "{0}: has not serialized field [{1}].";
         public const string CRITICAL_NULL_REFERENCE = "{0}: get null reference [{1}].";
 
-        public const string INFO_SYSTEM = "Info from system [{0}]: {1}.";
-        public const string WARNING_SYSTEM = "Warning in system [{0}]: {1}.";
-        public const string ERROR_SYSTEM = "Error in system [{0}]: {1}.";
-        public const string CRITICAL_SYSTEM = "Critical in system [{0}]: {1}.";
+        public const string INFO_SYSTEM = "System \"{0}\" info: {1}.";
+        public const string WARNING_SYSTEM = "System \"{0}\" warning: {1}.";
+        public const string ERROR_SYSTEM = "System \"{0}\" error: {1}.";
+        public const string CRITICAL_SYSTEM = "System \"{0}\" critical error: {1}.";
     }
 }

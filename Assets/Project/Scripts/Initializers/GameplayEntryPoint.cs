@@ -2,7 +2,6 @@ using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Settings;
 using BigProject.Systems;
-using BigProject.Systems.DialogueSystem;
 using BigProject.Systems.HUD;
 using BigProject.Systems.Inventory;
 using BigProject.Systems.Inventory.ItemsModifiers;
@@ -14,6 +13,9 @@ using BigProject.Utilities;
 using System;
 using UnityEngine;
 using UnityEngine.Assertions;
+using BigProject.Systems.QuestSystem;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BigProject.Initializers
 {
@@ -36,6 +38,10 @@ namespace BigProject.Initializers
         private GameObject _dialogueView;
         [SerializeField]
         private GameObject _replicaView;
+        [SerializeField]
+        private QuestSwitchConfig _questSwitchConfig;
+        [SerializeField]
+        private QuestTrackerConfig _questTrackerConfig;
 
         [field: SerializeField]
         public Scenes _sceneToLoad; // For feature load progress
@@ -54,6 +60,8 @@ namespace BigProject.Initializers
         private GameplayStatesHandler _statesHandler;
         private DialogueManager _dialogueManager;
         private ReplicaManager _replicaManager;
+        private List<QuestSwitch> _questsSwitches = new();
+        private QuestsBoundariesTracker _questsTracker;
 
         private static bool _isInstantiated;
 
@@ -77,6 +85,8 @@ namespace BigProject.Initializers
             Assert.IsNotNull(_itemsDatabase, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Items Database"));
             Assert.IsNotNull(_hudPrefab, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "HUD Prefab"));
             Assert.IsNotNull(_journalConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Journal Config"));
+            Assert.IsNotNull(_questSwitchConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "QuestSwitchConfig"));
+            Assert.IsNotNull(_questTrackerConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "QuestTrackerConfig"));
 
             GameObject gameplayServices = new GameObject("GameplayServices");
             transform.parent = gameplayServices.transform; // For dispose after gameplay exit
@@ -93,10 +103,10 @@ namespace BigProject.Initializers
             _hud = new();
             _playerInput = new();
             _questJournal = new QuestJournal(progressManager, _journalConfig);
-            _questJournal.Init();
             _runesSystem = new();
             GameplayManager gameplayManager = new(ServiceLocator.GetService<ManualLoop>());
             _statesHandler = new(_hudConfig, gameplayManager, _playerInput, _hud);
+            _questsTracker = new(progressManager, _questTrackerConfig.QuestsIds.ToList());
 
             InitDialogue();
             InitReplica();
@@ -109,8 +119,11 @@ namespace BigProject.Initializers
             ServiceLocator.AddService(_dialogueManager);
             ServiceLocator.AddService(_replicaManager);
             ServiceLocator.AddService(gameplayManager);
+            ServiceLocator.AddService(_questsTracker);
 
             InitHUD();
+            _questJournal.Init();
+            AddQuestsSwitches(progressManager);
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES_COMPLETED);
         }
 
@@ -154,11 +167,43 @@ namespace BigProject.Initializers
             _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
             _hud.HideWidget(_hudConfig.HUDJournalWidgetId);
             _hud.HideWidget(_hudConfig.HUDCancelWidgetId);
-            _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
             _hud.HideWidget(_hudConfig.HUDResetWidgetId);
             _hud.ShowWidget(_hudConfig.HUDInventoryWidgetId, 2f);
             _hud.ShowWidget(_hudConfig.HUDJournalWidgetId, 2f);
             GameLogManager.Info(LogStr.INFO_INITIALIZING_HUD_COMPLETED);
+        }
+
+        private void AddQuestsSwitches(ProgressManager progressManager)
+        {
+            foreach (QuestSwitchConfig.Condition switchCondition in _questSwitchConfig)
+            {
+                if (!progressManager.TryGetQuestActionHandler(switchCondition.QuestId, switchCondition.InitActionId, out IQuestActionHandler initActionHandler))
+                {
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "GameplayEntryPoint", "Unable to find init action for QuestSwitch"));
+                    continue;
+                }
+
+                if (!progressManager.TryGetQuestActionHandler(switchCondition.TrackableQuestId, switchCondition.TrackableQuestActionId, 
+                    out IQuestActionHandler trackableActionHandler))
+                {
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "GameplayEntryPoint", "Unable to find trackable action for QuestSwitch"));
+                    continue;
+                }
+
+                QuestSwitch questSwitch = new(initActionHandler.Quest, trackableActionHandler.Quest, switchCondition.InitActionId, switchCondition.InitActionState);
+                questSwitch.QuestSwitched += OnQuestSwitched;
+                _questsSwitches.Add(questSwitch);
+            }
+        }
+
+        private void OnQuestSwitched(QuestSwitch questSwitch)
+        {
+            questSwitch.QuestSwitched -= OnQuestSwitched;
+
+            if (_questsSwitches.Remove(questSwitch))
+            {
+                questSwitch.Dispose();
+            }
         }
 
         public void OnDestroy()
@@ -183,6 +228,14 @@ namespace BigProject.Initializers
             ServiceLocator.ReleaseService<GameplayManager>();
             ServiceLocator.ReleaseService<DialogueManager>();
             ServiceLocator.ReleaseService<ReplicaManager>();
+
+            foreach (QuestSwitch questSwitch in _questsSwitches)
+            {
+                questSwitch.QuestSwitched -= OnQuestSwitched;
+                questSwitch.Dispose();
+            }
+
+            _questsTracker.Dispose();
         }
     }
 }

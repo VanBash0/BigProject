@@ -4,37 +4,40 @@ using BigProject.Systems.QuestSystem;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace BigProject.Gameplay.Village
 {
     public class EntryPoint : MonoBehaviour
     {
-        [Serializable]
-        private class QuestEntry
-        {
-            public int questId;
-            public UnityEvent init;
-        }
 
         [SerializeField]
-        private List<QuestEntry> _questsEntries;
+        private AudioClip _music;
+
+        [SerializeField]
+        private List<MonoBehaviour> _questsControllers;
+
+        private QuestsBoundariesTracker _questsTracker;
 
         public void Init()
         {
-            ProgressManager _progressManager = ServiceLocator.GetService<ProgressManager>();
+            _questsControllers.RemoveAll(x => x is not IQuestBoundariesController);
+            _questsTracker = ServiceLocator.GetService<QuestsBoundariesTracker>();
+            ServiceLocator.GetService<MusicManager>().PlayMusic(_music, 0.1f, 0.1f);
 
-            foreach (QuestEntry entry in _questsEntries)
+            foreach (IQuestBoundariesController questController in _questsControllers)
             {
-                if (_progressManager.GetQuestState(entry.questId) == QuestState.Active)
-                {
-                    entry.init?.Invoke();
-                    GameLogManager.Info(String.Format(LogStr.INFO_QUEST, $"invoke init of quest {entry.questId}"));
-                    return;
-                }
+                _questsTracker.AddQuestController(questController);
             }
 
-            GameLogManager.Info(String.Format(LogStr.WARNING_QUEST, $"has no active quest for init"));
+            _questsTracker.OnSceneEntry();
+        }
+
+        private void OnDestroy()
+        {
+            foreach (IQuestBoundariesController questController in _questsControllers)
+            {
+                _questsTracker.RemoveQuestController(questController);
+            }
         }
     }
 }

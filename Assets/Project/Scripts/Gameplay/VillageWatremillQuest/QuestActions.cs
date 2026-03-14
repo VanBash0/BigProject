@@ -54,16 +54,12 @@ namespace BigProject.Gameplay.VillageWatermillQuest
 
         public void GetWatermillNote()
         {
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, "add mill sketch to inventory."));
             _inventory.AddItemByItemID(_noteItemId);
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, "add note about mill to journal."));
         }
 
         public void GetRepairedLever()
         {
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, "remove broken lever from inventory."));
             _inventory.RemoveItemById(_brokenLeverItemId);
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, "add repaired lever to inventory."));
             _inventory.AddItemByItemID(_repairedLeverItemId);
         }
 

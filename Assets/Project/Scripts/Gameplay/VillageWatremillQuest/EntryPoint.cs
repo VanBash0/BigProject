@@ -2,26 +2,36 @@ using BigProject.Managers;
 using BigProject.Systems.Inventory;
 using BigProject.Systems.HUD;
 using UnityEngine;
+using BigProject.Systems.QuestSystem;
 
 namespace BigProject.Gameplay.VillageWatermillQuest
 {
-    public class EntryPoint : MonoBehaviour
+    public class EntryPoint : MonoBehaviour, IQuestBoundariesController
     {
         [SerializeField]
-        QuestActions _questActions;
+        private QuestActions _questActions;
 
         [SerializeField]
-        private AudioClip _music;
+        private GameObject _miller;
+        [SerializeField]
+        private GameObject _questWatermillObjects;
 
-        public void Init()
+        [field: SerializeField]
+        public int QuestId { get; private set; }
+
+        public void InitOnSceneEntry()
         {
             _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<RunesSystem>(),
                 ServiceLocator.GetService<HUD>());
 
-            if (ServiceLocator.TryGetService(out MusicManager musicManager))
-            {
-                musicManager.PlayMusic(_music, 0.1f, 0.1f);
-            }
+            _miller.SetActive(true);
+            _questWatermillObjects.SetActive(true);
+        }
+
+        public void Begin()
+        {
+            InitOnSceneEntry();
+            _miller.SetActive(true);
         }
     }
 }

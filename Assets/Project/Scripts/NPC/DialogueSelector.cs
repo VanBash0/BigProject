@@ -56,6 +56,12 @@ namespace BigProject.NPC
             }
 
             _conditions.RemoveAll(x => conditionsToRemove.Contains(x));
+
+
+            if (pm.GetQuestState(_questId) > QuestState.Active)
+            {
+                Destroy(this);
+            }
         }
 
         private void Start()

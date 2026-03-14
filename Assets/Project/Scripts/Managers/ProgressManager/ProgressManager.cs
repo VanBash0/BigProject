@@ -1,9 +1,9 @@
+using BigProject.Systems;
+using BigProject.Systems.QuestSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using BigProject.Systems.QuestSystem;
-using BigProject.Systems;
 
 namespace BigProject.Managers
 {
@@ -52,18 +52,18 @@ namespace BigProject.Managers
             }
             catch (ArgumentException ex)
             {
-                Debug.LogError($"ProgressManager can't add quest.\n{ex.Message}");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"can't add quest. {ex.Message}"));
                 _quests = new();
             }
             catch (Exception ex)
             {
-                Debug.LogError($"ProgressManager try to add quests with the same key!\n{ex.Message}");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"try to add quests with the same key! {ex.Message}"));
                 _quests = new();
             }
 
             AddQuestsToSavable();
 
-            foreach (var quest in _quests.Values)
+            foreach (IQuest quest in _quests.Values)
             {
                 quest.StateChanged += OnQuestProgressed;
             }
@@ -88,12 +88,11 @@ namespace BigProject.Managers
         /// </summary>
         public bool AddQuestListener(int quiestId, Action<IQuest> callback)
         {
-            if (!_quests.TryGetValue(quiestId, out var quest))
+            if (!_quests.TryGetValue(quiestId, out IQuest quest))
             {
-                Debug.LogError($"Progress manager unable to add listener. Has no Quest [{quiestId}].");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"unable to add listener, has no quest [{quiestId}]"));
                 return false;
             }
-
 
             quest.Progressed += callback;
             return true;
@@ -104,13 +103,43 @@ namespace BigProject.Managers
         /// </summary>
         public void RemoveQuestListener(int quiestId, Action<IQuest> callback)
         {
-            if (_quests.TryGetValue(quiestId, out var quest))
+            if (_quests.TryGetValue(quiestId, out IQuest quest))
             {
                 quest.Progressed -= callback;
             }
             else
             {
-                Debug.LogWarning($"Progress manager unable to remove listener. Has no Quest [{quiestId}].");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"unable to remove listener, has no quest [{quiestId}]"));
+            }
+        }
+
+        /// <summary>
+        /// Subscribe to quest.
+        /// </summary>
+        public bool AddQuestStateListener(int quiestId, Action<IQuest> callback)
+        {
+            if (!_quests.TryGetValue(quiestId, out IQuest quest))
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"unable to add state listener, has no quest [{quiestId}]"));
+                return false;
+            }
+
+            quest.StateChanged += callback;
+            return true;
+        }
+
+        /// <summary>
+        /// Unsubscribe from quest.
+        /// </summary>
+        public void RemoveQuestStateListener(int quiestId, Action<IQuest> callback)
+        {
+            if (_quests.TryGetValue(quiestId, out IQuest quest))
+            {
+                quest.StateChanged -= callback;
+            }
+            else
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"unable to remove state listener, has no quest [{quiestId}]"));
             }
         }
 
@@ -121,7 +150,7 @@ namespace BigProject.Managers
         {
             if (_savable.Contains(savable))
             {
-                Debug.LogWarning($"Progress manager already tracking savable data [{savable.Key}]");
+                Debug.LogWarning(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"already tracking savable data [{savable.Key}]"));
                 return;
             }
 
@@ -135,7 +164,7 @@ namespace BigProject.Managers
         {
             if (!_savable.Remove(savable))
             {
-                Debug.LogWarning($"Progress manager try to remove not tracking savable data [{savable.Key}].");
+                Debug.LogWarning(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"try to remove not tracking savable data [{savable.Key}]"));
             }
         }
 
@@ -189,9 +218,9 @@ namespace BigProject.Managers
         /// <returns></returns>
         public bool ManualProgress(int questId, int actionId, QuestActionState newState)
         {
-            if (!_quests.TryGetValue(questId, out var quest))
+            if (!_quests.TryGetValue(questId, out IQuest quest))
             {
-                Debug.LogError($"Progress manager has no quest [{questId}], but trigger try to access it.");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"has no quest [{questId}], but trigger try to access it"));
                 return false;
             }
 
@@ -202,15 +231,15 @@ namespace BigProject.Managers
         /// <returns>Quest's action state.</returns>
         public QuestActionState GetActionState(int questId, int actionId)
         {
-            if (!_quests.TryGetValue(questId, out var quest))
+            if (!_quests.TryGetValue(questId, out IQuest quest))
             {
-                Debug.LogError($"Progress manager has no quest [{questId}], but you try to get Action state from it.");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"has no quest [{questId}], but you try to get Action state from it"));
                 return QuestActionState.Undefined;
             }
 
-            if (!quest.TryGetActionState(actionId, out var actionState))
+            if (!quest.TryGetActionState(actionId, out QuestActionState actionState))
             {
-                Debug.LogError($"Quest [{questId}] has no Action [{actionId}], but you try to get it.");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"quest [{questId}] has no Action [{actionId}], but you try to get it"));
                 return QuestActionState.Undefined;
             }
 
@@ -220,9 +249,9 @@ namespace BigProject.Managers
         /// <returns>All quest's actions.</returns>
         public IReadOnlyDictionary<int, QuestActionState> GetAllActions(int questId)
         {
-            if (!_quests.TryGetValue(questId, out var quest))
+            if (!_quests.TryGetValue(questId, out IQuest quest))
             {
-                Debug.LogError($"Progress manager has no quest [{questId}], but you try to get Action state from it.");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"has no quest [{questId}], but you try to get Action state from it"));
                 return new Dictionary<int, QuestActionState>();
             }
 
@@ -233,9 +262,9 @@ namespace BigProject.Managers
         /// <returns>True when success.</returns>
         public bool TryGetQuestActionHandler(int questId, int actionId, out IQuestActionHandler actionHandler)
         {
-            if (!_quests.TryGetValue(questId, out var quest))
+            if (!_quests.TryGetValue(questId, out IQuest quest))
             {
-                Debug.LogError($"Progress manager has no quest [{questId}], but you try to get action handler from it.");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "ProgressManager", $"has no quest [{questId}], but you try to get action handler from it"));
                 actionHandler = null;
                 return false;
             }
@@ -248,7 +277,7 @@ namespace BigProject.Managers
         {
             if (!_quests.TryGetValue(questId, out IQuest quest))
             {
-                Debug.LogWarning($"Progress manager has no quest [{questId}], but you try to get quest state.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "ProgressManager", $" has no quest [{questId}], but you try to get quest state"));
                 return QuestState.Inactive;
             }
 
@@ -330,13 +359,13 @@ namespace BigProject.Managers
         {
             if (!_quests.ContainsKey(quest.ID))
             {
-                Debug.LogWarning($"Progress manager get callback from untracked quest [{quest.Name}].");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "ProgressManager", $"get callback from untracked quest [{quest.Name}]"));
                 return;
             }
 
             if (AutoSave)
             {
-                Debug.Log("Autosaving...");
+                Debug.Log(String.Format(LogStr.INFO_SYSTEM, "ProgressManager", "Autosaving..."));
                 SaveProgress();
             }
         }

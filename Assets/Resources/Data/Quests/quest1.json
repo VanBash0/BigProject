@@ -856,5 +856,13 @@
                 }
             ]
         }
+    ],
+    "questStates":
+    [
+        {
+            "state":2,
+            "actionId":23,
+            "actionState":3
+        }
     ]
 }

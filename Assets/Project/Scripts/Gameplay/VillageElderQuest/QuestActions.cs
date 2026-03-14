@@ -20,6 +20,8 @@ namespace BigProject.Gameplay.VillageElderQuest
         private GameObject _ambassador;
         [SerializeField]
         private List<string> _keysItemsNames;
+        [SerializeField]
+        private GameObject _enterVillageTrigger;
 
         private InventorySystem _inventory;
         private InventoryUI _inventoryUI;
@@ -48,7 +50,6 @@ namespace BigProject.Gameplay.VillageElderQuest
 
         public void GetBag()
         {
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, "add bag to inventory."));
             _inventory.AddItemByName(_bagItemName);
             ReplicaManager.ShowReplica("Bag");
         }
@@ -56,7 +57,6 @@ namespace BigProject.Gameplay.VillageElderQuest
         public void RemoveBag()
         {
             RemoveAmbassador();
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, "remove bag from inventory."));
             _inventory.RemoveItemByName(_bagItemName);
             GameplayUtilities.DoAfterConditionRoutine(() => _gameplayManager.State == GameplayState.Play, () => ReplicaManager.ShowReplica("К кузнецу надо!"));
         }
@@ -77,12 +77,15 @@ namespace BigProject.Gameplay.VillageElderQuest
 
         public void GetKeys()
         {
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, "add keys to inventory."));
-
             foreach (string key in _keysItemsNames)
             {
                 _inventory.AddItemByName(key);
             }
+        }
+
+        public void EnterVillage()
+        {
+            _enterVillageTrigger.SetActive(true);
         }
     }
 }

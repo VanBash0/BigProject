@@ -5,6 +5,11 @@
     "actions":
     [
         {
+            "id":1000,
+            "name":"StartQuest",
+            "currentState":1
+        },
+        {
             "id":0,
             "name":"FirstTalkMiller",
             "currentState":2,
@@ -338,6 +343,14 @@
                     ]
                 }
             ]
+        }
+    ],
+    "questStates":
+    [
+        {
+            "state":1,
+            "actionId":1000,
+            "actionState":5
         }
     ]
 }

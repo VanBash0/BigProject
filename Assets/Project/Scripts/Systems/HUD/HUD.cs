@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace BigProject.Systems.HUD
 {
@@ -28,22 +27,17 @@ namespace BigProject.Systems.HUD
             public HUDWidgetRoutineType type;
         }
 
-        public HUD()
-        {
-
-        }
-
         public void AddWidget(int id, IHUDWidget widget)
         {
             if (widget == null)
             {
-                Debug.LogWarning($"HUD system try to add null widget with id {id}");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", $"try to add null widget with id {id}"));
                 return;
             }
 
             if (_widgets.ContainsKey(id))
             {
-                Debug.LogWarning($"HUD system try to add widgets with same id {id}. Type of widget: {widget.GetType().Name}");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", $"try to add widgets with same id {id}. Type of widget: {widget.GetType().Name}"));
                 return;
             }
 
@@ -77,7 +71,7 @@ namespace BigProject.Systems.HUD
         {
             if (!IsActualWidgetCommand(id, timeOffset, time))
             {
-                Debug.LogWarning($"Widget {id} show command will be ignored.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", $"widget {id} show command will be ignored"));
                 return;
             }
 
@@ -85,7 +79,7 @@ namespace BigProject.Systems.HUD
 
             if (timeOffset == 0f && time == float.PositiveInfinity)
             {
-                GameLogManager.Info($"Show HUD widget: {id}");
+                GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "HUD", $"show widget {id}"));
                 widget.Show();
                 return;
             }
@@ -99,7 +93,7 @@ namespace BigProject.Systems.HUD
 
             if (HasWidgetRoutine(widget, type))
             {
-                Debug.LogWarning($"HUD try to start {type} routine for widget {id}, but it already started.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", $"try to start {type} routine for widget {id}, but it already started"));
                 return;
             }
 
@@ -112,7 +106,7 @@ namespace BigProject.Systems.HUD
         {
             if (!IsActualWidgetCommand(id, timeOffset))
             {
-                Debug.LogWarning($"Widget {id} hide command will be ignored.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", $"widget {id} hide command will be ignored"));
                 return;
             }
 
@@ -120,14 +114,14 @@ namespace BigProject.Systems.HUD
 
             if (timeOffset == 0f)
             {
-                GameLogManager.Info($"Hide HUD widget: {id}");
+                GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "HUD", $"hide widget: {id}"));
                 widget.Hide();
                 return;
             }
 
             if (HasWidgetRoutine(widget, HUDWidgetRoutineType.Hide))
             {
-                Debug.LogWarning($"HUD try to start {HUDWidgetRoutineType.Hide} routine for widget {id}, but it already started.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", $"try to start {HUDWidgetRoutineType.Hide} routine for widget {id}, but it already started."));
                 return;
             }
 
@@ -143,7 +137,7 @@ namespace BigProject.Systems.HUD
         {
             if (ids == null)
             {
-                Debug.LogWarning("HUD try to show empty list of widgets.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", "try to show empty list of widgets"));
                 return;
             }
 
@@ -161,7 +155,7 @@ namespace BigProject.Systems.HUD
         {
             if (ids == null)
             {
-                Debug.LogWarning("HUD try to hide empty list of widgets.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", "try to hide empty list of widgets."));
                 return;
             }
 
@@ -208,13 +202,13 @@ namespace BigProject.Systems.HUD
         {
             if (!_widgets.ContainsKey(id))
             {
-                Debug.LogWarning($"HUD hasn't widget with id: {id}.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", $"has no widget with id: {id}"));
                 return false;
             }
 
             if (timeOffset < 0f || time < 0f)
             {
-                Debug.LogWarning($"HUD unable to show widget with negative time. Widget id: {id}.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "HUD", $"unable to show widget {id} with negative time"));
                 return false;
             }
 
@@ -223,7 +217,7 @@ namespace BigProject.Systems.HUD
 
         private async Awaitable WidgetRoutineAsync(IHUDWidget widget, HUDWidgetRoutineType type, float timeOffset, float time)
         {
-            GameLogManager.Info($"Starting widget {widget.GetType().Name} routine of type {type}...");
+            GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "HUD", $"starting widget {widget.GetType().Name} routine of type {type}..."));
             CancellationTokenSource cts = new();
 
             if (!_widgetsRoutines.ContainsKey(widget))
@@ -253,7 +247,7 @@ namespace BigProject.Systems.HUD
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                Debug.LogError($"Widget async routine crashed. {ex.Message}");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "HUD", $"widget async routine crashed. {ex.Message}"));
             }
 
             try
@@ -263,7 +257,7 @@ namespace BigProject.Systems.HUD
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Unable to remove widget routine. {ex.Message}");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "HUD", $"unable to remove widget routine. {ex.Message}"));
             }
         }
 
@@ -271,14 +265,14 @@ namespace BigProject.Systems.HUD
         {
             await Awaitable.WaitForSecondsAsync(timeOffset, ct);
             widget.Show();
-            GameLogManager.Info($"HUD widget {widget.GetType().Name} show routine finished.");
+            GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "HUD", $"widget {widget.GetType().Name} show routine finished"));
         }
 
         private async Awaitable HideWidgetAsync(IHUDWidget widget, float timeOffset, CancellationToken ct)
         {
             await Awaitable.WaitForSecondsAsync(timeOffset, ct);
             widget.Hide();
-            GameLogManager.Info($"HUD widget {widget.GetType().Name} show routine finished.");
+            GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "HUD", $"widget {widget.GetType().Name} show routine finished"));
         }
 
         private async Awaitable ShowAndHideWidgetAsync(IHUDWidget widget, float timeOffset, float time, CancellationToken ct)
