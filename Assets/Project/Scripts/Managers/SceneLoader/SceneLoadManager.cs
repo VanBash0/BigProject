@@ -8,16 +8,10 @@ namespace BigProject.Managers
 {
     public enum Scenes
     {
-        MainScene,
-        SceneLoaderManager_test_1,
-        SceneLoaderManager_test_2,
+        MainMenu,
         Village,
         Watermill,
-        WatermillScene,
-        VillageMainScene,
-        MainMenu,
         TownHall,
-        VillageTwoQuests
     }
 
     public class SceneLoadManager : IDisposable
@@ -54,12 +48,30 @@ namespace BigProject.Managers
             string currentSceneName = SceneManager.GetActiveScene().name;
             string newSceneName = scene.ToString();
 
+            if (IsSceneInBuild(newSceneName))
+            {
+                GameLogManager.Warning(string.Format(LogStr.WARNING_SCENE_NOT_FOUND, newSceneName));
+            }
+
             if (currentSceneName == newSceneName)
             {
                 GameLogManager.Warning(LogStr.WARNING_SAME_SCENE);
             }
 
             _coroutineStarter.StartCoroutine(LoadSceneRoutine(scene, newSceneName));
+        }
+
+        private bool IsSceneInBuild(string sceneName)
+        {
+            for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+            {
+                string scenePath = SceneUtility.GetScenePathByBuildIndex(i);
+                string name = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+                if (name == sceneName)
+                    return true;
+            }
+            return false;
         }
 
         private IEnumerator LoadSceneRoutine(Scenes scene, string sceneName)

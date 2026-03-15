@@ -19,6 +19,7 @@ namespace BigProject.Systems
         public const string INFO_QUEST = "Quest progress: {0}.";
 
         public const string WARNING_UNHANDLED_SYSTEM_MESSAGE_TYPE = "Unhandled sysytem message type!\nMessage:\n{0}.";
+        public const string WARNING_SCENE_NOT_FOUND = "Scene {0} not found in build settings!";
         public const string WARNING_SAME_SCENE = "You are trying to load already loaded scene.";
         public const string WARNING_GAME_EXECUTION_INCORRECT_STAGE = "Game execution try move to incorrect stage: {0}.";
         public const string WARNING_GAME_EXECUTION_REWRITE_STAGE = "Game execution already at stage: {0}.";
