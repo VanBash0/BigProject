@@ -16,6 +16,8 @@ using UnityEngine.Assertions;
 using BigProject.Systems.QuestSystem;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 
 namespace BigProject.Initializers
 {
@@ -42,6 +44,8 @@ namespace BigProject.Initializers
         private QuestSwitchConfig _questSwitchConfig;
         [SerializeField]
         private QuestTrackerConfig _questTrackerConfig;
+        [SerializeField]
+        private PlayerController _playerControllerPrefab;
 
         [field: SerializeField]
         public Scenes _sceneToLoad; // For feature load progress
@@ -62,6 +66,7 @@ namespace BigProject.Initializers
         private ReplicaManager _replicaManager;
         private List<QuestSwitch> _questsSwitches = new();
         private QuestsBoundariesTracker _questsTracker;
+        private PlayerSpawner _playerSpawner;
 
         private static bool _isInstantiated;
 
@@ -124,6 +129,7 @@ namespace BigProject.Initializers
             InitHUD();
             _questJournal.Init();
             AddQuestsSwitches(progressManager);
+            CreatePlayer();
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES_COMPLETED);
         }
 
@@ -206,6 +212,24 @@ namespace BigProject.Initializers
             }
         }
 
+        private void CreatePlayer()
+        {
+            PlayerController playerController = Instantiate(_playerControllerPrefab);
+            SceneLoadManager sceneLoader = ServiceLocator.GetService<SceneLoadManager>();
+            playerController.Init(_playerInput, sceneLoader);
+            playerController.transform.parent = transform.parent;
+            ServiceLocator.AddService(playerController);
+            playerController.gameObject.SetActive(true);
+            _playerSpawner = new(sceneLoader, playerController.GetComponent<NavMeshAgent>());
+            ServiceLocator.AddService(_playerSpawner);
+
+            // For case when run from gameplay scene.
+            if (!SceneManager.GetActiveScene().name.Equals(Scenes.MainMenu))
+            {
+                _playerSpawner.PositionPlayer(0);
+            }
+        }
+
         public void OnDestroy()
         {
             Remover.SafeDispose(_inventory);
@@ -235,7 +259,8 @@ namespace BigProject.Initializers
                 questSwitch.Dispose();
             }
 
-            _questsTracker.Dispose();
+            _questsTracker?.Dispose();
+            _playerSpawner?.Dispose();
         }
     }
 }
