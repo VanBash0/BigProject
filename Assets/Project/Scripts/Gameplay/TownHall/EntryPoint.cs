@@ -6,7 +6,9 @@ using BigProject.Systems;
 using BigProject.Systems.HUD;
 using BigProject.Systems.Inventory;
 using BigProject.UI;
+using BigProject.Utilities;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Assertions;
 
 namespace BigProject.Gameplay.TownHall
@@ -23,6 +25,8 @@ namespace BigProject.Gameplay.TownHall
         private GameObject _townhallQuestObject;
         [SerializeField]
         private int _townhallQuestId;
+        [SerializeField]
+        private TeleportHandler _teleport;
 
         private void Awake()
         {
@@ -45,10 +49,13 @@ namespace BigProject.Gameplay.TownHall
             InventoryUI inventoryUI = ServiceLocator.GetService<InventoryUI>();
             GameplayManager gameplayManager = ServiceLocator.GetService<GameplayManager>();
             PlayerInputHandler inputHandler = ServiceLocator.GetService<PlayerInputHandler>();
+            PlayerController playerController = ServiceLocator.GetService<PlayerController>();
 
             _questActions.Init(inventorySystem, inventoryUI, gameplayManager, ServiceLocator.GetService<RunesSystem>());
             _chestPuzzle.Init(inventorySystem, inventoryUI, progressmanager, ServiceLocator.GetService<HUD>(), inputHandler);
-            _miniGameActivator.Init(gameplayManager, inputHandler, inventoryUI);
+            _miniGameActivator.Init(gameplayManager, inputHandler, inventoryUI, playerController.GetComponent<Collider>(),
+                playerController.GetComponentInChildren<SkinnedMeshRenderer>());
+            _teleport.Init(ServiceLocator.GetService<SceneLoadManager>(), ServiceLocator.GetService<PlayerSpawner>());
         }
     }
 }

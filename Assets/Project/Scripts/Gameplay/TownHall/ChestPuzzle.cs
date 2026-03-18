@@ -36,6 +36,10 @@ namespace BigProject.Gameplay.TownHall
         [SerializeField]
         private float _brokenKeyMovingTime;
         [SerializeField]
+        private float _keysMovingTime;
+        [SerializeField]
+        private float _openChestMovingTime;
+        [SerializeField]
         private QuestActionHandlersContainer _actionHandlers;
         [SerializeField]
         private string _actionTryBrokenKeyName;
@@ -60,8 +64,13 @@ namespace BigProject.Gameplay.TownHall
         private PlayerInputHandler _inputHandler;
         private Coroutine _clueCoroutine;
 
-        private readonly Vector3 BROKEN_KEY_MOVING_OFFSET = new(0f, -1f, -0.5f);
-        private readonly Vector3 BROKEN_KEY_ROTATION_OFFSET = new(-40f, 0f, 0f);
+        private readonly Vector3 BROKEN_KEY_PART_1_MOVING_OFFSET = new(0.24f, -0.3f, 0f);
+        private readonly Vector3 BROKEN_KEY_PART_1_ROTATION_OFFSET = new(-0f, 270f, 360f);
+        private readonly Vector3 BROKEN_KEY_PART_2_MOVING_OFFSET = new(0f, -0.1f, 0f);
+        private readonly Vector3 BROKEN_KEY_PART_2_ROTATION_OFFSET = new(0f, -90f, 0f);
+        private readonly Vector3 CHEST_CUP_OPEN_ROTATION_OFFSET = new(110f, 0f, 0f);
+        private readonly Vector3 KEYS_ROTATION_OFFSET = new(180f, 0f, 0f);
+
 
         [Serializable]
         private class DataToSave
@@ -115,6 +124,8 @@ namespace BigProject.Gameplay.TownHall
             {
                 SetKeyToHolder(holderKeyPair.keyName, holderKeyPair.holderId, holderKeyPair.keyId);
             }
+
+            MoveElement(_chestCup, Vector3.zero, CHEST_CUP_OPEN_ROTATION_OFFSET, 0f);
         }
 
         public void Interact()
@@ -189,16 +200,31 @@ namespace BigProject.Gameplay.TownHall
 
         private IEnumerator RemoveBrokenKeyRoutine(Transform key)
         {
-            Vector3 newPosition = key.localPosition;
-            newPosition += BROKEN_KEY_MOVING_OFFSET;
-            Vector3 newAngles = key.localEulerAngles;
-            newAngles += BROKEN_KEY_ROTATION_OFFSET;
-            key.DOLocalRotate(newAngles, _brokenKeyMovingTime);
-            key.DOLocalMove(newPosition, _brokenKeyMovingTime);
+            Transform partOne = key.GetChild(0);
+            Transform partTwo = key.GetChild(1);
+
+            if (partOne == null || partTwo == null)
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_QUEST, "unable to get broken key part"));
+                yield break;
+            }
+
+            MoveElement(partOne, BROKEN_KEY_PART_1_MOVING_OFFSET, BROKEN_KEY_PART_1_ROTATION_OFFSET, _brokenKeyMovingTime);
+            MoveElement(partTwo, BROKEN_KEY_PART_2_MOVING_OFFSET, BROKEN_KEY_PART_2_ROTATION_OFFSET, _brokenKeyMovingTime);
             _actionHandlers[_actionTryBrokenKeyName].MakeTransition(0);
             yield return new WaitForSeconds(_brokenKeyMovingTime + 0.1f);
             Destroy(key.gameObject);
             _activator.DeactivateMiniGame();
+        }
+
+        private void MoveElement(Transform key, Vector3 positionOffset, Vector3 anglesOffset, float time)
+        {
+            Vector3 newPosition = key.localPosition;
+            Vector3 newAngles = key.localEulerAngles;
+            newPosition += positionOffset;
+            newAngles += anglesOffset;
+            key.DOLocalRotate(newAngles, time);
+            key.DOLocalMove(newPosition, time);
         }
 
         private bool SetKeyToHolder(string itemName, int keyHolderId, int keyPrefabId)
@@ -226,9 +252,9 @@ namespace BigProject.Gameplay.TownHall
             }
 
             GameObject key = Instantiate(keyPrefab, keyHolder);
-            key.transform.localPosition = new(0f, 0f, -0.5f);
-            key.transform.eulerAngles = new(0f, 90f, -90f);
-            key.transform.localScale = new(2f, 2f, 2f);
+            key.transform.localPosition = new(0f, 0.02f, 0f);
+            key.transform.localEulerAngles = new(0f, -90f, -90f);
+            key.transform.localScale = new(1.2f, 1.2f, 1.2f);
             _keys.Add(key);
             _keysIds[keyHolderId] = keyPrefabId;
             _keysNames.Add(itemName);
@@ -240,15 +266,11 @@ namespace BigProject.Gameplay.TownHall
             if (IsCorrectKeys())
             {
                 _hud.HideWidget(_hudConfig.HUDResetWidgetId);
-                Vector3 targetAngles = _chestCup.transform.localEulerAngles;
-                targetAngles.x -= 90f;
-                _chestCup.DOLocalRotate(targetAngles, 2f);
+                MoveElement(_chestCup, Vector3.zero, CHEST_CUP_OPEN_ROTATION_OFFSET, _openChestMovingTime);
 
                 foreach (GameObject key in _keys)
                 {
-                    targetAngles = key.transform.localEulerAngles;
-                    targetAngles.x += 180f;
-                    key.transform.DOLocalRotate(targetAngles, 2f);
+                    MoveElement(key.transform, Vector3.zero, KEYS_ROTATION_OFFSET, _keysMovingTime);
                 }
 
                 _inventory.RemoveItemByName(_noteItemName);

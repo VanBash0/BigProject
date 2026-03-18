@@ -10,15 +10,14 @@ namespace BigProject.Managers
     {
         MainMenu,
         Village,
-        Watermill,
         TownHall,
-        TownHall_old,
-        VillageTwoQuests
+        Watermill
     }
 
     public class SceneLoadManager : IDisposable
     {
         public event Action<Scenes> SceneLoaded;
+        public event Action SceneLoadingStarted;
         public event Action SceneLoadingCompleted;
 
         private const string FADER_PREFAB_PATH = "Prefabs/Fader";
@@ -89,6 +88,8 @@ namespace BigProject.Managers
             {
                 yield return null;
             }
+
+            SceneLoadingStarted?.Invoke();
 
             // 2. Загрузка сцены
             AsyncOperation async = SceneManager.LoadSceneAsync(sceneName);

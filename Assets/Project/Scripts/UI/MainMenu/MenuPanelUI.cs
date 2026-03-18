@@ -1,7 +1,11 @@
 using BigProject.Initializers;
 using BigProject.Managers;
+using BigProject.Settings;
 using BigProject.Systems;
+using BigProject.Utilities;
+using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.UI;
 
 namespace BigProject.UI
@@ -12,49 +16,55 @@ namespace BigProject.UI
         [SerializeField] private Button _continueButton;
         [SerializeField] private Button _settingsButton;
         [SerializeField] private Button _quitButton;
+        [SerializeField] private GlobalConfig _globalConfig;
+
+        private ProgressManager _progressManager;
+        private SceneLoadManager _sceneLoader;
+        private SavesManager _savesManager;
+
+        public void Init(ProgressManager progressManager, SceneLoadManager sceneLoader, SavesManager savesManager)
+        {
+            _progressManager = progressManager;
+            _sceneLoader = sceneLoader;
+            _savesManager = savesManager;
+            ExceptionUtilities.ThrowIfNull(_progressManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "ProgressManager"));
+            ExceptionUtilities.ThrowIfNull(_sceneLoader, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "SceneLoadManager"));
+            ExceptionUtilities.ThrowIfNull(_savesManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "SavesManager"));
+        }
+
+        private void Awake()
+        {
+            Assert.IsNotNull(_newGameButton, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "New Game Button"));
+            Assert.IsNotNull(_continueButton, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Continue Button"));
+            Assert.IsNotNull(_settingsButton, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Settings Button"));
+            Assert.IsNotNull(_quitButton, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Exit Button"));
+            Assert.IsNotNull(_globalConfig, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "GlobalConfig"));
+        }
 
         private void Start()
         {
-            if (ServiceLocator.TryGetService(out ProgressManager progressManager))
-            {
-                _continueButton.interactable = progressManager.HasSavedProgress();
-            }
+            _continueButton.interactable = _progressManager.HasSavedProgress();
         }
 
         private void OnEnable()
         {
             _newGameButton.onClick.AddListener(() =>
             {
-                //Debug.Log("Clicked New Game Button");
-                if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
-                {
-                    Bootstrapper.SetStage(GameExecutionStage.Gameplay);
-                    sceneLoader.LoadScene(Scenes.Village);
-                }
-                else
-                {
-                    string msg = string.Format(LogStr.CRITICAL_UNABLE_GET_SERVICE, gameObject.name, typeof(SceneLoadManager));
-                    Debug.LogError(msg);
-                }
+                _savesManager.DeleteSave(_globalConfig.PlayerProfileName);
+                _savesManager.DeleteSave($"{_globalConfig.PlayerProfileName}_{ProgressManager.ADDITIONAL_DATA_NAME}");
+                Bootstrapper.SetStage(GameExecutionStage.Gameplay);
+                _sceneLoader.LoadScene(Scenes.Village);
             });
 
             _continueButton.onClick.AddListener(() =>
             {
-                //Debug.Log("Clicked Continue Button");
-                if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
-                {
-                    sceneLoader.LoadScene(Scenes.Village);
-                }
-                else
-                {
-                    string msg = string.Format(LogStr.CRITICAL_UNABLE_GET_SERVICE, gameObject.name, typeof(SceneLoadManager));
-                    Debug.LogError(msg);
-                }
+                _progressManager.LoadProgress();
+                Bootstrapper.SetStage(GameExecutionStage.Gameplay);
+                _sceneLoader.LoadScene(Scenes.Village);
             });
 
             _settingsButton.onClick.AddListener(() =>
             {
-                //Debug.Log("Clicked Settings Button");
                 _mainMenuPanelManager.GetSettingsPanel().gameObject.SetActive(true);
                 _mainMenuPanelManager.GetStudioLogo().SetActive(false);
                 _mainMenuPanelManager.ToggleBlur(true);
@@ -63,7 +73,7 @@ namespace BigProject.UI
 
             _quitButton.onClick.AddListener(() =>
             {
-                Debug.Log("Clicked Quit Button");
+                Debug.Log(String.Format(LogStr.INFO_SYSTEM, "MainMenu", "clicked Quit Button"));
                 Application.Quit();
             });
         }

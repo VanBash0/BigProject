@@ -52,7 +52,7 @@ namespace BigProject.Player
             }
             else
             {
-                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "PlayerSpawner", "unable to find NavMesh point for agent"));
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "PlayerSpawner", "unable to find NavMesh point for agent"));
             }
         }
 

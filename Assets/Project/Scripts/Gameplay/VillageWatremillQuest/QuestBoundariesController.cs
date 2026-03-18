@@ -6,7 +6,7 @@ using BigProject.Systems.QuestSystem;
 
 namespace BigProject.Gameplay.VillageWatermillQuest
 {
-    public class EntryPoint : MonoBehaviour, IQuestBoundariesController
+    public class QuestBoundariesController : MonoBehaviour, IQuestBoundariesController
     {
         [SerializeField]
         private QuestActions _questActions;

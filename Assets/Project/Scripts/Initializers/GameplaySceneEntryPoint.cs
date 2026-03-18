@@ -4,6 +4,10 @@ using UnityEngine;
 using UnityEngine.Events;
 using BigProject.Systems;
 using BigProject.NPC;
+using BigProject.Gameplay.Common;
+using BigProject.Player;
+using BigProject.Intercatable.HighlightedObjects;
+using BigProject.Managers.CursorManager;
 
 namespace BigProject.Initializers
 {
@@ -25,39 +29,59 @@ namespace BigProject.Initializers
 #endif
             GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES);
             ProgressManager pm = ServiceLocator.GetService<ProgressManager>();
+            InitQuestHandlers(pm);
+            InitInteractable(pm);
+            InitDoors();
+            InitDialogueNPCs();
+            InitCursorChangingEffects();
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);
+            _initActions?.Invoke();
+        }
 
+        private void InitQuestHandlers(ProgressManager progressManager)
+        {
             QuestActionHandlerMono[] actionsHandlers = FindObjectsByType<QuestActionHandlerMono>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestActionHandlerMono actionHandler in actionsHandlers)
             {
-                actionHandler.Init(pm);
+                actionHandler.Init(progressManager);
             }
 
             QuestActionHandlersContainer[] actionHandlersContainers = FindObjectsByType<QuestActionHandlersContainer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestActionHandlersContainer container in actionHandlersContainers)
             {
-                container.Init(pm);
-            }
-
-            QuestInteractableHandler[] interactableHandlers = FindObjectsByType<QuestInteractableHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-
-            foreach (QuestInteractableHandler interactableHandler in interactableHandlers)
-            {
-                interactableHandler.Init(pm);
+                container.Init(progressManager);
             }
 
             QuestTriggerHandler[] triggersHandlers = FindObjectsByType<QuestTriggerHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestTriggerHandler triggerHandler in triggersHandlers)
             {
-                triggerHandler.Init(pm);
+                triggerHandler.Init(progressManager);
             }
+        }
 
-            InitDialogueNPCs();
+        private void InitInteractable(ProgressManager progressManager)
+        {
+            QuestInteractableHandler[] interactableHandlers = FindObjectsByType<QuestInteractableHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
-            GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);
-            _initActions?.Invoke();
+            foreach (QuestInteractableHandler interactableHandler in interactableHandlers)
+            {
+                interactableHandler.Init(progressManager);
+            }
+        }
+
+        private void InitDoors()
+        {
+            MovingNextSceneHandler[] movingHandlers = FindObjectsByType<MovingNextSceneHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            SceneLoadManager sceneLoader = ServiceLocator.GetService<SceneLoadManager>();
+            PlayerSpawner playerSpawner = ServiceLocator.GetService<PlayerSpawner>();
+
+            foreach (MovingNextSceneHandler movingHandler in movingHandlers)
+            {
+                movingHandler.Init(sceneLoader, playerSpawner);
+            }
         }
 
         private void InitDialogueNPCs()
@@ -68,6 +92,17 @@ namespace BigProject.Initializers
             foreach (DialogNPC dialogueNPC in dialogueNPCs)
             {
                 dialogueNPC.Init(dialogueManager);
+            }
+        }
+
+        private void InitCursorChangingEffects()
+        {
+            CursorChangingEffect[] cursorChangingEffects = FindObjectsByType<CursorChangingEffect>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            CursorManager cursorManager = ServiceLocator.GetService<CursorManager>();
+
+            foreach (CursorChangingEffect cursorChangingEffect in cursorChangingEffects)
+            {
+                cursorChangingEffect.Init(cursorManager);
             }
         }
     }

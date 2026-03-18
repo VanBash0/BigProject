@@ -20,13 +20,16 @@ namespace BigProject.Gameplay.Church
             Assert.IsNotNull(_miniGameActivator, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Mini Game Activator"));
             Assert.IsNotNull(_bellsPuzzle, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Bells Puzzle"));
         }
+
         public void Init()
         {
             PlayerInputHandler inputHandler = ServiceLocator.GetService<PlayerInputHandler>();
             GameplayManager gameplayManager = ServiceLocator.GetService<GameplayManager>();
             InventoryUI inventoryUI = ServiceLocator.GetService<InventoryUI>();
+            PlayerController player = ServiceLocator.GetService<PlayerController>();
 
-            _miniGameActivator.Init(gameplayManager, inputHandler, inventoryUI);
+            _miniGameActivator.Init(gameplayManager, inputHandler, inventoryUI, player.GetComponent<Collider>(), 
+                player.GetComponentInChildren<SkinnedMeshRenderer>());
             _bellsPuzzle.Init(inputHandler, _miniGameActivator);
         }
     }

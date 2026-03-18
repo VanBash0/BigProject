@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
+using BigProject.Managers.CursorManager;
+using BigProject.Intercatable.HighlightedObjects;
 
 namespace BigProject.Initializers
 {
@@ -46,6 +48,8 @@ namespace BigProject.Initializers
         private QuestTrackerConfig _questTrackerConfig;
         [SerializeField]
         private PlayerController _playerControllerPrefab;
+        [SerializeField]
+        private GameObject _cursorManagerPrefab;
 
         [field: SerializeField]
         public Scenes _sceneToLoad; // For feature load progress
@@ -130,6 +134,7 @@ namespace BigProject.Initializers
             _questJournal.Init();
             AddQuestsSwitches(progressManager);
             CreatePlayer();
+            CreateCursorManager();
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES_COMPLETED);
         }
 
@@ -224,9 +229,32 @@ namespace BigProject.Initializers
             ServiceLocator.AddService(_playerSpawner);
 
             // For case when run from gameplay scene.
-            if (!SceneManager.GetActiveScene().name.Equals(Scenes.MainMenu))
+            if (!string.Equals(Scenes.MainMenu.ToString(), SceneManager.GetActiveScene().name))
             {
                 _playerSpawner.PositionPlayer(0);
+            }
+        }
+
+        private void CreateCursorManager()
+        {
+            GameObject cursorManagerObject = Instantiate(_cursorManagerPrefab, transform.parent);
+            CursorManager cursorManager = cursorManagerObject.GetComponent<CursorManager>();
+            ServiceLocator.AddService(cursorManager);
+            InteractableObjectsHighlighter highlighter = cursorManagerObject.GetComponent<InteractableObjectsHighlighter>();
+
+            if (highlighter == null)
+            {
+                Debug.LogWarning(String.Format(LogStr.ERROR_SYSTEM, "GameplayEntryPoint", "CursorManager has no highlighter"));
+                return;
+            }
+
+            highlighter.Init(ServiceLocator.GetService<SceneLoadManager>(), cursorManager);
+            cursorManagerObject.SetActive(true);
+
+            // For case when run from gameplay scene.
+            if (!string.Equals(Scenes.MainMenu.ToString(), SceneManager.GetActiveScene().name))
+            {
+                highlighter.RestartChecking();
             }
         }
 
@@ -252,6 +280,10 @@ namespace BigProject.Initializers
             ServiceLocator.ReleaseService<GameplayManager>();
             ServiceLocator.ReleaseService<DialogueManager>();
             ServiceLocator.ReleaseService<ReplicaManager>();
+            ServiceLocator.ReleaseService<PlayerController>();
+            ServiceLocator.ReleaseService<CursorManager>();
+            ServiceLocator.ReleaseService<PlayerSpawner>();
+            ServiceLocator.ReleaseService<QuestsBoundariesTracker>();
 
             foreach (QuestSwitch questSwitch in _questsSwitches)
             {
@@ -261,6 +293,7 @@ namespace BigProject.Initializers
 
             _questsTracker?.Dispose();
             _playerSpawner?.Dispose();
+            Destroy(transform.parent.gameObject);
         }
     }
 }

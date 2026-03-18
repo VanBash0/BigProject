@@ -20,7 +20,7 @@ namespace BigProject.Managers
         private SavesManager _savesManager;
         private Dictionary<int, IQuest> _quests;
 
-        private const string ADDITIONAL_DATA_NAME = "additional_data";
+        public const string ADDITIONAL_DATA_NAME = "additional_data";
         private readonly string _additionalDataFullName;
         private Dictionary<string, bool> _additionalRelevance = new();
 

@@ -11,7 +11,7 @@ using UnityEngine.Assertions;
 
 namespace BigProject.Gameplay.VillageElderQuest
 {
-    public class EntryPoint : MonoBehaviour, IQuestBoundariesController
+    public class QuestBoundariesController : MonoBehaviour, IQuestBoundariesController
     {
         [SerializeField]
         private QuestActions _questActions;
@@ -19,8 +19,6 @@ namespace BigProject.Gameplay.VillageElderQuest
         private Collider _watermillDoor;
         [SerializeField]
         private AmbassadorDialogueManager _ambassadorDialogueManager;
-        [SerializeField]
-        private PlayerController _player;
         [SerializeField]
         private GameObject _questTownhallObjects;
 
@@ -39,7 +37,7 @@ namespace BigProject.Gameplay.VillageElderQuest
         {
             _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(), ServiceLocator.GetService<GameplayManager>());
             _questTownhallObjects.SetActive(true);
-            _ambassadorDialogueManager.Init(_player, ServiceLocator.GetService<DialogueManager>());
+            _ambassadorDialogueManager.Init(ServiceLocator.GetService<PlayerController>(), ServiceLocator.GetService<DialogueManager>());
             _watermillDoor.enabled = false;
         }
 
