@@ -35,9 +35,10 @@ namespace BigProject.Gameplay.VillageElderQuest
 
         public void InitOnSceneEntry()
         {
-            _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(), ServiceLocator.GetService<GameplayManager>());
+            GameplayManager gameplayManager = ServiceLocator.GetService<GameplayManager>();
+            _questActions.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(), gameplayManager);
             _questTownhallObjects.SetActive(true);
-            _ambassadorDialogueManager.Init(ServiceLocator.GetService<PlayerController>(), ServiceLocator.GetService<DialogueManager>());
+            _ambassadorDialogueManager.Init(ServiceLocator.GetService<PlayerController>(), ServiceLocator.GetService<DialogueManager>(), gameplayManager);
             _watermillDoor.enabled = false;
         }
 
