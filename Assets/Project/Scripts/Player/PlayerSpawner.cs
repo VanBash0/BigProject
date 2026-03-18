@@ -15,6 +15,7 @@ namespace BigProject.Player
 
         private const float MAX_DISTANCE_TO_NAV_MESH = 100f;
         private readonly Vector3 DEFAULT_POSITION = Vector3.zero;
+        private readonly Vector3 DEFAULT_ANGLES = Vector3.zero;
 
         public PlayerSpawner(SceneLoadManager sceneLoader, NavMeshAgent agent)
         {
@@ -37,18 +38,27 @@ namespace BigProject.Player
         public void PositionPlayer(int spawnPointId)
         {
             SpawnPointsHandler spawnPointsHandler = GameObject.FindFirstObjectByType<SpawnPointsHandler>();
+            Transform spawnTransform;
             Vector3 spawnPosition;
+            Vector3 spawnAngles = Vector3.zero;
 
-            if (spawnPointsHandler == null || !spawnPointsHandler.TryGetSpawnPosition(spawnPointId, out spawnPosition))
+            if (spawnPointsHandler != null && spawnPointsHandler.TryGetSpawnTransform(spawnPointId, out spawnTransform))
             {
-                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "PlayerSpawner", $"unable to get spawn position {spawnPointId}, move Player to default position"));
+                spawnPosition = spawnTransform.position;
+                spawnAngles = spawnTransform.localEulerAngles;
+            }
+            else
+            {
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "PlayerSpawner", $"unable to get spawn transform {spawnPointId}, move Player to default position"));
                 spawnPosition = DEFAULT_POSITION;
+                spawnAngles = DEFAULT_ANGLES;
             }
 
             if (NavMesh.SamplePosition(spawnPosition, out NavMeshHit hit, MAX_DISTANCE_TO_NAV_MESH, NavMesh.AllAreas))
             {
                 Debug.Log(String.Format(LogStr.INFO_SYSTEM, "PlayerSpawner", $"move player to spawn position {hit.position},"));
                 _agent.Warp(hit.position);
+                _agent.transform.localEulerAngles = spawnAngles;
             }
             else
             {

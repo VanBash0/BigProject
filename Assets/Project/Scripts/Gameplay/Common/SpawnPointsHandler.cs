@@ -10,12 +10,10 @@ namespace BigProject.Gameplay.Common
         [SerializeField]
         private List<Transform> _points;
 
-        public bool TryGetSpawnPosition(int pointId, out Vector3 position)
+        public bool TryGetSpawnTransform(int pointId, out Transform spawnTransform)
         {
-            Transform spawnTranform = _points.ElementAtOrDefault(pointId);
-            bool isFound = spawnTranform != null;
-            position = isFound ? spawnTranform.position : Vector3.zero;
-            return isFound;
+            spawnTransform = _points.ElementAtOrDefault(pointId);
+            return spawnTransform != null;
         }
     }
 }
