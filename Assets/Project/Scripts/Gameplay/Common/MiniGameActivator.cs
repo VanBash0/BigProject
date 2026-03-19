@@ -21,14 +21,12 @@ namespace BigProject.Gameplay.Common
         [SerializeField]
         private float _exitTime = 0.5f;
         [SerializeField]
-        private SkinnedMeshRenderer _playerRenderer;
-        [SerializeField]
-        private Collider _playerCollider;
-        [SerializeField]
         private Collider _gameCollider;
         [SerializeField]
         private float _playerDisableFactor = 0.85f;
 
+        private SkinnedMeshRenderer _playerRenderer;
+        private Collider _playerCollider;
         private GameplayManager _gameplayManager;
         private InventoryUI _inventoryUI;
         private PlayerInputHandler _inputHandler;
@@ -36,22 +34,25 @@ namespace BigProject.Gameplay.Common
         public bool IsActivated { get; private set; }
         public event Action<bool> Activated;
 
-        public void Init(GameplayManager gameplayManager, PlayerInputHandler inputHandler, InventoryUI inventoryUI)
+        public void Init(GameplayManager gameplayManager, PlayerInputHandler inputHandler, InventoryUI inventoryUI,
+            Collider playerCollider, SkinnedMeshRenderer playerRenderer)
         {
             _gameplayManager = gameplayManager;
             _inventoryUI = inventoryUI;
             _inputHandler = inputHandler;
+            _playerCollider = playerCollider;
+            _playerRenderer = playerRenderer;
             ExceptionUtilities.ThrowIfNull(_gameplayManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Gameplay Manager"));
             ExceptionUtilities.ThrowIfNull(_inputHandler, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
             ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Inventory UI"));
+            ExceptionUtilities.ThrowIfNull(_playerCollider, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Collider"));
+            ExceptionUtilities.ThrowIfNull(_playerRenderer, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Renderer"));
         }
 
         private void Awake()
         {
             Assert.IsNotNull(_gameCollider, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Collider"));
             Assert.IsNotNull(_gameCamera, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Cinemachine Camera"));
-            Assert.IsNotNull(_playerRenderer, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Player Mesh renderer"));
-            Assert.IsNotNull(_playerCollider, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Player Collider"));
         }
 
         private void OnEnable()

@@ -18,5 +18,10 @@ namespace BigProject.Systems.Inventory.ItemsModifiers
         public Vector2 ItemUV {  get; private set; }
         [field: SerializeField]
         public Vector2 NoteUV { get; private set; }
+        [field: SerializeField]
+        public float ItemScale { get; private set; } = 1f;
+        [field: SerializeField]
+        public float NoteScale { get; private set; } = 1f;
+
     }
 }

@@ -55,7 +55,7 @@ namespace BigProject.Systems.HUD
             {
                 if (!_pm.AddQuestListener(questTriggers.QuestId, OnQuestStateChanged))
                 {
-                    Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"Journal unable to subscribe on quest {questTriggers.QuestId}"));
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "QuestJournal", $"unable to subscribe on quest {questTriggers.QuestId}"));
                     continue;
                 }
 
@@ -71,13 +71,13 @@ namespace BigProject.Systems.HUD
         {
             if (questTriggers == null)
             {
-                Debug.LogError(String.Format(LogStr.ERROR_QUEST, "journal unable to get triggers"));
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "QuestJournal", "unable to get triggers"));
                 return;
             }
 
             _hasActiveQuest = true;
             _currentQuestId = questTriggers.QuestId;
-            GameLogManager.Info(String.Format(LogStr.INFO_QUEST, $"start record quest {_currentQuestId} tasks to journal"));
+            GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "QuestJournal", $"start record quest {_currentQuestId} tasks"));
 
             foreach (QuestJournalTriggers.JournalTrigger questTrigger in questTriggers.Triggers)
             {
@@ -99,7 +99,7 @@ namespace BigProject.Systems.HUD
                 }
                 else
                 {
-                    Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"journal unable to get action {questTrigger.ActionId} of quest {_currentQuestId}"));
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "QuestJournal", $"unable to get action {questTrigger.ActionId} of quest {_currentQuestId}"));
                 }
             }
 
@@ -129,17 +129,18 @@ namespace BigProject.Systems.HUD
 
         private void OnQuestStateChanged(IQuest quest)
         {
-            if (_hasActiveQuest)
+            if (_currentQuestId == quest.ID)
             {
-                if (_currentQuestId == quest.ID && quest.CurrentState > QuestState.Active)
+                if (quest.CurrentState > QuestState.Active)
                 {
                     FinishCurrentQuest();
                 }
             }
             else if (quest.CurrentState == QuestState.Active)
             {
-                StartQuestRecord(_config.GetQuestJournalTriggers(_currentQuestId));
-            }    
+                FinishCurrentQuest();
+                StartQuestRecord(_config.GetQuestJournalTriggers(quest.ID));
+            }   
         }
 
         private void FinishCurrentQuest()

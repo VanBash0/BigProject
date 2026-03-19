@@ -2,7 +2,6 @@ using BigProject.Managers;
 using BigProject.Player;
 using BigProject.Settings;
 using BigProject.Systems;
-using BigProject.Systems.DialogueSystem;
 using BigProject.Systems.HUD;
 using BigProject.Systems.Inventory;
 using BigProject.Systems.Inventory.ItemsModifiers;
@@ -14,6 +13,13 @@ using BigProject.Utilities;
 using System;
 using UnityEngine;
 using UnityEngine.Assertions;
+using BigProject.Systems.QuestSystem;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.AI;
+using UnityEngine.SceneManagement;
+using BigProject.Managers.CursorManager;
+using BigProject.Intercatable.HighlightedObjects;
 
 namespace BigProject.Initializers
 {
@@ -36,6 +42,14 @@ namespace BigProject.Initializers
         private GameObject _dialogueView;
         [SerializeField]
         private GameObject _replicaView;
+        [SerializeField]
+        private QuestSwitchConfig _questSwitchConfig;
+        [SerializeField]
+        private QuestTrackerConfig _questTrackerConfig;
+        [SerializeField]
+        private PlayerController _playerControllerPrefab;
+        [SerializeField]
+        private GameObject _cursorManagerPrefab;
 
         [field: SerializeField]
         public Scenes _sceneToLoad; // For feature load progress
@@ -54,6 +68,9 @@ namespace BigProject.Initializers
         private GameplayStatesHandler _statesHandler;
         private DialogueManager _dialogueManager;
         private ReplicaManager _replicaManager;
+        private List<QuestSwitch> _questsSwitches = new();
+        private QuestsBoundariesTracker _questsTracker;
+        private PlayerSpawner _playerSpawner;
 
         private static bool _isInstantiated;
 
@@ -77,6 +94,8 @@ namespace BigProject.Initializers
             Assert.IsNotNull(_itemsDatabase, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Items Database"));
             Assert.IsNotNull(_hudPrefab, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "HUD Prefab"));
             Assert.IsNotNull(_journalConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Journal Config"));
+            Assert.IsNotNull(_questSwitchConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "QuestSwitchConfig"));
+            Assert.IsNotNull(_questTrackerConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "QuestTrackerConfig"));
 
             GameObject gameplayServices = new GameObject("GameplayServices");
             transform.parent = gameplayServices.transform; // For dispose after gameplay exit
@@ -93,10 +112,10 @@ namespace BigProject.Initializers
             _hud = new();
             _playerInput = new();
             _questJournal = new QuestJournal(progressManager, _journalConfig);
-            _questJournal.Init();
             _runesSystem = new();
             GameplayManager gameplayManager = new(ServiceLocator.GetService<ManualLoop>());
             _statesHandler = new(_hudConfig, gameplayManager, _playerInput, _hud);
+            _questsTracker = new(progressManager, _questTrackerConfig.QuestsIds.ToList());
 
             InitDialogue();
             InitReplica();
@@ -109,8 +128,13 @@ namespace BigProject.Initializers
             ServiceLocator.AddService(_dialogueManager);
             ServiceLocator.AddService(_replicaManager);
             ServiceLocator.AddService(gameplayManager);
+            ServiceLocator.AddService(_questsTracker);
 
             InitHUD();
+            _questJournal.Init();
+            AddQuestsSwitches(progressManager);
+            CreatePlayer();
+            CreateCursorManager();
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES_COMPLETED);
         }
 
@@ -137,6 +161,7 @@ namespace BigProject.Initializers
             _runeUI = _hudObj.GetComponentInChildren<RunePanelUI>();
             _inventoryUI = _hudObj.GetComponentInChildren<InventoryUI>();
             CancelUI cancelUI = _hudObj.GetComponentInChildren<CancelUI>();
+            ResetUI resetUI = _hudObj.GetComponentInChildren<ResetUI>();
             ServiceLocator.AddService(_inventoryUI);
 
             DontDestroyOnLoad(_hudObj);
@@ -149,13 +174,88 @@ namespace BigProject.Initializers
             _hud.AddWidget(_hudConfig.HUDJournalWidgetId, _journalView);
             _hud.AddWidget(_hudConfig.HUDRunesWidgetId, _runeUI);
             _hud.AddWidget(_hudConfig.HUDCancelWidgetId, cancelUI);
+            _hud.AddWidget(_hudConfig.HUDResetWidgetId, resetUI);
             _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
             _hud.HideWidget(_hudConfig.HUDJournalWidgetId);
             _hud.HideWidget(_hudConfig.HUDCancelWidgetId);
-            _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
+            _hud.HideWidget(_hudConfig.HUDResetWidgetId);
             _hud.ShowWidget(_hudConfig.HUDInventoryWidgetId, 2f);
             _hud.ShowWidget(_hudConfig.HUDJournalWidgetId, 2f);
             GameLogManager.Info(LogStr.INFO_INITIALIZING_HUD_COMPLETED);
+        }
+
+        private void AddQuestsSwitches(ProgressManager progressManager)
+        {
+            foreach (QuestSwitchConfig.Condition switchCondition in _questSwitchConfig)
+            {
+                if (!progressManager.TryGetQuestActionHandler(switchCondition.QuestId, switchCondition.InitActionId, out IQuestActionHandler initActionHandler))
+                {
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "GameplayEntryPoint", "Unable to find init action for QuestSwitch"));
+                    continue;
+                }
+
+                if (!progressManager.TryGetQuestActionHandler(switchCondition.TrackableQuestId, switchCondition.TrackableQuestActionId, 
+                    out IQuestActionHandler trackableActionHandler))
+                {
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "GameplayEntryPoint", "Unable to find trackable action for QuestSwitch"));
+                    continue;
+                }
+
+                QuestSwitch questSwitch = new(initActionHandler.Quest, trackableActionHandler.Quest, switchCondition.InitActionId, switchCondition.InitActionState);
+                questSwitch.QuestSwitched += OnQuestSwitched;
+                _questsSwitches.Add(questSwitch);
+            }
+        }
+
+        private void OnQuestSwitched(QuestSwitch questSwitch)
+        {
+            questSwitch.QuestSwitched -= OnQuestSwitched;
+
+            if (_questsSwitches.Remove(questSwitch))
+            {
+                questSwitch.Dispose();
+            }
+        }
+
+        private void CreatePlayer()
+        {
+            PlayerController playerController = Instantiate(_playerControllerPrefab);
+            SceneLoadManager sceneLoader = ServiceLocator.GetService<SceneLoadManager>();
+            playerController.Init(_playerInput, sceneLoader);
+            playerController.transform.parent = transform.parent;
+            ServiceLocator.AddService(playerController);
+            playerController.gameObject.SetActive(true);
+            _playerSpawner = new(sceneLoader, playerController.GetComponent<NavMeshAgent>());
+            ServiceLocator.AddService(_playerSpawner);
+
+            // For case when run from gameplay scene.
+            if (!string.Equals(Scenes.MainMenu.ToString(), SceneManager.GetActiveScene().name))
+            {
+                _playerSpawner.PositionPlayer(0);
+            }
+        }
+
+        private void CreateCursorManager()
+        {
+            GameObject cursorManagerObject = Instantiate(_cursorManagerPrefab, transform.parent);
+            CursorManager cursorManager = cursorManagerObject.GetComponent<CursorManager>();
+            ServiceLocator.AddService(cursorManager);
+            InteractableObjectsHighlighter highlighter = cursorManagerObject.GetComponent<InteractableObjectsHighlighter>();
+
+            if (highlighter == null)
+            {
+                Debug.LogWarning(String.Format(LogStr.ERROR_SYSTEM, "GameplayEntryPoint", "CursorManager has no highlighter"));
+                return;
+            }
+
+            highlighter.Init(ServiceLocator.GetService<SceneLoadManager>(), cursorManager);
+            cursorManagerObject.SetActive(true);
+
+            // For case when run from gameplay scene.
+            if (!string.Equals(Scenes.MainMenu.ToString(), SceneManager.GetActiveScene().name))
+            {
+                highlighter.RestartChecking();
+            }
         }
 
         public void OnDestroy()
@@ -180,6 +280,20 @@ namespace BigProject.Initializers
             ServiceLocator.ReleaseService<GameplayManager>();
             ServiceLocator.ReleaseService<DialogueManager>();
             ServiceLocator.ReleaseService<ReplicaManager>();
+            ServiceLocator.ReleaseService<PlayerController>();
+            ServiceLocator.ReleaseService<CursorManager>();
+            ServiceLocator.ReleaseService<PlayerSpawner>();
+            ServiceLocator.ReleaseService<QuestsBoundariesTracker>();
+
+            foreach (QuestSwitch questSwitch in _questsSwitches)
+            {
+                questSwitch.QuestSwitched -= OnQuestSwitched;
+                questSwitch.Dispose();
+            }
+
+            _questsTracker?.Dispose();
+            _playerSpawner?.Dispose();
+            Destroy(transform.parent.gameObject);
         }
     }
 }

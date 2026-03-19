@@ -8,20 +8,17 @@ namespace BigProject.Managers
 {
     public enum Scenes
     {
-        MainScene,
-        SceneLoaderManager_test_1,
-        SceneLoaderManager_test_2,
-        Village,
-        Watermill,
-        WatermillScene,
-        VillageMainScene,
         MainMenu,
-        TownHall
+        Village,
+        TownHall,
+        Watermill
     }
 
     public class SceneLoadManager : IDisposable
     {
         public event Action<Scenes> SceneLoaded;
+        public event Action SceneLoadingStarted;
+        public event Action SceneLoadingCompleted;
 
         private const string FADER_PREFAB_PATH = "Prefabs/Fader";
 
@@ -53,12 +50,30 @@ namespace BigProject.Managers
             string currentSceneName = SceneManager.GetActiveScene().name;
             string newSceneName = scene.ToString();
 
+            if (IsSceneInBuild(newSceneName))
+            {
+                GameLogManager.Warning(string.Format(LogStr.WARNING_SCENE_NOT_FOUND, newSceneName));
+            }
+
             if (currentSceneName == newSceneName)
             {
                 GameLogManager.Warning(LogStr.WARNING_SAME_SCENE);
             }
 
             _coroutineStarter.StartCoroutine(LoadSceneRoutine(scene, newSceneName));
+        }
+
+        private bool IsSceneInBuild(string sceneName)
+        {
+            for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+            {
+                string scenePath = SceneUtility.GetScenePathByBuildIndex(i);
+                string name = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+                if (name == sceneName)
+                    return true;
+            }
+            return false;
         }
 
         private IEnumerator LoadSceneRoutine(Scenes scene, string sceneName)
@@ -74,9 +89,12 @@ namespace BigProject.Managers
                 yield return null;
             }
 
+            SceneLoadingStarted?.Invoke();
+
             // 2. Загрузка сцены
-            var async = SceneManager.LoadSceneAsync(sceneName);
+            AsyncOperation async = SceneManager.LoadSceneAsync(sceneName);
             async.allowSceneActivation = false;
+            async.completed += NotifyLoadingCompleted;
 
             while (async.progress < 0.9f)
             {
@@ -99,6 +117,15 @@ namespace BigProject.Managers
             }
 
             _isLoading = false;
+        }
+
+        /// <summary>
+        /// Notify when old scene unloaded and new one is loaded.
+        /// </summary>
+        private void NotifyLoadingCompleted(AsyncOperation loading)
+        {
+            SceneLoadingCompleted?.Invoke();
+            loading.completed -= NotifyLoadingCompleted;
         }
         
         public void Dispose()

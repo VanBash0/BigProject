@@ -1,10 +1,14 @@
 using BigProject.Gameplay.Common;
 using BigProject.Managers;
 using BigProject.Player;
+using BigProject.Settings;
 using BigProject.Systems;
+using BigProject.Systems.HUD;
 using BigProject.Systems.Inventory;
 using BigProject.UI;
+using BigProject.Utilities;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Assertions;
 
 namespace BigProject.Gameplay.TownHall
@@ -14,27 +18,44 @@ namespace BigProject.Gameplay.TownHall
         [SerializeField]
         private QuestActions _questActions;
         [SerializeField]
-        private ItemsDatabaseSO _itemsDB;
-        [SerializeField]
         private ChestPuzzle _chestPuzzle;
         [SerializeField]
         private MiniGameActivator _miniGameActivator;
+        [SerializeField]
+        private GameObject _townhallQuestObject;
+        [SerializeField]
+        private int _townhallQuestId;
+        [SerializeField]
+        private TeleportHandler _teleport;
 
         private void Awake()
         {
             Assert.IsNotNull(_questActions, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Quest Actions"));
-            Assert.IsNotNull(_itemsDB, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Items Database"));
             Assert.IsNotNull(_chestPuzzle, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Chest Puzzle"));
             Assert.IsNotNull(_miniGameActivator, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Mini Game Activator"));
+            Assert.IsNotNull(_townhallQuestObject, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Quest objects"));
         }
 
         public void Init()
         {
-            _questActions.Init(ServiceLocator.GetService<InventorySystem>(), _itemsDB);
-            _chestPuzzle.Init(ServiceLocator.GetService<InventorySystem>(), ServiceLocator.GetService<InventoryUI>(),
-                ServiceLocator.GetService<ProgressManager>());
-            _miniGameActivator.Init(ServiceLocator.GetService<GameplayManager>(), ServiceLocator.GetService<PlayerInputHandler>(),
-                ServiceLocator.GetService<InventoryUI>());
+            ProgressManager progressmanager = ServiceLocator.GetService<ProgressManager>();
+
+            if (progressmanager.GetQuestState(_townhallQuestId) == Systems.QuestSystem.QuestState.Active)
+            {
+                _townhallQuestObject.SetActive(true);
+            }
+
+            InventorySystem inventorySystem = ServiceLocator.GetService<InventorySystem>();
+            InventoryUI inventoryUI = ServiceLocator.GetService<InventoryUI>();
+            GameplayManager gameplayManager = ServiceLocator.GetService<GameplayManager>();
+            PlayerInputHandler inputHandler = ServiceLocator.GetService<PlayerInputHandler>();
+            PlayerController playerController = ServiceLocator.GetService<PlayerController>();
+
+            _questActions.Init(inventorySystem, inventoryUI, gameplayManager, ServiceLocator.GetService<RunesSystem>());
+            _chestPuzzle.Init(inventorySystem, inventoryUI, progressmanager, ServiceLocator.GetService<HUD>(), inputHandler);
+            _miniGameActivator.Init(gameplayManager, inputHandler, inventoryUI, playerController.GetComponent<Collider>(),
+                playerController.GetComponentInChildren<SkinnedMeshRenderer>());
+            _teleport.Init(ServiceLocator.GetService<SceneLoadManager>(), ServiceLocator.GetService<PlayerSpawner>());
         }
     }
 }

@@ -1,9 +1,14 @@
 {
     "id":2,
     "name":"Quest2_mill",
-    "currentState":1,
+    "currentState":0,
     "actions":
     [
+        {
+            "id":1000,
+            "name":"StartQuest",
+            "currentState":1
+        },
         {
             "id":0,
             "name":"FirstTalkMiller",
@@ -20,7 +25,7 @@
         {
             "id":1,
             "name":"GetMechSketch",
-            "currentState":2,
+            "currentState":1,
             "conditions":
             [
                 {
@@ -338,6 +343,14 @@
                     ]
                 }
             ]
+        }
+    ],
+    "questStates":
+    [
+        {
+            "state":1,
+            "actionId":1000,
+            "actionState":5
         }
     ]
 }

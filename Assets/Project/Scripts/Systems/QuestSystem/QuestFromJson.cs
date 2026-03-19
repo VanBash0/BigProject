@@ -1,11 +1,8 @@
 using BigProject.Managers;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEngine;
-using UnityEngine.UIElements.Experimental;
 
 namespace BigProject.Systems.QuestSystem
 {
@@ -23,9 +20,9 @@ namespace BigProject.Systems.QuestSystem
         [SerializeField]
         private QuestState currentState;
         [SerializeField]
-        List<Action> actions;
+        private List<Action> actions;
         [SerializeField]
-        List<QuestCondition> questStates;
+        private List<QuestCondition> questStates;
 
         private Dictionary<int, Action> _actionsDict;
         private Dictionary<int, QuestActionState> _lastChangedActions = new();
@@ -139,38 +136,38 @@ namespace BigProject.Systems.QuestSystem
         public bool ManualTransition(int actionId, QuestActionState newState, bool forced = false)
         {
             // Can transit only in active quest.
-            if (CurrentState != QuestState.Active)
+            if (CurrentState != QuestState.Active && !forced)
             {
-                Debug.LogWarning($"Quest [{Name}] in state [{CurrentState}], but you try to access it.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "Quest", $"[{Name}] in state [{CurrentState}], but you try to access it."));
                 return false;
             }
             
-            if (!_actionsDict.TryGetValue(actionId, out var targetAction))
+            if (!_actionsDict.TryGetValue(actionId, out Action targetAction))
             {
-                Debug.LogError($"Action [{actionId}] not found in quest [{name}].");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "Quest", $"action [{actionId}] not found in quest [{name}]."));
                 return false;
             }
 
             if (targetAction.currentState == newState)
             {
-                Debug.LogWarning($"Action [{actionId}] in quest [{name}] already in state [{newState}].");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "Quest", $"action [{actionId}] in quest [{name}] already in state [{newState}]"));
                 return false;
             }
 
             if (newState == QuestActionState.Undefined)
             {
-                Debug.LogWarning($"Action [{actionId}] in quest [{name}] can't be in undefined state. Transition will be ignored.");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "Quest", $"action [{actionId}] in quest [{name}] can't be in undefined state. Transition will be ignored"));
                 return false;
             }
 
             if (forced)
             {
-                Debug.LogWarning($"Quest [{name}], make forced transition of Action [{actionId}], new state [{newState}].");
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "Quest", $"[{name}], make forced transition of Action [{actionId}], new state [{newState}]"));
                 MakeTransition(targetAction, new() { toState = newState });
                 return true;
             }
 
-            foreach (var transition in targetAction.manualTransitions)
+            foreach (ManualActionTransition transition in targetAction.manualTransitions)
             {
                 // If a manual transition is allowed.
                 // A possible transition from Undefined is taken into account (in this case, any current state of the activity is considered suitable).
@@ -181,7 +178,7 @@ namespace BigProject.Systems.QuestSystem
                 }
             }
 
-            Debug.LogError($"Quest [{Name}] has no manual transitions to Action [{actionId}] state [{newState}].");
+            Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "Quest", $"[{Name}] has no manual transitions to Action [{actionId}] state [{newState}]"));
             return false;
         }
 
@@ -215,12 +212,12 @@ namespace BigProject.Systems.QuestSystem
 
             if (!_actionsDict.ContainsKey(actionId))
             {
-                Debug.LogError($"Quest [{Name}] unable to set action [{actionId}] handler: id not found.");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "Quest", $"[{Name}] unable to set action [{actionId}] handler, id not found"));
                 actionHandler = null;
                 return false;
             }
 
-            var targetAction = _actionsDict[actionId];
+            Action targetAction = _actionsDict[actionId];
             // Get all manual transitions.
             var transitions = targetAction.manualTransitions.ToDictionary(x => x.id, x => (x.fromState, x.toState));
             actionHandler = new QuestActionHandler(this, actionId, targetAction.name, targetAction.currentState, transitions);
@@ -287,10 +284,10 @@ namespace BigProject.Systems.QuestSystem
         // Sends notifications about changed status.
         private void SendToActionHandlers()
         {
-            foreach (var actionHandler in _actionHandlers)
+            foreach (KeyValuePair<int, QuestActionHandler> actionHandler in _actionHandlers)
             {
                 // Notify only changed activities.
-                if (_lastChangedActions.TryGetValue(actionHandler.Key, out var newState))
+                if (_lastChangedActions.TryGetValue(actionHandler.Key, out QuestActionState newState))
                 {
                     actionHandler.Value.OnStateChanged(newState);
                 }
@@ -308,11 +305,11 @@ namespace BigProject.Systems.QuestSystem
         // Check initial actions states.
         private void InitialActionsCheck()
         {
-            foreach (var action in _actionsDict.Values)
+            foreach (Action action in _actionsDict.Values)
             {
                 if (action.currentState == QuestActionState.Undefined)
                 {
-                    Debug.LogError($"Quest [{Name}] has action [{action.name}] in undefined state.");
+                    Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "Quest", $"[{Name}] has action [{action.name}] in undefined state"));
                     return;
                 }
                 else if (action.type == QuestActionType.FireproofResult)
@@ -333,9 +330,9 @@ namespace BigProject.Systems.QuestSystem
 
             do
             {
-                foreach (var action in _actionsDict.Values)
+                foreach (Action action in _actionsDict.Values)
                 {
-                    var startState = action.currentState;
+                    QuestActionState startState = action.currentState;
                     ResetAction(action);
                     actionsChanged = (startState != action.currentState);
 
@@ -361,6 +358,8 @@ namespace BigProject.Systems.QuestSystem
             {
                 _lastChangedActions.Add(action.id, action.currentState);
             }
+
+            GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "Quest", $"action \"{action.name}\" change state to {action.currentState}"));
         }
 
         /// <summary>
@@ -466,7 +465,7 @@ namespace BigProject.Systems.QuestSystem
         private bool IsConditionMet(ActionCondition condition)
         {
             // We go through all the sets of dependencies - there is actually an OR connection between them
-            foreach (var dependencyPack in condition.dependencyPacks)
+            foreach (ActionCondition.DependencyPack dependencyPack in condition.dependencyPacks)
             {
                 // If at least one of the sets is fulfilled, the conditions are met.
                 if (IsDependenciesSatisfied(dependencyPack.dependencies))
@@ -486,7 +485,7 @@ namespace BigProject.Systems.QuestSystem
                 // Find the influencing action.
                 if (!_actionsDict.TryGetValue(dependency.id, out Action influenceAction))
                 {
-                    Debug.LogWarning($"Quest [{name}]. Unable to find influence Action with id [{dependency.id}]. Skip condition.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "Quest", $"[{name}] unable to find influence Action with id [{dependency.id}]. Skip condition"));
                     continue;
                 }
 
@@ -515,14 +514,14 @@ namespace BigProject.Systems.QuestSystem
 
                 if (!_actionsDict.TryGetValue(questState.actionId, out Action influenceAction))
                 {
-                    Debug.LogWarning($"Quest [{name}] unable to find Action [{questState.actionId}] while changing quest global state.");
+                    Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "Quest", $"[{name}] unable to find Action [{questState.actionId}] while changing quest global state"));
                     continue;
                 }
 
                 if (influenceAction.currentState == questState.actionState)
                 {
                     CurrentState = questState.state;
-                    Debug.Log($"Quest change global state to [(questState.state)]");
+                    Debug.Log(String.Format(LogStr.INFO_SYSTEM, "Quest", $"change global state to [{questState.state}]"));
                     StateChanged?.Invoke(this);
 
                     // States are sorted in descending order, when executing the largest further conditions cannot be checked.

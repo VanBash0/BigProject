@@ -1,8 +1,10 @@
 using BigProject.Intercatable;
+using BigProject.Managers;
+using BigProject.Systems;
 using BigProject.Utilities;
+using System;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.EventSystems;
 
 namespace BigProject.Player
 {
@@ -20,47 +22,62 @@ namespace BigProject.Player
         private bool _isMoving;
 
         private Camera _camera;
+        private SceneLoadManager _sceneLoader;
 
         private const string MOVING_ANIM_BOOL = "IsMoving";
 
         public bool IsMoving => _isMoving;
 
-        public void Init(PlayerInputHandler inputHandler)
+        public void Init(PlayerInputHandler inputHandler, SceneLoadManager sceneLoader)
         {
             _inputHandler = inputHandler;
-            ExceptionUtilities.ThrowIfNull(_inputHandler, gameObject.name, "player input handler is null!");
+            _sceneLoader = sceneLoader;
+            ExceptionUtilities.ThrowIfNull(_inputHandler, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "PlayerInputHandler"));
+            ExceptionUtilities.ThrowIfNull(_sceneLoader, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "SceneLoadManager"));
+            _navMeshAgent.updateRotation = false;
         }
 
         private void Start()
         {
-            _camera = GetComponent<Camera>();
-            if (_camera == null)
-            {
-                _camera = Camera.main;
-            }
-
-            _navMeshAgent.updateRotation = false;
+            FindCamera();
         }
 
         private void OnEnable()
         {
             _inputHandler.Click += OnClick;
+            _sceneLoader.SceneLoadingCompleted += OnSceneLoadingCompleted;
         }
         private void OnDisable()
         {
             _inputHandler.Click -= OnClick;
+            _sceneLoader.SceneLoadingCompleted -= OnSceneLoadingCompleted;
+        }
+
+        private void OnSceneLoadingCompleted() => FindCamera();
+
+        private void FindCamera()
+        {
+            _camera = GetComponent<Camera>();
+
+            if (_camera == null)
+            {
+                _camera = Camera.main;
+            }
         }
 
         private void OnClick()
         {
+            if (GameplayUtilities.IsPointerOverUI())
+            {
+                return;
+            }
+
             Vector2 mousePosition = _inputHandler.GetMousePosition();
             Ray ray = _camera.ScreenPointToRay(mousePosition);
 
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if (Physics.Raycast(ray, out RaycastHit hit) 
+                )
             {
-                if (EventSystem.current.IsPointerOverGameObject())
-                    return;
-                
                 if (NavMesh.SamplePosition(hit.point, out NavMeshHit navMeshHit, _navMeshHitPointDistance, NavMesh.AllAreas))
                 {
                     SetDestination(navMeshHit.position);

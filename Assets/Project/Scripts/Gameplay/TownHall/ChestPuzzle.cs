@@ -1,12 +1,17 @@
 using BigProject.Gameplay.Common;
 using BigProject.Intercatable;
 using BigProject.Managers;
+using BigProject.Player;
+using BigProject.Settings;
 using BigProject.Systems;
+using BigProject.Systems.HUD;
 using BigProject.Systems.Inventory;
+using BigProject.Systems.QuestSystem;
 using BigProject.UI;
 using BigProject.Utilities;
 using DG.Tweening;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,6 +31,26 @@ namespace BigProject.Gameplay.TownHall
         private List<int> _correctKeysIds;
         [SerializeField]
         private Transform _chestCup;
+        [SerializeField]
+        private string _brokenKeyItemName;
+        [SerializeField]
+        private float _brokenKeyMovingTime;
+        [SerializeField]
+        private float _keysMovingTime;
+        [SerializeField]
+        private float _openChestMovingTime;
+        [SerializeField]
+        private QuestActionHandlersContainer _actionHandlers;
+        [SerializeField]
+        private string _actionTryBrokenKeyName;
+        [SerializeField]
+        private string _actionOpenName;
+        [SerializeField]
+        private string _noteItemName;
+        [SerializeField]
+        private float _timeBeforeClue;
+        [SerializeField]
+        private HUDConfig _hudConfig;
 
         private InventorySystem _inventory;
         private InventoryUI _inventoryUI;
@@ -34,7 +59,18 @@ namespace BigProject.Gameplay.TownHall
         private List<string> _keysNames = new();
         private DataToSave _dataToSave = new();
         private ProgressManager _progressManager;
-        private bool _hasChanges;
+        private bool _returnToInventory = true;
+        private HUD _hud;
+        private PlayerInputHandler _inputHandler;
+        private Coroutine _clueCoroutine;
+
+        private readonly Vector3 BROKEN_KEY_PART_1_MOVING_OFFSET = new(0.24f, -0.3f, 0f);
+        private readonly Vector3 BROKEN_KEY_PART_1_ROTATION_OFFSET = new(-0f, 270f, 360f);
+        private readonly Vector3 BROKEN_KEY_PART_2_MOVING_OFFSET = new(0f, -0.1f, 0f);
+        private readonly Vector3 BROKEN_KEY_PART_2_ROTATION_OFFSET = new(0f, -90f, 0f);
+        private readonly Vector3 CHEST_CUP_OPEN_ROTATION_OFFSET = new(110f, 0f, 0f);
+        private readonly Vector3 KEYS_ROTATION_OFFSET = new(180f, 0f, 0f);
+
 
         [Serializable]
         private class DataToSave
@@ -54,21 +90,26 @@ namespace BigProject.Gameplay.TownHall
 
         public object SavingData => _dataToSave;
 
-        public void Init(InventorySystem inventory, InventoryUI inventoryUI, ProgressManager progressManager)
+        public void Init(InventorySystem inventory, InventoryUI inventoryUI, ProgressManager progressManager, HUD hud, PlayerInputHandler inputHandler)
         {
             _inventory = inventory;
             _inventoryUI = inventoryUI;
             _progressManager = progressManager;
+            _hud = hud;
+            _inputHandler = inputHandler;
             ExceptionUtilities.ThrowIfNull(_inventory, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Gameplay Manager"));
             ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
-            ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Progress Manager"));
-            _hasChanges = false;
+            ExceptionUtilities.ThrowIfNull(_progressManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Progress Manager"));
+            ExceptionUtilities.ThrowIfNull(_hud, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "HUD"));
+            ExceptionUtilities.ThrowIfNull(_inputHandler, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
         }
 
         private void Awake()
         {
             Assert.IsNotNull(_activator, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Activator"));
             Assert.IsNotNull(_chestCup, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Chest cup"));
+            Assert.IsNotNull(_actionHandlers, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Quest action handler"));
+            Assert.IsNotNull(_hudConfig, string.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "HUD Config"));
             _keysIds = Enumerable.Repeat(-1, _keysHolders.Count).ToList();
         }
 
@@ -77,25 +118,34 @@ namespace BigProject.Gameplay.TownHall
             _progressManager.LoadAdditionalData(this);
         }
 
-        private void OnDestroy()
-        {
-            if (_hasChanges)
-            {
-                _progressManager.SaveAdditionalData(this);
-            }
-        }
-
         public void OnLoad()
         {
             foreach (DataToSave.HolderKeyPair holderKeyPair in _dataToSave.keysData)
             {
                 SetKeyToHolder(holderKeyPair.keyName, holderKeyPair.holderId, holderKeyPair.keyId);
             }
+
+            MoveElement(_chestCup, Vector3.zero, CHEST_CUP_OPEN_ROTATION_OFFSET, 0f);
         }
 
         public void Interact()
         {
             _activator.ActivateMiniGame();
+
+            if (_actionHandlers[_actionOpenName].CurrentState == QuestActionState.Active)
+            {
+                _hud.ShowWidget(_hudConfig.HUDResetWidgetId);
+
+                if (_keys.Count == 0)
+                {
+                    if (_clueCoroutine != null)
+                    {
+                        StopCoroutine(_clueCoroutine);
+                    }
+
+                    _clueCoroutine = StartCoroutine(ClueRoutine());
+                }
+            }
         }
 
         public void InstallKey(string itemName, int keyHolderId, int keyPrefabId)
@@ -111,6 +161,12 @@ namespace BigProject.Gameplay.TownHall
                 _inventory.RemoveItemByName(itemName);
             }
 
+            if (itemName.Equals(_brokenKeyItemName))
+            {
+                RemoveBrokenKey();
+                return;
+            }
+
             _dataToSave.keysData.Add(new DataToSave.HolderKeyPair() 
             {
                 keyName = itemName,
@@ -118,12 +174,57 @@ namespace BigProject.Gameplay.TownHall
                 keyId = keyPrefabId 
             });
 
-            _hasChanges = true;
+            if (_clueCoroutine != null)
+            {
+                StopCoroutine(_clueCoroutine);
+            }
 
             if (IsAllKeysInside())
             {
                 ApplyKeys();
             }
+        }
+
+        private void RemoveBrokenKey()
+        {
+            _keysNames.Clear();
+            GameObject key = _keys.ElementAtOrDefault(0);
+            _keys.Clear();
+            ResetKeysIds();
+            
+            if (key != null)
+            {
+                StartCoroutine(RemoveBrokenKeyRoutine(key.transform));
+            }
+        }
+
+        private IEnumerator RemoveBrokenKeyRoutine(Transform key)
+        {
+            Transform partOne = key.GetChild(0);
+            Transform partTwo = key.GetChild(1);
+
+            if (partOne == null || partTwo == null)
+            {
+                Debug.LogError(String.Format(LogStr.ERROR_QUEST, "unable to get broken key part"));
+                yield break;
+            }
+
+            MoveElement(partOne, BROKEN_KEY_PART_1_MOVING_OFFSET, BROKEN_KEY_PART_1_ROTATION_OFFSET, _brokenKeyMovingTime);
+            MoveElement(partTwo, BROKEN_KEY_PART_2_MOVING_OFFSET, BROKEN_KEY_PART_2_ROTATION_OFFSET, _brokenKeyMovingTime);
+            _actionHandlers[_actionTryBrokenKeyName].MakeTransition(0);
+            yield return new WaitForSeconds(_brokenKeyMovingTime + 0.1f);
+            Destroy(key.gameObject);
+            _activator.DeactivateMiniGame();
+        }
+
+        private void MoveElement(Transform key, Vector3 positionOffset, Vector3 anglesOffset, float time)
+        {
+            Vector3 newPosition = key.localPosition;
+            Vector3 newAngles = key.localEulerAngles;
+            newPosition += positionOffset;
+            newAngles += anglesOffset;
+            key.DOLocalRotate(newAngles, time);
+            key.DOLocalMove(newPosition, time);
         }
 
         private bool SetKeyToHolder(string itemName, int keyHolderId, int keyPrefabId)
@@ -151,9 +252,9 @@ namespace BigProject.Gameplay.TownHall
             }
 
             GameObject key = Instantiate(keyPrefab, keyHolder);
-            key.transform.localPosition = new(0f, 0f, -0.5f);
-            key.transform.eulerAngles = new(0f, 90f, -90f);
-            key.transform.localScale = new(2f, 2f, 2f);
+            key.transform.localPosition = new(0f, 0.02f, 0f);
+            key.transform.localEulerAngles = new(0f, -90f, -90f);
+            key.transform.localScale = new(1.2f, 1.2f, 1.2f);
             _keys.Add(key);
             _keysIds[keyHolderId] = keyPrefabId;
             _keysNames.Add(itemName);
@@ -164,44 +265,54 @@ namespace BigProject.Gameplay.TownHall
         {
             if (IsCorrectKeys())
             {
-                Vector3 targetAngles = _chestCup.transform.localEulerAngles;
-                targetAngles.x -= 90f;
-                _chestCup.DOLocalRotate(targetAngles, 2f);
+                _hud.HideWidget(_hudConfig.HUDResetWidgetId);
+                MoveElement(_chestCup, Vector3.zero, CHEST_CUP_OPEN_ROTATION_OFFSET, _openChestMovingTime);
 
                 foreach (GameObject key in _keys)
                 {
-                    targetAngles = key.transform.localEulerAngles;
-                    targetAngles.x += 180f;
-                    key.transform.DOLocalRotate(targetAngles, 2f);
+                    MoveElement(key.transform, Vector3.zero, KEYS_ROTATION_OFFSET, _keysMovingTime);
                 }
 
+                _inventory.RemoveItemByName(_noteItemName);
+                _actionHandlers[_actionOpenName].MakeTransition(0);
+                _returnToInventory = false;
                 _activator.DeactivateMiniGame();
             }
             else
             {
-                for (int i = 0; i < _keysIds.Count; i++)
-                {
-                    _keysIds[i] = -1;
-                }
+                ResetKeys();
+            }
+        }
 
-                foreach (GameObject key in _keys)
-                {
-                    Destroy(key);
-                }
+        private void ResetKeysIds()
+        {
+            for (int i = 0; i < _keysIds.Count; i++)
+            {
+                _keysIds[i] = -1;
+            }
+        }
 
-                _keys.Clear();
+        private void ResetKeys()
+        {
+            ResetKeysIds();
 
+            foreach (GameObject key in _keys)
+            {
+                Destroy(key);
+            }
+
+            _keys.Clear();
+
+            if (_returnToInventory)
+            {
                 foreach (string itemName in _keysNames)
                 {
                     _inventory.AddItemByName(itemName);
                 }
-
-                _keysNames.Clear();
             }
 
+            _keysNames.Clear();
             _dataToSave.keysData.Clear();
-            _progressManager.DeleteAdditionalData(Key);
-            _hasChanges = false;
         }
 
         private bool IsCorrectKeys()
@@ -218,5 +329,46 @@ namespace BigProject.Gameplay.TownHall
         }
 
         private bool IsAllKeysInside() => !_keysIds.Contains(-1);
+
+        private void OnActivated(bool isActivated)
+        {
+            if (!isActivated && _actionHandlers[_actionOpenName].CurrentState != QuestActionState.Completed)
+            {
+                ResetKeys();
+            }
+        }
+
+        private IEnumerator ClueRoutine()
+        {
+            yield return new WaitForSeconds(_timeBeforeClue);
+
+            if (_activator.IsActivated)
+            {
+                ReplicaManager.ShowReplica("Связь есть");
+            }
+        }
+
+        private void OnEnable()
+        {
+            _activator.Activated += OnActivated;
+            _actionHandlers[_actionOpenName].StateChanged += OnStateChanged;
+            _inputHandler.Reset += ResetKeys;
+        }
+
+        private void OnDisable()
+        {
+            _activator.Activated -= OnActivated;
+            _actionHandlers[_actionOpenName].StateChanged -= OnStateChanged;
+            _inputHandler.Reset -= ResetKeys;
+        }
+
+        private void OnStateChanged()
+        {
+            if (_actionHandlers[_actionOpenName].CurrentState == QuestActionState.Completed)
+            {
+                //ReplicaManager.ShowReplica("Ура!!!");
+                _progressManager.SaveAdditionalData(this);
+            }
+        }
     }
 }

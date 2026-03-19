@@ -31,6 +31,7 @@ namespace BigProject.UI
             _image.sprite = item._itemSprite;
             _camera = camera;
             _item = item;
+
             if (item._noteSprite != null && noteImage != null)
             {
                 noteImage.sprite = item._noteSprite;
@@ -99,12 +100,12 @@ namespace BigProject.UI
             {
                 if (itemModifier.ItemSprite != null)
                 {
-                    AddModifierOnParent(itemModifier.ItemSprite, itemModifier.ItemUV, _image.transform);
+                    AddModifierOnParent(itemModifier.ItemSprite, itemModifier.ItemUV, _image.transform, itemModifier.ItemScale);
                 }
 
                 if (itemModifier.NoteSprite != null && _noteObject != null)
                 {
-                    AddModifierOnParent(itemModifier.NoteSprite, itemModifier.NoteUV, _noteObject.transform);
+                    AddModifierOnParent(itemModifier.NoteSprite, itemModifier.NoteUV, _noteObject.transform, itemModifier.NoteScale);
                 }
             }
         }
@@ -115,7 +116,7 @@ namespace BigProject.UI
         /// <param name="sprite">Modifier sprite.</param>
         /// <param name="UV">UV coords from 0 to 1.</param>
         /// <param name="parent">Parent transform.</param>
-        private void AddModifierOnParent(Sprite sprite, Vector2 UV, Transform parent)
+        private void AddModifierOnParent(Sprite sprite, Vector2 UV, Transform parent, float scale)
         {
             GameObject modifierObj = new GameObject("Modifier", typeof(RectTransform), typeof(Image));
             modifierObj.transform.SetParent(parent, false);
@@ -125,6 +126,7 @@ namespace BigProject.UI
             rect.anchorMin = anchorPos;
             rect.anchorMax = anchorPos;
             rect.anchoredPosition = Vector2.zero;
+            rect.localScale = new(scale, scale);
             Image image = modifierObj.GetComponent<Image>();
             image.sprite = sprite;
         }

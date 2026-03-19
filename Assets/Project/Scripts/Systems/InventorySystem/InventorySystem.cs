@@ -127,7 +127,7 @@ namespace BigProject.Systems.Inventory
                 }
             }
 
-            GameLogManager.Info("Added item to inventory");
+            GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "InventorySystem", $"add item {value}"));
             OnInventoryUpdated?.Invoke();
         }
         
@@ -143,7 +143,7 @@ namespace BigProject.Systems.Inventory
 
             _heldItems[_heldItems.Count - 1] = -1;
 
-            GameLogManager.Info("Removed item from inventory");
+            GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "InventorySystem", $"remove item {id}"));
             OnInventoryUpdated?.Invoke();
         }
 
@@ -157,7 +157,7 @@ namespace BigProject.Systems.Inventory
         {
             if (itemID >= _itemsDatabase._items.Count)
             {
-                Debug.LogError($"itemID out of itemsDB bounds");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"itemID out of itemsDB bounds"));
                 return;
             }
 
@@ -168,7 +168,7 @@ namespace BigProject.Systems.Inventory
         {
             if (_itemsDatabase._items.Where(x => x._name.Equals(itemName)).Count() == 0)
             {
-                Debug.LogError($"Item {itemName} does not exist in itemsDB");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"item {itemName} does not exist in itemsDB"));
                 return;
             }
             
@@ -180,7 +180,7 @@ namespace BigProject.Systems.Inventory
         {
             if (!_modifiersDatabase.TryGetModifier(itemModifierName, out ItemModifier itemModifier))
             {
-                Debug.LogError(String.Format(LogStr.ERROR_QUEST, $"has no modifier {itemModifierName}"));
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"has no modifier {itemModifierName}"));
                 return;
             }
 
@@ -188,7 +188,7 @@ namespace BigProject.Systems.Inventory
 
             if (!HasItemByName(itemName))
             {
-                Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"has no item {itemName} to add modifier {itemModifierName}"));
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "InventorySystem", $"has no item {itemName} to add modifier {itemModifierName}"));
                 return;
             }
 
@@ -200,11 +200,12 @@ namespace BigProject.Systems.Inventory
             }
             else if (_itemsModifiers[itemName].Contains(itemModifier))
             {
-                Debug.LogWarning(String.Format(LogStr.WARNING_QUEST, $"already has modifier {itemModifierName} on item {itemName}"));
+                Debug.LogWarning(String.Format(LogStr.WARNING_SYSTEM, "InventorySystem", $"already has modifier {itemModifierName} on item {itemName}"));
                 return;
             }
 
             _itemsModifiers[itemName].Add(itemModifier);
+            GameLogManager.Info(String.Format(LogStr.INFO_SYSTEM, "InventorySystem", $"add modifier \"{itemModifierName}\""));
             OnInventoryUpdated?.Invoke();
         }
 
@@ -215,20 +216,20 @@ namespace BigProject.Systems.Inventory
         {
             if (_heldItems.Count == 0)
             {
-                Debug.LogError("Can't remove an item from an empty inventory");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"can't remove item {itemID} from empty inventory"));
                 return;
             }
 
             if (itemID >= _itemsDatabase._items.Count)
             {
-                Debug.LogError($"itemID out of itemsDB bounds");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"item id {itemID} out of itemsDB bounds"));
                 return;
             }
 
             int itemInventoryID = _heldItems.IndexOf(itemID);
             if (itemInventoryID == -1)
             {
-                Debug.LogError($"Item with id {itemID} does not exist in inventory");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"item {itemID} does not exist in inventory"));
                 return;
             }
 
@@ -239,21 +240,22 @@ namespace BigProject.Systems.Inventory
         {
             if (_heldItems.Count == 0)
             {
-                Debug.LogError("Can't remove an item from an empty inventory");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"can't remove item {itemName} from empty inventory"));
                 return;
             }
 
             if (_itemsDatabase._items.Where(x => x._name == itemName).Count() == 0)
             {
-                Debug.LogError($"Item {itemName} does not exist in itemsDB");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"item {itemName} does not exist in itemsDB"));
                 return;
             }
 
             int itemID = _itemsDatabase._items.IndexOf(_itemsDatabase._items.Where(x => x._name == itemName).First());
             int itemInventoryID = _heldItems.IndexOf(itemID);
+
             if (itemInventoryID == -1)
             {
-                Debug.LogError($"Item {itemName} does not exist in inventory");
+                Debug.LogError(String.Format(LogStr.ERROR_SYSTEM, "InventorySystem", $"item {itemName} does not exist in inventory"));
                 return;
             }
 
@@ -279,7 +281,9 @@ namespace BigProject.Systems.Inventory
         public bool HasItemByName(string itemName)
         {
             if (_heldItems.Where((x) => x != -1 && _itemsDatabase._items[x]._name.Equals(itemName)).Count() == 0)
+            {
                 return false;
+            }
 
             return true;
         }
@@ -290,7 +294,9 @@ namespace BigProject.Systems.Inventory
         public bool HasItemByID(int itemID)
         {
             if (_heldItems.Where((x) => x == itemID).Count() == 0)
+            {
                 return false;
+            }
 
             return true;
         }
@@ -304,12 +310,17 @@ namespace BigProject.Systems.Inventory
         public List<Item> GetAllHeldItems()
         {
             List<Item> items = new List<Item>();
+
             foreach (int id in _heldItems)
             {
                 if (id == -1)
+                {
                     break;
+                }
+
                 items.Add(_itemsDatabase._items[id]);
             }
+
             return items;
         }
     }

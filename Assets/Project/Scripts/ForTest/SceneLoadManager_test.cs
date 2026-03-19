@@ -6,8 +6,8 @@ namespace BigProject.Managers
 {
     public class SceneLoadManager_test : MonoBehaviour
     {
-        private const Scenes Scene1 = Scenes.SceneLoaderManager_test_1;
-        private const Scenes Scene2 = Scenes.SceneLoaderManager_test_2;
+        //private const Scenes Scene1 = Scenes.SceneLoaderManager_test_1;
+        //private const Scenes Scene2 = Scenes.SceneLoaderManager_test_2;
 
         private SceneLoadManager _sceneLoaderManager;
 
@@ -27,8 +27,8 @@ namespace BigProject.Managers
             if (!Keyboard.current.lKey.wasPressedThisFrame)
                 return;
 
-            Scenes nextScene = SceneManager.GetActiveScene().name == Scene1.ToString() ? Scene2 : Scene1;
-            _sceneLoaderManager.LoadScene(nextScene);
+            //Scenes nextScene = SceneManager.GetActiveScene().name == Scene1.ToString() ? Scene2 : Scene1;
+            //_sceneLoaderManager.LoadScene(nextScene);
         }
     }
 }

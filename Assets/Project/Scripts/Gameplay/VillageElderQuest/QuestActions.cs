@@ -1,0 +1,91 @@
+using BigProject.Managers;
+using BigProject.Systems;
+using BigProject.Systems.Inventory;
+using BigProject.UI;
+using BigProject.Utilities;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Assertions;
+
+namespace BigProject.Gameplay.VillageElderQuest
+{
+    public class QuestActions : MonoBehaviour
+    {
+        [SerializeField]
+        private string _bagItemName;
+        [SerializeField]
+        private GameObject _bag;
+        [SerializeField]
+        private GameObject _ambassador;
+        [SerializeField]
+        private List<string> _keysItemsNames;
+        [SerializeField]
+        private GameObject _enterVillageTrigger;
+
+        private InventorySystem _inventory;
+        private InventoryUI _inventoryUI;
+        private GameplayManager _gameplayManager;
+
+        public void Init(InventorySystem inventory, InventoryUI inventoryUI, GameplayManager gameplayManager)
+        {
+            _inventory = inventory;
+            _inventoryUI = inventoryUI;
+            _gameplayManager = gameplayManager;
+            ExceptionUtilities.ThrowIfNull(_inventory, String.Format(gameObject.name, "Inventory System"));
+            ExceptionUtilities.ThrowIfNull(_inventoryUI, String.Format(gameObject.name, "Inventory UI"));
+            ExceptionUtilities.ThrowIfNull(_gameplayManager, String.Format(gameObject.name, "Gameplay Manager"));
+        }
+
+        private void Start()
+        {
+            Assert.IsNotNull(_bag, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Bag"));
+            Assert.IsNotNull(_ambassador, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, gameObject.name, "Ambassador"));
+        }
+
+        public void ShowBag()
+        {
+            _bag.SetActive(true);
+        }
+
+        public void GetBag()
+        {
+            _inventory.AddItemByName(_bagItemName);
+            ReplicaManager.ShowReplica("Bag");
+        }
+
+        public void RemoveBag()
+        {
+            RemoveAmbassador();
+            _inventory.RemoveItemByName(_bagItemName);
+            GameplayUtilities.DoAfterConditionRoutine(() => _gameplayManager.State == GameplayState.Play, () => ReplicaManager.ShowReplica("К кузнецу надо!"));
+        }
+
+        public void AmbassadorAppearance()
+        {
+            _inventoryUI.SetNoteVisibility(false);
+            _ambassador.SetActive(true);
+        }
+
+        public void RemoveAmbassador()
+        {
+            if (_ambassador != null)
+            {
+                Destroy(_ambassador);
+            }
+        }
+
+        public void GetKeys()
+        {
+            foreach (string key in _keysItemsNames)
+            {
+                _inventory.AddItemByName(key);
+            }
+        }
+
+        public void EnterVillage()
+        {
+            _enterVillageTrigger.SetActive(true);
+        }
+    }
+}

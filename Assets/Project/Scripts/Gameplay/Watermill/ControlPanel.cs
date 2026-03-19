@@ -63,22 +63,34 @@ namespace BigProject.Gameplay.Watermill
         private List<Lever> _levers;
         [SerializeField]
         private List<Transform> _leversPoints;
+        [SerializeField]
+        private AudioClip _fixedMillMusic;
+        [SerializeField]
+        private float _musicFadeInTime = 0.1f;
+        [SerializeField]
+        private float _musicFadeOutTime = 0.1f;
 
         private PlayerInputHandler _inputHandler;
         private InventorySystem _inventory;
         private IControlPanelState _state;
+        private ControlPanelState _currentPanelState;
         private bool _isLeverMoving;
         private Vector2 _deltaInversion = new(-1f, 1f);
         private GameplayManager _gameplayManager;
+        private MusicManager _musicManager;
 
-        public void Init(GameplayManager gameplayManager, PlayerInputHandler inputHandler, InventorySystem inventory)
+        public ControlPanelState CurrentPanelState => _currentPanelState;
+
+        public void Init(GameplayManager gameplayManager, PlayerInputHandler inputHandler, InventorySystem inventory, MusicManager musicManager)
         {
             _gameplayManager = gameplayManager;
             _inputHandler = inputHandler;
             _inventory = inventory;
+            _musicManager = musicManager;
             ExceptionUtilities.ThrowIfNull(_gameplayManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Gameplay Manager"));
             ExceptionUtilities.ThrowIfNull(_inputHandler, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Player Input Handler"));
             ExceptionUtilities.ThrowIfNull(_inventory, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Inventory System"));
+            ExceptionUtilities.ThrowIfNull(_musicManager, String.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "Music Manager"));
             ChangeState(ControlPanelState.Broken);
         }
 
@@ -108,6 +120,11 @@ namespace BigProject.Gameplay.Watermill
         public void Deactivate()
         {
             _activator.DeactivateMiniGame();
+        }
+
+        public void PlayFixedMusic()
+        {
+            _musicManager.PlayMusic(_fixedMillMusic, _musicFadeOutTime, _musicFadeInTime, true);
         }
 
         public async Awaitable MoveLever(Transform lever, Vector3 targetPosition, float time, CancellationToken ct)
@@ -168,9 +185,10 @@ namespace BigProject.Gameplay.Watermill
         public void ChangeState(ControlPanelState newState)
         {
             _state?.Dispose();
-            GameLogManager.Info($"Control panel change state to: {newState}");
+            _currentPanelState = newState;
+            GameLogManager.Info($"Control panel change state to: {_currentPanelState}");
 
-            switch (newState)
+            switch (_currentPanelState)
             {
                 case ControlPanelState.Broken:
                     _state = new ControlPanelStateBroken(this, _inputHandler, _brokenLever, 

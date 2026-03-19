@@ -19,6 +19,7 @@ namespace BigProject.Systems
         public const string INFO_QUEST = "Quest progress: {0}.";
 
         public const string WARNING_UNHANDLED_SYSTEM_MESSAGE_TYPE = "Unhandled sysytem message type!\nMessage:\n{0}.";
+        public const string WARNING_SCENE_NOT_FOUND = "Scene {0} not found in build settings!";
         public const string WARNING_SAME_SCENE = "You are trying to load already loaded scene.";
         public const string WARNING_GAME_EXECUTION_INCORRECT_STAGE = "Game execution try move to incorrect stage: {0}.";
         public const string WARNING_GAME_EXECUTION_REWRITE_STAGE = "Game execution already at stage: {0}.";
@@ -36,9 +37,9 @@ namespace BigProject.Systems
         public const string CRITICAL_NOT_SERIALIZED_FIELD = "{0}: has not serialized field [{1}].";
         public const string CRITICAL_NULL_REFERENCE = "{0}: get null reference [{1}].";
 
-        public const string INFO_SYSTEM = "Info from system [{0}]: {1}.";
-        public const string WARNING_SYSTEM = "Warning in system [{0}]: {1}.";
-        public const string ERROR_SYSTEM = "Error in system [{0}]: {1}.";
-        public const string CRITICAL_SYSTEM = "Critical in system [{0}]: {1}.";
+        public const string INFO_SYSTEM = "System \"{0}\" info: {1}.";
+        public const string WARNING_SYSTEM = "System \"{0}\" warning: {1}.";
+        public const string ERROR_SYSTEM = "System \"{0}\" error: {1}.";
+        public const string CRITICAL_SYSTEM = "System \"{0}\" critical error: {1}.";
     }
 }
