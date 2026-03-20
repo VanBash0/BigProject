@@ -1,25 +1,27 @@
+using BigProject.Intercatable.HighlightedObjects;
 using BigProject.Managers;
+using BigProject.Managers.CursorManager;
 using BigProject.Player;
 using BigProject.Settings;
 using BigProject.Systems;
+using BigProject.Managers.CutsceneManager;
 using BigProject.Systems.HUD;
 using BigProject.Systems.Inventory;
 using BigProject.Systems.Inventory.ItemsModifiers;
+using BigProject.Systems.QuestSystem;
 using BigProject.UI;
-using BigProject.UI.Dialogue;
 using BigProject.UI.Common;
+using BigProject.UI.Dialogue;
 using BigProject.UI.Replica;
 using BigProject.Utilities;
 using System;
-using UnityEngine;
-using UnityEngine.Assertions;
-using BigProject.Systems.QuestSystem;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Assertions;
+using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
-using BigProject.Managers.CursorManager;
-using BigProject.Intercatable.HighlightedObjects;
 
 namespace BigProject.Initializers
 {
@@ -50,6 +52,8 @@ namespace BigProject.Initializers
         private PlayerController _playerControllerPrefab;
         [SerializeField]
         private GameObject _cursorManagerPrefab;
+        [SerializeField]
+        private CutscenesConfig _cutscenesConfig;
 
         [field: SerializeField]
         public Scenes _sceneToLoad; // For feature load progress
@@ -71,6 +75,7 @@ namespace BigProject.Initializers
         private List<QuestSwitch> _questsSwitches = new();
         private QuestsBoundariesTracker _questsTracker;
         private PlayerSpawner _playerSpawner;
+        private CutsceneManager _cutsceneManager;
 
         private static bool _isInstantiated;
 
@@ -96,6 +101,9 @@ namespace BigProject.Initializers
             Assert.IsNotNull(_journalConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "Journal Config"));
             Assert.IsNotNull(_questSwitchConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "QuestSwitchConfig"));
             Assert.IsNotNull(_questTrackerConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "QuestTrackerConfig"));
+            Assert.IsNotNull(_playerControllerPrefab, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "PlayerController Prefab"));
+            Assert.IsNotNull(_cursorManagerPrefab, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "CursorManager Prefab"));
+            Assert.IsNotNull(_cutscenesConfig, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Gameplay Entry Point", "CutscenesConfig"));
 
             GameObject gameplayServices = new GameObject("GameplayServices");
             transform.parent = gameplayServices.transform; // For dispose after gameplay exit
@@ -133,8 +141,10 @@ namespace BigProject.Initializers
             InitHUD();
             _questJournal.Init();
             AddQuestsSwitches(progressManager);
-            CreatePlayer();
-            CreateCursorManager();
+            SceneLoadManager sceneLoader = ServiceLocator.GetService<SceneLoadManager>();
+            CreatePlayer(sceneLoader);
+            CreateCursorManager(sceneLoader);
+            CreateCutsceneManager(sceneLoader);
             GameLogManager.Info(LogStr.INFO_INITIALIZING_GAMEPLAY_SERVICES_COMPLETED);
         }
 
@@ -217,10 +227,9 @@ namespace BigProject.Initializers
             }
         }
 
-        private void CreatePlayer()
+        private void CreatePlayer(SceneLoadManager sceneLoader)
         {
             PlayerController playerController = Instantiate(_playerControllerPrefab);
-            SceneLoadManager sceneLoader = ServiceLocator.GetService<SceneLoadManager>();
             playerController.Init(_playerInput, sceneLoader);
             playerController.transform.parent = transform.parent;
             ServiceLocator.AddService(playerController);
@@ -235,7 +244,7 @@ namespace BigProject.Initializers
             }
         }
 
-        private void CreateCursorManager()
+        private void CreateCursorManager(SceneLoadManager sceneLoader)
         {
             GameObject cursorManagerObject = Instantiate(_cursorManagerPrefab, transform.parent);
             CursorManager cursorManager = cursorManagerObject.GetComponent<CursorManager>();
@@ -248,13 +257,28 @@ namespace BigProject.Initializers
                 return;
             }
 
-            highlighter.Init(ServiceLocator.GetService<SceneLoadManager>(), cursorManager);
+            highlighter.Init(sceneLoader, cursorManager);
             cursorManagerObject.SetActive(true);
 
             // For case when run from gameplay scene.
             if (!string.Equals(Scenes.MainMenu.ToString(), SceneManager.GetActiveScene().name))
             {
                 highlighter.RestartChecking();
+            }
+        }
+
+        private void CreateCutsceneManager(SceneLoadManager sceneLoader)
+        {
+            GameObject cutsceneManagerObject = new("CutsceneManager");
+            cutsceneManagerObject.transform.SetParent(transform.parent);
+            PlayableDirector director = cutsceneManagerObject.AddComponent<PlayableDirector>();
+            _cutsceneManager = new(director, sceneLoader, _cutscenesConfig);
+            ServiceLocator.AddService(_cutsceneManager);
+
+            // For case when run from gameplay scene.
+            if (!string.Equals(Scenes.MainMenu.ToString(), SceneManager.GetActiveScene().name))
+            {
+                _cutsceneManager.FindActors();
             }
         }
 
@@ -293,6 +317,7 @@ namespace BigProject.Initializers
 
             _questsTracker?.Dispose();
             _playerSpawner?.Dispose();
+            _cutsceneManager?.Dispose();
             Destroy(transform.parent.gameObject);
         }
     }

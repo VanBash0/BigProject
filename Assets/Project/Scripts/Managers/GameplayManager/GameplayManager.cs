@@ -14,7 +14,8 @@ namespace BigProject.Managers
         MiniGame,
         Map,
         Inventory,
-        Pause
+        Pause,
+        Cutscene
     }
 
     /// <summary>
@@ -44,7 +45,7 @@ namespace BigProject.Managers
         /// <param name="id">Queue id</param>
         public void AddQueueToState(GameplayState state, int id)
         {
-            if (_tickQueueIds.TryGetValue(state, out var stateIds))
+            if (_tickQueueIds.TryGetValue(state, out List<int> stateIds))
             {
                 stateIds.Add(id);
             }
@@ -80,7 +81,7 @@ namespace BigProject.Managers
             _state = state;
             StateChanged?.Invoke(_state);
 
-            if (_tickQueueIds.TryGetValue(_state, out var nextIds))
+            if (_tickQueueIds.TryGetValue(_state, out List<int> nextIds))
             {
                 foreach (int id in nextIds)
                 {
