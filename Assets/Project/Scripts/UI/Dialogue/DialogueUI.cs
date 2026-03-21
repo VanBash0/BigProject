@@ -10,6 +10,9 @@ namespace BigProject.UI.Dialogue
 {
     public class DialogueUI : MonoBehaviour
     {
+        private const string BOY_NAME = "Эйрик";
+        private const float ANIMATION_DURATION = 0.3f;
+        private string DIALOGUE_ANIM_TRIGGER = "Pressed";
         [SerializeField]
         public GameObject _dialogueWindow;
         [SerializeField]
@@ -38,20 +41,20 @@ namespace BigProject.UI.Dialogue
         private GameObject _rightCharacterNameField;
 
         [SerializeField]
-        private float _speakerImageAlpha = 0.8f;
-        [SerializeField]
         private float _speakerImageTone = 0.5f;
 
         [SerializeField]
         private List<Button> _answerOptionButtons = new List<Button>();
 
+        private DialogueManager _dialogueManager;
+
         private List<TextMeshProUGUI> _answerOptionButtonTexts = new List<TextMeshProUGUI>();
         private TextMeshProUGUI _leftNameTMPro;
         private TextMeshProUGUI _rightNameTMPro;
 
-        private string DIALOGUE_ANIM_TRIGGER = "Pressed";
         private bool _answerWasShownPreviousFrame = false;
         private bool _isFirstLine;
+        private bool _isAnimating = false;
         public void Init(DialogueManager dialogueManager)
         {
             for (int i = 0; i < _answerOptionButtons.Count; i++)
@@ -72,8 +75,20 @@ namespace BigProject.UI.Dialogue
             _leftNameTMPro = _leftCharacterNameField.GetComponentInChildren<TextMeshProUGUI>();
             _rightNameTMPro = _rightCharacterNameField.GetComponentInChildren<TextMeshProUGUI>();
 
-            // Обработчик нажатия на кнопку "Продолжить"
-            _nextButton.onClick.AddListener(() => dialogueManager.ShowNextStep());
+            _dialogueManager = dialogueManager;
+            _nextButton.onClick.AddListener(() => StartCoroutine(WaitAnimationEndAndShowNextStep()));
+        }
+
+        private IEnumerator WaitAnimationEndAndShowNextStep()
+        {
+            if (!_isAnimating)
+            {
+                _isAnimating = true;
+                // Обработчик нажатия на кнопку "Продолжить"
+                _dialogueManager.ShowNextStep();
+                yield return new WaitForSeconds(ANIMATION_DURATION);
+                _isAnimating = false;
+            }
         }
 
         public void HideAnswerOptions()
@@ -86,8 +101,8 @@ namespace BigProject.UI.Dialogue
 
         public void ShowAnswerOptions(DialogueLine dialogueLine)
         {
-            SetImageAlpha(_rightCharacterImage, _speakerImageTone, _speakerImageAlpha);
-            SetImageAlpha(_leftCharacterImage, 1f, 1f);
+            SetDarkenCharacter(_rightCharacterImage, _speakerImageTone);
+            SetDarkenCharacter(_leftCharacterImage, 1f);
             // Включаем отображение кнопки продолжить и текст NPC
             _nextButton.gameObject.SetActive(false);
             _dialogueTextFront.gameObject.SetActive(false);
@@ -96,6 +111,19 @@ namespace BigProject.UI.Dialogue
             // Saying Player (left character)
             _leftCharacterNameField.SetActive(true);
             _rightCharacterNameField.SetActive(false);
+
+            // Change character sprites
+            if (dialogueLine.StartLeftCharacterSprite)
+            {
+                _leftCharacterImage.sprite = dialogueLine.StartLeftCharacterSprite;
+            }
+            if (dialogueLine.StartRightCharacterSprite)
+            {
+                _rightCharacterImage.sprite = dialogueLine.StartRightCharacterSprite;
+            }
+
+            // Answer options only for Boy
+            _leftNameTMPro.text = BOY_NAME;
 
             // Количество кнопок, которые нужно показать
             int buttonCount = Mathf.Min(
@@ -125,15 +153,30 @@ namespace BigProject.UI.Dialogue
         }
         public void ShowNPCPhrase(DialogueNPCPhrase dialogueNPCPhrase)
         {
-            SetImageAlpha(_leftCharacterImage, _speakerImageTone, _speakerImageAlpha);
-            SetImageAlpha(_rightCharacterImage, 1f, 1f);
-            // Saying NPC (right character)
-            _leftCharacterNameField.SetActive(false);
-            _rightCharacterNameField.SetActive(true);
-            _rightNameTMPro.text = dialogueNPCPhrase.Name;
-            // Включаем отображение кнопки продолжить и текст NPC
+            if (dialogueNPCPhrase.IsRightSpeaker)
+            {
+                // Saying NPC (right character)
+                SetDarkenCharacter(_leftCharacterImage, _speakerImageTone);
+                SetDarkenCharacter(_rightCharacterImage, 1f);
+                _rightNameTMPro.text = dialogueNPCPhrase.Name;
+            } 
+            else
+            {
+                // Saying NPC (left character)
+                SetDarkenCharacter(_rightCharacterImage, _speakerImageTone);
+                SetDarkenCharacter(_leftCharacterImage, 1f);
+                _leftNameTMPro.text = dialogueNPCPhrase.Name;
+            }
+
+            _rightCharacterImage.sprite = dialogueNPCPhrase.RightCharacterSprite;
+            _leftCharacterImage.sprite = dialogueNPCPhrase.LeftCharacterSprite;
+
+            _leftCharacterNameField.SetActive(!dialogueNPCPhrase.IsRightSpeaker);
+            _rightCharacterNameField.SetActive(dialogueNPCPhrase.IsRightSpeaker);
+            // Включаем возможность продолжить
             _nextButton.gameObject.SetActive(true);
-            _rightCharacterImage.sprite = dialogueNPCPhrase.CharacterSprite;
+
+
 
             if (_isFirstLine)
             {
@@ -176,10 +219,10 @@ namespace BigProject.UI.Dialogue
             _answerWasShownPreviousFrame = false;
         }
 
-        private void SetImageAlpha(Image image, float tone, float alpha)
+        private void SetDarkenCharacter(Image characterImage, float tone)
         {
-            Color color = new(tone, tone, tone, alpha);
-            image.color = color;
+            Color color = new Color(tone, tone, tone);
+            characterImage.color = color;
         }
     }
 }

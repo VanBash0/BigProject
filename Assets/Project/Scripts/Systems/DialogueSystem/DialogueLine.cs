@@ -8,6 +8,9 @@ namespace BigProject.Systems.DialogueSystem
     {
         public List<DialogueNPCPhrase> DialogueNPCPhrases = new List<DialogueNPCPhrase>();
         public List<DialogueAnswerOption> DialogueAnswerOptions = new List<DialogueAnswerOption>();
+
+        public Sprite StartLeftCharacterSprite;
+        public Sprite StartRightCharacterSprite;
     }
 }
 
