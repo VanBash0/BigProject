@@ -7,5 +7,6 @@ namespace BigProject.Systems.DialogueSystem
     {
         public string Text;
         public DialogueLine DialogueLine;
+        public bool IsStoryOption = false;
     }
 }

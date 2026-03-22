@@ -8,7 +8,9 @@ namespace BigProject.Systems.DialogueSystem
         // Идентификатор фразы. Если указан, то будет вызываться событие OnDialogueStep
         public int Id = 0;
         public string Name = "";
-        public string Text;
-        public Sprite CharacterSprite;
+        public string Text = "";
+        public Sprite LeftCharacterSprite;
+        public Sprite RightCharacterSprite;
+        public bool IsRightSpeaker = true;
     }
 }
