@@ -76,6 +76,7 @@ namespace BigProject.UI.Dialogue
             _rightNameTMPro = _rightCharacterNameField.GetComponentInChildren<TextMeshProUGUI>();
 
             _dialogueManager = dialogueManager;
+            // Обработчик нажатия на кнопку "Продолжить"
             _nextButton.onClick.AddListener(() => StartCoroutine(WaitAnimationEndAndShowNextStep()));
         }
 
@@ -84,7 +85,6 @@ namespace BigProject.UI.Dialogue
             if (!_isAnimating)
             {
                 _isAnimating = true;
-                // Обработчик нажатия на кнопку "Продолжить"
                 _dialogueManager.ShowNextStep();
                 yield return new WaitForSeconds(ANIMATION_DURATION);
                 _isAnimating = false;
