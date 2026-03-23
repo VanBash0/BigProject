@@ -25,7 +25,9 @@ namespace BigProject.Gameplay.Watermill
             GameplayManager gameplayManager = ServiceLocator.GetService<GameplayManager>();
             PlayerInputHandler inputHandler = ServiceLocator.GetService<PlayerInputHandler>();
             _controlPanel.Init(gameplayManager, inputHandler, ServiceLocator.GetService<InventorySystem>(), musicManager);
-            _miniGameActivator.Init(gameplayManager, inputHandler, ServiceLocator.GetService<InventoryUI>());
+            PlayerController player = ServiceLocator.GetService<PlayerController>();
+            _miniGameActivator.Init(gameplayManager, inputHandler, ServiceLocator.GetService<InventoryUI>(), player.GetComponent<Collider>(),
+                player.GetComponentInChildren<SkinnedMeshRenderer>());
         }
     }
 }

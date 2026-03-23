@@ -10,13 +10,15 @@ namespace BigProject.Managers
     {
         MainMenu,
         Village,
-        Watermill,
         TownHall,
+        Watermill
     }
 
     public class SceneLoadManager : IDisposable
     {
         public event Action<Scenes> SceneLoaded;
+        public event Action SceneLoadingStarted;
+        public event Action SceneLoadingCompleted;
 
         private const string FADER_PREFAB_PATH = "Prefabs/Fader";
 
@@ -87,9 +89,12 @@ namespace BigProject.Managers
                 yield return null;
             }
 
+            SceneLoadingStarted?.Invoke();
+
             // 2. Загрузка сцены
-            var async = SceneManager.LoadSceneAsync(sceneName);
+            AsyncOperation async = SceneManager.LoadSceneAsync(sceneName);
             async.allowSceneActivation = false;
+            async.completed += NotifyLoadingCompleted;
 
             while (async.progress < 0.9f)
             {
@@ -112,6 +117,15 @@ namespace BigProject.Managers
             }
 
             _isLoading = false;
+        }
+
+        /// <summary>
+        /// Notify when old scene unloaded and new one is loaded.
+        /// </summary>
+        private void NotifyLoadingCompleted(AsyncOperation loading)
+        {
+            SceneLoadingCompleted?.Invoke();
+            loading.completed -= NotifyLoadingCompleted;
         }
         
         public void Dispose()

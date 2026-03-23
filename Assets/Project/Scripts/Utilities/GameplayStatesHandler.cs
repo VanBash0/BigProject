@@ -48,6 +48,7 @@ namespace BigProject.Utilities
                     _input.SwitchToMiniGameActionMap();
                     break;
                 case GameplayState.Dialogue:
+                case GameplayState.Cutscene:
                     _hud.HideWidget(_hudConfig.HUDInventoryWidgetId);
                     _input.SwitchToMiniGameActionMap();
                     break;

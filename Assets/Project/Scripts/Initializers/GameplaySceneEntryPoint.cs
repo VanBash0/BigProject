@@ -2,12 +2,12 @@ using BigProject.Managers;
 using BigProject.Systems.QuestSystem;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Assertions;
-using BigProject.Player;
 using BigProject.Systems;
-using System;
 using BigProject.NPC;
-using System.Linq;
+using BigProject.Gameplay.Common;
+using BigProject.Player;
+using BigProject.Intercatable.HighlightedObjects;
+using BigProject.Managers.CursorManager;
 
 namespace BigProject.Initializers
 {
@@ -16,8 +16,6 @@ namespace BigProject.Initializers
     /// </summary>
     public class GameplaySceneEntryPoint : MonoBehaviour
     {
-        [SerializeField]
-        private PlayerController _playerController;
         [SerializeField, Tooltip("Actions to execute for early initialize.")]
         private UnityEvent _initActions;
 
@@ -29,54 +27,82 @@ namespace BigProject.Initializers
                 Bootstrapper.SetStage(GameExecutionStage.Gameplay);
             }
 #endif
-
-            Assert.IsNotNull(_playerController, String.Format(LogStr.CRITICAL_NOT_SERIALIZED_FIELD, "Scene Entry Point", "Player Controller"));
             GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES);
-            _playerController.Init(ServiceLocator.GetService<PlayerInputHandler>());
             ProgressManager pm = ServiceLocator.GetService<ProgressManager>();
+            InitQuestHandlers(pm);
+            InitInteractable(pm);
+            InitDoors();
+            InitDialogueNPCs();
+            InitCursorChangingEffects();
+            GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);
+            _initActions?.Invoke();
+        }
 
-            var actionsHandlers = FindObjectsByType<QuestActionHandlerMono>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        private void InitQuestHandlers(ProgressManager progressManager)
+        {
+            QuestActionHandlerMono[] actionsHandlers = FindObjectsByType<QuestActionHandlerMono>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestActionHandlerMono actionHandler in actionsHandlers)
             {
-                actionHandler.Init(pm);
+                actionHandler.Init(progressManager);
             }
 
-            var actionHandlersContainers = FindObjectsByType<QuestActionHandlersContainer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            QuestActionHandlersContainer[] actionHandlersContainers = FindObjectsByType<QuestActionHandlersContainer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestActionHandlersContainer container in actionHandlersContainers)
             {
-                container.Init(pm);
-            }
-
-            QuestInteractableHandler[] interactableHandlers = FindObjectsByType<QuestInteractableHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-
-            foreach (QuestInteractableHandler interactableHandler in interactableHandlers)
-            {
-                interactableHandler.Init(pm);
+                container.Init(progressManager);
             }
 
             QuestTriggerHandler[] triggersHandlers = FindObjectsByType<QuestTriggerHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (QuestTriggerHandler triggerHandler in triggersHandlers)
             {
-                triggerHandler.Init(pm);
+                triggerHandler.Init(progressManager);
             }
+        }
 
-            InitDialogueNPCs();
+        private void InitInteractable(ProgressManager progressManager)
+        {
+            QuestInteractableHandler[] interactableHandlers = FindObjectsByType<QuestInteractableHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
-            GameLogManager.Info(LogStr.INFO_INITIALIZING_SCENE_SERVICES_COMPLETED);
-            _initActions?.Invoke();
+            foreach (QuestInteractableHandler interactableHandler in interactableHandlers)
+            {
+                interactableHandler.Init(progressManager);
+            }
+        }
+
+        private void InitDoors()
+        {
+            MovingNextSceneHandler[] movingHandlers = FindObjectsByType<MovingNextSceneHandler>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            SceneLoadManager sceneLoader = ServiceLocator.GetService<SceneLoadManager>();
+            PlayerSpawner playerSpawner = ServiceLocator.GetService<PlayerSpawner>();
+
+            foreach (MovingNextSceneHandler movingHandler in movingHandlers)
+            {
+                movingHandler.Init(sceneLoader, playerSpawner);
+            }
         }
 
         private void InitDialogueNPCs()
         {
-            var dialogueNPCs = FindObjectsByType<DialogNPC>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            DialogNPC[] dialogueNPCs = FindObjectsByType<DialogNPC>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             DialogueManager dialogueManager = ServiceLocator.GetService<DialogueManager>();
 
             foreach (DialogNPC dialogueNPC in dialogueNPCs)
             {
                 dialogueNPC.Init(dialogueManager);
+            }
+        }
+
+        private void InitCursorChangingEffects()
+        {
+            CursorChangingEffect[] cursorChangingEffects = FindObjectsByType<CursorChangingEffect>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            CursorManager cursorManager = ServiceLocator.GetService<CursorManager>();
+
+            foreach (CursorChangingEffect cursorChangingEffect in cursorChangingEffects)
+            {
+                cursorChangingEffect.Init(cursorManager);
             }
         }
     }

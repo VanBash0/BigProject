@@ -1,3 +1,7 @@
+using BigProject.Managers;
+using BigProject.Managers.CursorManager;
+using BigProject.Systems;
+using BigProject.Utilities;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -6,16 +10,26 @@ namespace BigProject.Intercatable.HighlightedObjects
 {
     public class InteractableObjectsHighlighter : MonoBehaviour
     {
-        [SerializeField] private float _objectCheckDelay;
-        [SerializeField] private Camera _camera;
+        [SerializeField] 
+        private float _objectCheckDelay = 0.1f;
 
+        private Camera _camera;
+        private SceneLoadManager _sceneLoader;
         private WaitForSeconds _objectCheckWait;
         private HighlightedObject _currentObject;
+        private CursorManager _cursorManager;
+
+        public void Init(SceneLoadManager sceneLoader, CursorManager cursorManager)
+        {
+            _sceneLoader = sceneLoader;
+            _cursorManager = cursorManager;
+            ExceptionUtilities.ThrowIfNull(_sceneLoader, string.Format(LogStr.CRITICAL_NULL_REFERENCE, gameObject.name, "SceneLoadManager"));
+            ExceptionUtilities.ThrowIfNull(_cursorManager, string.Format(LogStr.CRITICAL_NULL_REFERENCE, "InteractableObjectsHighlighter", "CursorManager"));
+        }
 
         private void Awake()
         {
             _objectCheckWait = new(_objectCheckDelay);
-            StartCoroutine(ObjectCheckRoutine());
         }
 
         // Корутина проверяет, наведён ли курсор на выделяемый предмет, если да - вызывает его эффекты
@@ -64,6 +78,26 @@ namespace BigProject.Intercatable.HighlightedObjects
 
                 yield return _objectCheckWait;
             }
+        }
+
+        public void RestartChecking()
+        {
+            _camera = Camera.main;
+            StopAllCoroutines();
+            _cursorManager.ResetToDefault();
+            StartCoroutine(ObjectCheckRoutine());
+        }
+
+        private void OnEnable()
+        {
+            _sceneLoader.SceneLoadingStarted += StopAllCoroutines;
+            _sceneLoader.SceneLoadingCompleted += RestartChecking;
+        }
+
+        private void OnDisable()
+        {
+            _sceneLoader.SceneLoadingStarted -= StopAllCoroutines;
+            _sceneLoader.SceneLoadingCompleted -= RestartChecking;
         }
     }
 }

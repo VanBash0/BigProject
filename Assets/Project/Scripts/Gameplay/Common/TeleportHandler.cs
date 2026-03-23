@@ -2,31 +2,18 @@ using BigProject.Managers;
 using BigProject.Systems;
 using UnityEngine;
 
-namespace BigProject.Gameplay
+namespace BigProject.Gameplay.Common
 {
     /// <summary>
     /// Trigger area to new scene.
     /// </summary>
-    public class TeleportHandler : MonoBehaviour
+    public class TeleportHandler : MovingNextSceneHandler
     {
-        [SerializeField]
-        private Scenes _sceneToLoad;
-
         private void OnTriggerEnter(Collider other)
         {
-            if (other.tag != "Player")
+            if (other.tag == "Player")
             {
-                return;
-            }
-
-            if (ServiceLocator.TryGetService(out SceneLoadManager sceneLoader))
-            {
-                sceneLoader.LoadScene(_sceneToLoad);
-            }
-            else
-            {
-                string msg = string.Format(LogStr.CRITICAL_UNABLE_GET_SERVICE, gameObject.name, typeof(SceneLoadManager));
-                Debug.LogError(msg);
+                Move();
             }
         }
     }

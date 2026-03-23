@@ -12,6 +12,14 @@ namespace BigProject.Utilities
             {
                 throw new NullReferenceException(msg);
             }
+
+            if (arg is UnityEngine.Object unityObj)
+            {
+                if (!unityObj)
+                {
+                    throw new NullReferenceException(msg);
+                }
+            }
         }
 
         public static void ThrowIfNull(object arg, string author, string msg = "Null reference exception.")
